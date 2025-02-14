@@ -28,6 +28,4 @@ jobs:
         working-directory: SEON_6441  # Set correct working directory
         run: mvn -B package
 
-      # Optional: Upload dependency graph
-      - name: Update dependency graph
-        uses: advanced-security/maven-dependency-submission-action@571e99aab1055c2e71a1e2309b9691de18d6b7d6
+     
