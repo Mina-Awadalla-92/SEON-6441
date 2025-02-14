@@ -26,6 +26,7 @@
                 <version>3.4.1</version>
                 <configuration>
                     <failOnError>false</failOnError>  <!-- Prevents Javadoc build failures -->
+                    <additionalJOptions>-Xdoclint:none</additionalJOptions>
                 </configuration>
                 <executions>
                     <execution>
