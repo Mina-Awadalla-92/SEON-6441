@@ -24,8 +24,8 @@ jobs:
           java-version: '17'
 
       - name: Build and generate Javadoc
-        working-directory: SEON_6441  # Ensure Maven runs in the correct folder
-        run: mvn javadoc:javadoc
+        working-directory: SEON_6441
+        run: mvn javadoc:javadoc -X -e  # Enables debug and error logs
 
       - name: Debug - List Generated Javadoc Files
         working-directory: SEON_6441
