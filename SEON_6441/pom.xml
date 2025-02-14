@@ -17,32 +17,26 @@
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
-    <build>
-        <plugins>
-            <!-- Javadoc Plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.4.1</version>
-                <configuration>
-                    <failOnError>false</failOnError>  <!-- Prevents Javadoc build failures -->
-                    <additionalJOptions>-Xdoclint:none</additionalJOptions>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>generate-javadocs</id>
-                        <goals>
-                            <goal>javadoc</goal>  <!-- Generates standard Javadoc HTML files -->
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>  <!-- Generates Javadoc JAR -->
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+   <build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.4.1</version>
+            <configuration>
+                <destDir>${project.build.directory}/site/apidocs</destDir>
+                <failOnError>true</failOnError> <!-- Ensure it fails if there's an issue -->
+            </configuration>
+            <executions>
+                <execution>
+                    <id>generate-javadocs</id>
+                    <goals>
+                        <goal>javadoc</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+
 </project>
