@@ -29,7 +29,7 @@ jobs:
 
       - name: Debug - List Generated Javadoc Files
         working-directory: SEON_6441
-        run: ls -R target/site/apidocs || echo "Javadoc directory not found"
+        run: ls -R target/ || echo "No files found in target/"
 
       - name: Deploy Javadoc to GitHub Pages
         if: success()
