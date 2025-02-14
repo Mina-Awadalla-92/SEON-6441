@@ -22,21 +22,18 @@
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
-            <version>3.4.1</version>
-            <configuration>
-                <destDir>${project.build.directory}/site/apidocs</destDir>
-                <failOnError>true</failOnError> <!-- Ensure it fails if there's an issue -->
-            </configuration>
+            <version>3.3.1</version>
             <executions>
                 <execution>
-                    <id>generate-javadocs</id>
+                    <id>attach-javadocs</id>
                     <goals>
-                        <goal>javadoc</goal>
+                        <goal>jar</goal>
                     </goals>
                 </execution>
             </executions>
         </plugin>
     </plugins>
 </build>
+
 
 </project>
