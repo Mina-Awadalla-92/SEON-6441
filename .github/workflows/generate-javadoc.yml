@@ -36,4 +36,4 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
-          folder: SEON_6441/target/site/apidocs  # Ensure correct Javadoc path
+          folder: SEON_6441/target/reports/apidocs  # Ensure correct Javadoc path
