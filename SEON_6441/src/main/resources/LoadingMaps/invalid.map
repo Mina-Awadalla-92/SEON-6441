@@ -1,0 +1,39 @@
+; map: europe.map
+; map made with the map maker
+; yura.net Risk 1.0.9.5
+
+[files]
+pic bigeurope_pic.jpg
+map bigeurope_map.gif
+crd bigeurope.cards
+
+[continents]
+Scandinavia 5 #fff780
+Britian 5 #ff8097
+Spain 5 #8480ff
+Portugale 5 #ff9480
+France 5 #ff809e
+Belgium 5 #ff80b8
+North_Africa 5 #ffc580
+Epypt 5 #9480ff
+Turkey 5 #80fff2
+Greece 5 #ff80d9
+Russia 5 #ffe780
+
+[countries]
+s1
+s2
+s3
+s4
+s5
+s6
+s7
+
+[borders]
+1 10 2
+2 12 1 8 3
+3 2 4 6
+4 3 5 165
+5 4 126
+6 3 138 7
+7 6 8 9
