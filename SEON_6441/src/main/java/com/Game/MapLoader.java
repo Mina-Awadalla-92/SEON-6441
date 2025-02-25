@@ -42,6 +42,13 @@ public class MapLoader {
     }
 
     /**
+     * Sets the loaded map.
+     */
+    public void resetLoadedMap() {
+        this.d_loadedMap = new Map();;
+    }
+
+    /**
      * Reads a map from a file.
      *
      * @param p_fileName The name of the map file to read.
@@ -52,9 +59,12 @@ public class MapLoader {
         try {
             // First, try reading from the local filesystem
             File file = new File(p_fileName);
-            if (file.exists()) {
+            if (file.exists())
+            {
                 reader = new BufferedReader(new FileReader(file));
-            } else {
+            }
+            else
+            {
                 // Fallback to reading from classpath resources
                 InputStream inputStream = getClass().getClassLoader().getResourceAsStream(p_fileName);
                 if (inputStream != null) {

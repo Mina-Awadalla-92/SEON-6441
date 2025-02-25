@@ -1,59 +1,187 @@
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 package com.Game;
 
+import java.util.Scanner;
+
 public class GameEngine {
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
+
+    private static Map gameMap;
+    private static MapLoader mapLoader;
+    private static String mapFilePath;
+
+    public GameEngine() {
+        gameMap = new Map();
+        mapLoader = new MapLoader();
+    }
+
+    public void startGame() {
         System.out.println("Welcome to Warzone Game!");
 
-        //TESTING VALID MAP FILES
-        String path = "LoadingMaps/";
-        String fileName = "canada.map";
-        String fileName2 = "Not_Map.map";
+        Scanner scanner = new Scanner(System.in);
+        boolean isMapLoaded = false;
 
-        //-------------------------------------------t1-------------------------------------------
-        MapLoader test1 = new MapLoader();
-        if (test1.isValid(path + fileName)) {
-            System.out.println(fileName + " is a valid map.");
-            System.out.println("Reading file: " + fileName + "\n");
-            test1.read(path + fileName);
-            System.out.println(test1.getLoadedMap());
+        while (true) {
+            System.out.print("Enter command: ");
+            String input = scanner.nextLine().trim();
+            String[] commandParts = input.split("\\s+");
 
+            String command = commandParts[0];
 
-            System.out.println("==============================================================================> "  + "\n");
-            Map testMap = test1.getLoadedMap();
-
-            // Adding continents
-            testMap.addContinent("Asia", 6);
-            testMap.addContinent("Europe", 7);
-
-
-            // Adding countries
-            testMap.addCountry("India", "Asia");
-            testMap.addCountry("China", "Asia");
-            testMap.addCountry("France", "Europe");
-
-            // Adding neighbors
-            testMap.addNeighbor("India", "China");
-            testMap.addNeighbor("France", "China");
-
-            String editedFileName = "edited_" + fileName;
-            testMap.saveToFile(path + editedFileName);
-            System.out.println(testMap);
-
-            System.out.println("----------------------------------------------------------------------> "  + "\n");
-
-            if (test1.isValid(path + editedFileName))
+            if (command.equals("exit"))
             {
-                test1.read(path + editedFileName);
-                System.out.println(test1.getLoadedMap());
-                System.out.println("done reading the edited file"  + "\n");
+                System.out.println("Exiting the program.");
+                System.exit(0); // Exit the program
+            }
+            else if (!isMapLoaded && !command.equals("editmap"))
+            {
+                System.out.println("You must load/edit a map first using the 'load' command.");
+            }
+            else
+            {
+                switch (command) {
+                    // editcontinent -add continentID continentValue
+                    // editcontinent -remove continentID
+                    case "editcontinent":
+                        handleEditContinent(commandParts);
+                        break;
+                    // editcountry -add countryID continentID
+                    // editcountry -remove countryID
+                    case "editcountry":
+                        handleEditCountry(commandParts);
+                        break;
+                    // ditneighbor -add countryID neighborCountryID
+                    // ditneighbor -remove countryID neighborCountryID
+                    case "editneighbor":
+                        handleEditNeighbor(commandParts);
+                        break;
+                    // showmap
+                    case "showmap":
+                        handleShowMap();
+                        break;
+                    // savemap filename
+                    case "savemap":
+                        handleSaveMap(commandParts);
+                        break;
+                    // editmap filename
+                    case "editmap":
+                        isMapLoaded = true;
+                        handleEditMap(commandParts);
+                        break;
+                    // validatemap
+                    case "validatemap":
+                        handleValidateMap();
+                        break;
+                    default:
+                        System.out.println("Unknown command: " + command);
+                }
+            }
+        }
+    }
+
+    private static void handleEditContinent(String[] commandParts) {
+        if (commandParts.length == 4) {
+            String action = commandParts[1];
+            String continentID = commandParts[2];
+            int continentValue = Integer.parseInt(commandParts[3]);
+
+            if (action.equals("-add")) {
+                gameMap.addContinent(continentID, continentValue);
+                System.out.println("Continent added: " + continentID);
+            } else if (action.equals("-remove")) {
+                gameMap.removeContinent(continentID);
+                System.out.println("Continent removed: " + continentID);
+            } else {
+                System.out.println("Invalid action for editcontinent.");
             }
         } else {
-            System.out.println(fileName + " is an invalid map.");
-            System.out.println("Cannot read file: " + fileName + "\n");
+            System.out.println("Usage: editcontinent -add continentID continentValue -remove continentID");
+        }
+    }
+
+    private static void handleEditCountry(String[] commandParts) {
+        if (commandParts.length == 4) {
+            String action = commandParts[1];
+            String countryID = commandParts[2];
+            String continentID = commandParts[3];
+
+            if (action.equals("-add")) {
+                gameMap.addCountry(countryID, continentID);
+                System.out.println("Country added: " + countryID);
+            } else if (action.equals("-remove")) {
+                gameMap.removeCountry(countryID);
+                System.out.println("Country removed: " + countryID);
+            } else {
+                System.out.println("Invalid action for editcountry.");
+            }
+        } else {
+            System.out.println("Usage: editcountry -add countryID continentID -remove countryID");
+        }
+    }
+
+    private static void handleEditNeighbor(String[] commandParts) {
+        if (commandParts.length == 4) {
+            String action = commandParts[1];
+            String countryID = commandParts[2];
+            String neighborCountryID = commandParts[3];
+
+            if (action.equals("-add")) {
+                gameMap.addNeighbor(countryID, neighborCountryID);
+                System.out.println("Neighbor added between: " + countryID + " and " + neighborCountryID);
+            } else if (action.equals("-remove")) {
+                gameMap.removeNeighbor(countryID, neighborCountryID);
+                System.out.println("Neighbor removed between: " + countryID + " and " + neighborCountryID);
+            } else {
+                System.out.println("Invalid action for editneighbor.");
+            }
+        } else {
+            System.out.println("Usage: editneighbor -add countryID neighborCountryID -remove countryID neighborCountryID");
+        }
+    }
+
+    private static void handleShowMap() {
+        System.out.println(mapLoader.getLoadedMap());
+    }
+
+    private static void handleSaveMap(String[] commandParts) {
+        if (commandParts.length == 2) {
+            String filename = commandParts[1];
+            gameMap.saveToFile(filename);
+        } else {
+            System.out.println("Usage: savemap filename");
+        }
+    }
+
+    private static void handleEditMap(String[] commandParts) {
+        if (commandParts.length == 2) {
+            mapFilePath = commandParts[1];
+            mapLoader.resetLoadedMap();
+
+            boolean isMapValid = mapLoader.isValid(mapFilePath);
+            if(isMapValid)
+            {
+                mapLoader.read(mapFilePath);
+                System.out.println(mapFilePath + " is loaded successfully.");
+            }
+            else
+            {
+                System.out.println("The specified map is not exist, a new map is created.");
+            }
+
+
+            // gameMap = mapLoader.getLoadedMap();
+            //gameMap.getLoadedMap(filename);
+            //  System.out.println("Map loaded from file: " + filename);
+        } else {
+            System.out.println("Usage: editmap filename");
+        }
+    }
+
+    private static void handleValidateMap() {
+        // Call your map validation logic here
+        // For example, you could add a method to the `Map` class to validate it
+        if (mapLoader.isValid(mapFilePath)) {
+            System.out.println("Map is valid.");
+        } else {
+            System.out.println("Map is invalid.");
         }
 
     }
