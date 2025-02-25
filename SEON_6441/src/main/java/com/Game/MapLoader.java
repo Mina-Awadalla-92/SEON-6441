@@ -42,7 +42,7 @@ public class MapLoader {
     }
 
     /**
-     * Sets the loaded map.
+     * Resets the loaded map.
      */
     public void resetLoadedMap() {
         this.d_loadedMap = new Map();;
