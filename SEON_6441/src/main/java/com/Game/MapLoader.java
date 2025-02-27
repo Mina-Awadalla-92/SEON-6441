@@ -19,7 +19,6 @@ public class MapLoader {
      * Default constructor. Initializes the loaded map to null.
      */
     public MapLoader() {
-
         this.d_loadedMap = null;
     }
 
@@ -45,7 +44,7 @@ public class MapLoader {
      * Resets the loaded map.
      */
     public void resetLoadedMap() {
-        this.d_loadedMap = new Map();;
+        this.d_loadedMap = new Map();
     }
 
     /**
@@ -54,68 +53,115 @@ public class MapLoader {
      * @param p_fileName The name of the map file to read.
      */
     public void read(String p_fileName) {
-        BufferedReader reader = null;
+        BufferedReader l_reader = null;
 
         try {
             // First, try reading from the local filesystem
-            File file = new File(p_fileName);
-            if (file.exists())
-            {
-                reader = new BufferedReader(new FileReader(file));
-            }
-            else
-            {
+            File l_file = new File(p_fileName);
+            if (l_file.exists()) {
+                l_reader = new BufferedReader(new FileReader(l_file));
+            } else {
                 // Fallback to reading from classpath resources
-                InputStream inputStream = getClass().getClassLoader().getResourceAsStream(p_fileName);
-                if (inputStream != null) {
-                    reader = new BufferedReader(new InputStreamReader(inputStream));
+                String l_resourcePath = p_fileName;
+                // If path is in LoadingMaps folder but doesn't include it in the path
+                if (!l_resourcePath.contains("LoadingMaps/") && !l_resourcePath.contains("LoadingMaps\\")) {
+                    l_resourcePath = "LoadingMaps/" + l_resourcePath;
+                }
+                
+                InputStream l_inputStream = getClass().getClassLoader().getResourceAsStream(l_resourcePath);
+                if (l_inputStream != null) {
+                    l_reader = new BufferedReader(new InputStreamReader(l_inputStream));
                 } else {
-                    //System.err.println("File not found: " + fileName);
+                    System.err.println("File not found: " + p_fileName);
                     return;
                 }
             }
 
             d_loadedMap = new Map();
             // Reading the file content
-            String line;
-            List<String> continentNames = new ArrayList<>();
-            List<Integer> bonuses = new ArrayList<>();
-            List<Territory> territories = new ArrayList<>();
-            java.util.Map<String, Integer> continentMap = new HashMap<>();
+            String l_line;
+            List<String> l_continentNames = new ArrayList<>();
+            List<Integer> l_bonuses = new ArrayList<>();
+            List<Territory> l_territories = new ArrayList<>();
+            java.util.Map<String, Integer> l_continentMap = new HashMap<>();
 
-            while ((line = reader.readLine()) != null) {
-                if (line.equals("[continents]")) {
-                    while (!(line = reader.readLine()).isEmpty()) {
-                        String[] parts = line.split(" ");
-                        continentNames.add(parts[0]);
-                        bonuses.add(Integer.parseInt(parts[1]));
-                        continentMap.put(parts[0], Integer.parseInt(parts[1]));
+            while ((l_line = l_reader.readLine()) != null) {
+                // Skip comments and sections we don't need
+                if (l_line.startsWith(";") || l_line.equals("[files]")) {
+                    continue;
+                }
+                
+                if (l_line.equals("[continents]")) {
+                    while ((l_line = l_reader.readLine()) != null && !l_line.isEmpty() && !l_line.startsWith("[")) {
+                        // Skip comment lines
+                        if (l_line.startsWith(";")) continue;
+                        
+                        String[] l_parts = l_line.split(" ");
+                        l_continentNames.add(l_parts[0]);
+                        int l_bonus = Integer.parseInt(l_parts[1]);
+                        l_bonuses.add(l_bonus);
+                        l_continentMap.put(l_parts[0], l_bonus);
                     }
-                    d_loadedMap.setContinents(continentMap);
-                } else if (line.equals("[countries]")) {
-                    while (!(line = reader.readLine()).isEmpty()) {
-                        String[] parts = line.split(" ");
-                        Territory t = new Territory(parts[1], continentNames.get(Integer.parseInt(parts[2]) - 1), bonuses.get(Integer.parseInt(parts[2]) - 1));
-                        territories.add(t);
-                        d_loadedMap.addTerritory(t);
+                    d_loadedMap.setContinents(l_continentMap);
+                    
+                    // If we reached another section, rewind
+                    if (l_line != null && l_line.startsWith("[")) {
+                        continue;
                     }
-                } else if (line.equals("[borders]")) {
-                    while ((line = reader.readLine()) != null) {
-                        String[] parts = line.split(" ");
-                        Territory t = territories.get(Integer.parseInt(parts[0]) - 1);
-                        for (int i = 1; i < parts.length; i++) {
-                            t.addNeighbor(territories.get(Integer.parseInt(parts[i]) - 1));
+                } 
+                
+                if (l_line != null && l_line.equals("[countries]")) {
+                    while ((l_line = l_reader.readLine()) != null && !l_line.isEmpty() && !l_line.startsWith("[")) {
+                        // Skip comment lines
+                        if (l_line.startsWith(";")) continue;
+                        
+                        String[] l_parts = l_line.split(" ");
+                        if (l_parts.length >= 3) {
+                            int l_continentIndex = Integer.parseInt(l_parts[2]) - 1;
+                            if (l_continentIndex >= 0 && l_continentIndex < l_continentNames.size()) {
+                                Territory l_territory = new Territory(l_parts[1], l_continentNames.get(l_continentIndex), l_bonuses.get(l_continentIndex));
+                                l_territories.add(l_territory);
+                                d_loadedMap.addTerritory(l_territory);
+                            }
+                        }
+                    }
+                    
+                    // If we reached another section, continue to process it
+                    if (l_line != null && l_line.startsWith("[")) {
+                        continue;
+                    }
+                } 
+                
+                if (l_line != null && l_line.equals("[borders]")) {
+                    while ((l_line = l_reader.readLine()) != null && !l_line.isEmpty() && !l_line.startsWith("[")) {
+                        // Skip comment lines
+                        if (l_line.startsWith(";")) continue;
+                        
+                        String[] l_parts = l_line.split(" ");
+                        if (l_parts.length >= 1) {
+                            int l_territoryIndex = Integer.parseInt(l_parts[0]) - 1;
+                            if (l_territoryIndex >= 0 && l_territoryIndex < l_territories.size()) {
+                                Territory l_territory = l_territories.get(l_territoryIndex);
+                                for (int i = 1; i < l_parts.length; i++) {
+                                    int l_neighborIndex = Integer.parseInt(l_parts[i]) - 1;
+                                    if (l_neighborIndex >= 0 && l_neighborIndex < l_territories.size()) {
+                                        l_territory.addNeighbor(l_territories.get(l_neighborIndex));
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            System.err.println("Error parsing map file: " + e.getMessage());
             e.printStackTrace();
         } finally {
             try {
-                if (reader != null) {
-                    reader.close();
+                if (l_reader != null) {
+                    l_reader.close();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -130,43 +176,55 @@ public class MapLoader {
      * @return true if the map file is valid, false otherwise.
      */
     public boolean isValid(String p_mapFile) {
-        // Correct path relative to the resources folder
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream(p_mapFile);
-
-        if (inputStream == null) {
-            //System.err.println("File not found: " + mapFile);
-            return false;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line;
-
-            // Validate [continents] section
-            while ((line = reader.readLine()) != null && !line.equals("[continents]")) {}
-            if (line == null) return false;
-
-            while ((line = reader.readLine()) != null && !line.isEmpty()) {
-                String[] parts = line.split(" ");
-                if (parts.length < 2 || !parts[1].matches("\\d+")) return false;
+        // First try to check the local file
+        File l_file = new File(p_mapFile);
+        BufferedReader l_reader = null;
+        
+        try {
+            if (l_file.exists()) {
+                l_reader = new BufferedReader(new FileReader(l_file));
+            } else {
+                // Try with LoadingMaps prefix
+                String l_resourcePath = p_mapFile;
+                if (!l_resourcePath.contains("LoadingMaps/") && !l_resourcePath.contains("LoadingMaps\\")) {
+                    l_resourcePath = "LoadingMaps/" + l_resourcePath;
+                }
+                
+                InputStream l_inputStream = getClass().getClassLoader().getResourceAsStream(l_resourcePath);
+                if (l_inputStream == null) {
+                    return false;
+                }
+                l_reader = new BufferedReader(new InputStreamReader(l_inputStream));
             }
-
-            // Validate [countries] section
-            if ((line = reader.readLine()) == null || !line.equals("[countries]")) return false;
-            while ((line = reader.readLine()) != null && !line.isEmpty()) {
-                String[] parts = line.split(" ");
-                if (parts.length < 3 || !parts[0].matches("\\d+") || !parts[2].matches("\\d+")) return false;
+            
+            // Basic validation - check for required sections
+            boolean l_hasContinents = false;
+            boolean l_hasCountries = false;
+            boolean l_hasBorders = false;
+            
+            String l_line;
+            while ((l_line = l_reader.readLine()) != null) {
+                if (l_line.equals("[continents]")) {
+                    l_hasContinents = true;
+                } else if (l_line.equals("[countries]")) {
+                    l_hasCountries = true;
+                } else if (l_line.equals("[borders]")) {
+                    l_hasBorders = true;
+                }
             }
-
-            // Validate [borders] section
-            if ((line = reader.readLine()) == null || !line.equals("[borders]")) return false;
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split(" ");
-                if (parts.length < 1 || !parts[0].matches("\\d+")) return false; // Allow empty neighbor lists
-            }
+            
+            return l_hasContinents && l_hasCountries && l_hasBorders;
+            
         } catch (IOException e) {
-            e.printStackTrace();  // Log the error to see what went wrong
             return false;
+        } finally {
+            if (l_reader != null) {
+                try {
+                    l_reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        return true;
     }
 }
