@@ -1,4 +1,4 @@
-package com.Game;
+package com.Game.model.map;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

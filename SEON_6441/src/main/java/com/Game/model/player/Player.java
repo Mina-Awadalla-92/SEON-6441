@@ -1,8 +1,12 @@
-package com.Game;
+package com.Game.model.player;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import com.Game.model.map.Territory;
+import com.Game.model.order.DeployOrder;
+import com.Game.model.order.Order;
 
 /**
  * Represents a player in the game with territories and orders.

@@ -1,4 +1,6 @@
-package com.Game;
+package com.Game.model.order;
+
+import com.Game.model.player.Player;
 
 /**
  * Abstract class representing an order in the game.
@@ -43,7 +45,4 @@ public abstract class Order {
      */
     public abstract void execute();
     
-    public static void main(String[] args) {
-        // TODO Auto-generated method stub
-    }
 }

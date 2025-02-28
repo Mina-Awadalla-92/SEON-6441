@@ -1,7 +1,9 @@
-package com.Game;
+package com.Game.model.map;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.Game.model.player.Player;
 
 /**
  * Represents a territory in the game. A territory is associated with a continent, has a certain number of armies,
