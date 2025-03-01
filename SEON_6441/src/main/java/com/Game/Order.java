@@ -5,13 +5,13 @@ package com.Game;
  */
 public abstract class Order {
     
-    protected Player d_issuer;
+    protected Player l_issuer;
     
     /**
      * Default constructor initializing the issuer to null.
      */
     public Order() {
-        this.d_issuer = null;
+        this.l_issuer = null;
     }
     
     /**
@@ -19,7 +19,7 @@ public abstract class Order {
      * @param p_issuer The player issuing the order
      */
     public Order(Player p_issuer) {
-        this.d_issuer = p_issuer;
+        this.l_issuer = p_issuer;
     }
     
     /**
@@ -27,7 +27,7 @@ public abstract class Order {
      * @param p_order The order to copy
      */
     public Order(Order p_order) {
-        this.d_issuer = p_order.d_issuer;
+        this.l_issuer = p_order.l_issuer;
     }
     
     /**
@@ -35,7 +35,7 @@ public abstract class Order {
      * @return The player issuing the order
      */
     public Player getIssuer() {
-        return d_issuer;
+        return l_issuer;
     }
     
     /**

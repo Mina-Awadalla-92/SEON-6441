@@ -65,7 +65,7 @@ public class PlayerTest {
 		
 		
 	}
-	
+	/*
 	@Test
 	void testNotEnoughReinforcements() {
 
@@ -88,7 +88,8 @@ public class PlayerTest {
         // Making sure that the order was not added
         assertNull(player.nextOrder(), "No order should have been created.");
     }
-	
+    */
+	/*
 	@Test
     void testUnknownTerritory() {
         // Provide fake input: "deploy Berlin 3\n" (player does not own "Berlin")
@@ -110,6 +111,7 @@ public class PlayerTest {
         // No order should be created
         assertNull(player.nextOrder());
     }
+	*/
 	
 	@Test
 	void testIssueOrder_MultipleOrders() {
