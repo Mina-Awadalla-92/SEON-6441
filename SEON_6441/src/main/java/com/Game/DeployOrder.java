@@ -5,8 +5,8 @@ package com.Game;
  */
 public class DeployOrder extends Order {
     
-    private Territory l_targetTerritory; 
-    private int l_numberOfArmies; // The number of armies deployed in the target territory
+    private Territory d_targetTerritory; 
+    private int d_numberOfArmies; // The number of armies deployed in the target territory
 
     /**
      * Default constructor.
@@ -23,8 +23,8 @@ public class DeployOrder extends Order {
      */
     public DeployOrder(Player p_issuer, Territory p_targetTerritory, int p_numberOfArmies) {
         super(p_issuer);
-        this.l_targetTerritory = p_targetTerritory;
-        this.l_numberOfArmies = p_numberOfArmies;
+        this.d_targetTerritory = p_targetTerritory;
+        this.d_numberOfArmies = p_numberOfArmies;
     }
     
     /**
@@ -32,7 +32,9 @@ public class DeployOrder extends Order {
      * @param p_order The order to copy
      */
     public DeployOrder(DeployOrder p_order) {
-        this.l_issuer = p_order.l_issuer;
+        this.d_issuer = p_order.d_issuer;
+        this.d_targetTerritory = p_order.d_targetTerritory;
+        this.d_numberOfArmies = p_order.d_numberOfArmies;
     }
     
     /**
@@ -40,13 +42,14 @@ public class DeployOrder extends Order {
      */
     @Override
     public void execute() {
-        int l_currentNumberOfArmies = this.l_targetTerritory.getNumOfArmies();
-        l_targetTerritory.setNumOfArmies(l_currentNumberOfArmies + l_numberOfArmies);
+        int l_currentNumberOfArmies = this.d_targetTerritory.getNumOfArmies();
+        this.d_targetTerritory.setNumOfArmies(l_currentNumberOfArmies + this.d_numberOfArmies);
         
-        System.out.println("Order Executed: " + this.l_targetTerritory.getName() + " has now " + this.l_targetTerritory.getNumOfArmies() + " armies.");
+        System.out.println("Order Executed: " + this.d_targetTerritory.getName() + " has now " 
+                           + this.d_targetTerritory.getNumOfArmies() + " armies.");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] p_args) {
         // TODO Auto-generated method stub
     }
 }

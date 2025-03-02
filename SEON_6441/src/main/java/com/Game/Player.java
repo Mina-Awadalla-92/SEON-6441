@@ -9,20 +9,20 @@ import java.util.Scanner;
  */
 public class Player {
 
-    private String l_name;
-    private int l_nbrOfReinforcementArmies;
-    private List<Territory> l_ownedTerritories;
-    private List<Order> l_orders;
+    private String d_name;
+    private int d_nbrOfReinforcementArmies;
+    private List<Territory> d_ownedTerritories;
+    private List<Order> d_orders;
 
     /**
      * Constructor initializing player with a name.
      * @param p_name Player's name
      */
     public Player(String p_name) {
-        this.l_name = p_name;
-        this.l_ownedTerritories = new ArrayList<>();
-        this.l_orders = new ArrayList<>();
-        this.l_nbrOfReinforcementArmies = 0;
+        this.d_name = p_name;
+        this.d_ownedTerritories = new ArrayList<>();
+        this.d_orders = new ArrayList<>();
+        this.d_nbrOfReinforcementArmies = 0;
     }
 
     /**
@@ -31,10 +31,10 @@ public class Player {
      * @param p_nbrOfReinforcementArmies Number of reinforcement armies
      */
     public Player(String p_name, int p_nbrOfReinforcementArmies) {
-        this.l_name = p_name;
-        this.l_ownedTerritories = new ArrayList<>();
-        this.l_orders = new ArrayList<>();
-        this.l_nbrOfReinforcementArmies = p_nbrOfReinforcementArmies;
+        this.d_name = p_name;
+        this.d_ownedTerritories = new ArrayList<>();
+        this.d_orders = new ArrayList<>();
+        this.d_nbrOfReinforcementArmies = p_nbrOfReinforcementArmies;
     }
 
     /**
@@ -42,7 +42,7 @@ public class Player {
      * @param p_territory Territory to be added
      */
     public void addTerritory(Territory p_territory) {
-        l_ownedTerritories.add(p_territory);
+        d_ownedTerritories.add(p_territory);
     }
 
     /**
@@ -50,7 +50,7 @@ public class Player {
      * @param p_territory Territory to be removed
      */
     public void removeTerritory(Territory p_territory) {
-        l_ownedTerritories.remove(p_territory);
+        d_ownedTerritories.remove(p_territory);
     }
 
     /**
@@ -61,13 +61,12 @@ public class Player {
     	Scanner l_scanner = new Scanner(System.in);
     	
     	while(true) {
-    		System.out.print(this.l_name + "'s order: ");
+    		System.out.print(this.d_name + "'s order: ");
             
             String l_command = l_scanner.nextLine();
             String[] l_commandParts = l_command.split(" ");
            
-
-            if (l_commandParts.length < 3) {
+            if (l_commandParts.length != 3) {
                 System.out.println("Invalid command format. Usage: <OrderType> <territoryName> <numArmies>");
                 continue;
             }
@@ -86,28 +85,23 @@ public class Player {
             Territory l_targetTerritory = findTerritoryByName(l_targetTerritoryName);
 
             if (l_targetTerritory == null) {
-                System.out.println("Territory not found!: " + l_commandParts[1]);
+                System.out.println("Territory not found!: " + l_targetTerritoryName);
                 continue;
             }
 
-            if (l_numberOfArmies > this.l_nbrOfReinforcementArmies) {
-                System.out.println("Not enough reinforcements. You have " + this.l_nbrOfReinforcementArmies + " available.");
+            if (l_numberOfArmies > this.d_nbrOfReinforcementArmies) {
+                System.out.println("Not enough reinforcements. You have " + this.d_nbrOfReinforcementArmies + " available.");
                 continue;
             }
             
-            
             if (l_orderType.equals("deploy")) {
                 DeployOrder l_deployOrder = new DeployOrder(this, l_targetTerritory, l_numberOfArmies);
-                l_orders.add(l_deployOrder);
-                this.l_nbrOfReinforcementArmies -= l_numberOfArmies;
+                d_orders.add(l_deployOrder);
+                this.d_nbrOfReinforcementArmies -= l_numberOfArmies;
                 System.out.println("Order issued: Deploy " + l_numberOfArmies + " armies to " + l_targetTerritoryName);
                 break;
             }
     	}
-        
-        
-
-        
     }
 
     /**
@@ -115,43 +109,43 @@ public class Player {
      * @return Next order or null if queue is empty.
      */
     public Order nextOrder() {
-        return l_orders.isEmpty() ? null : l_orders.remove(0);
+        return d_orders.isEmpty() ? null : d_orders.remove(0);
     }
 
     public int getNbrOfReinforcementArmies() {
-        return l_nbrOfReinforcementArmies;
+        return d_nbrOfReinforcementArmies;
     }
 
     public void setNbrOfReinforcementArmies(int p_nbrOfReinforcementArmies) {
-        this.l_nbrOfReinforcementArmies = p_nbrOfReinforcementArmies;
+        this.d_nbrOfReinforcementArmies = p_nbrOfReinforcementArmies;
     }
 
     public String getName() {
-        return l_name;
+        return d_name;
     }
 
     public void setName(String p_name) {
-        this.l_name = p_name;
+        this.d_name = p_name;
     }
 
     public List<Territory> getOwnedTerritories() {
-        return l_ownedTerritories;
+        return d_ownedTerritories;
     }
 
     public void setOwnedTerritories(List<Territory> p_ownedTerritories) {
-        this.l_ownedTerritories = p_ownedTerritories;
+        this.d_ownedTerritories = p_ownedTerritories;
     }
 
     public List<Order> getOrders() {
-        return l_orders;
+        return d_orders;
     }
 
     public void setOrders(List<Order> p_orders) {
-        this.l_orders = p_orders;
+        this.d_orders = p_orders;
     }
 
     public void clearOrders() {
-        this.l_orders.clear();
+        this.d_orders.clear();
     }
 
     /**
@@ -160,7 +154,7 @@ public class Player {
      * @return Territory object if found, else null
      */
     public Territory findTerritoryByName(String p_territoryName) {
-        for (Territory l_territory : l_ownedTerritories) {
+        for (Territory l_territory : d_ownedTerritories) {
             if (l_territory.getName().equals(p_territoryName)) {
                 return l_territory;
             }
@@ -170,11 +164,20 @@ public class Player {
 
     @Override
     public String toString() {
-        return "\nPlayer: " + this.l_name +
-               "\nNumber of Reinforcement Armies: " + this.l_nbrOfReinforcementArmies;
+        return "\nPlayer: " + this.d_name +
+               "\nNumber of Reinforcement Armies: " + this.d_nbrOfReinforcementArmies;
     }
 
     public static void main(String[] args) {
+    	/*
+        Player p1 = new Player("Ali");
+        Territory t1 = new Territory("Quebec", "Canada", 5);
+        t1.setOwner(p1);
+        p1.addTerritory(t1);
+        p1.setNbrOfReinforcementArmies(10);
         
+        p1.issueOrder();
+        p1.getOrders().get(0).execute();
+        */
     }
 }
