@@ -129,8 +129,14 @@ public class Map {
      * @param p_countryID The name of the country to remove.
      */
     public void removeCountry(String p_countryID) {
+        // First, remove p_countryID from the neighbor lists of all territories
+        for (Territory territory : l_territoryList) {
+            territory.getNeighborList().removeIf(neighbor -> neighbor.getName().equals(p_countryID));
+        }
+        // Then, remove the country itself from the territory list
         l_territoryList.removeIf(t -> t.getName().equals(p_countryID));
     }
+
 
     /**
      * Adds a neighboring relationship between two territories.
