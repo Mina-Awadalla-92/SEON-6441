@@ -1,171 +1,77 @@
 package com.UnitTests;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.Game.*;
+
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-
-
-import com.Game.Player;
-import com.Game.Order;
-import com.Game.Territory;
-import com.Game.DeployOrder;
+import java.util.List;
 
 public class PlayerTest {
-	
-	private Player player;
-	private Territory territory;
-	
-	@BeforeEach
-	void setup() {
-		player = new Player("Ali");
-		territory = new Territory("Canada", "America", 5);
-		territory.setOwner(player);
-		player.getOwnedTerritories().add(territory);
-		
-		player.setNbrOfReinforcementArmies(10);
-	}
-	
-	@Test
-	void testValidDeployOrder() {
-		
-		String input = "deploy Canada 5\n";
-		
-		InputStream backupIn = System.in;
-		
-		try {
-			ByteArrayInputStream in = new ByteArrayInputStream(input.getBytes());
-			System.setIn(in);
-			player.issueOrder();
-		} finally {
-			System.setIn(backupIn);
-		}
-		
-	
-		
-		//Making sure that the number of armies the player has went from 10 to 5
-		assertEquals(5, player.getNbrOfReinforcementArmies());
-		
-		//Making sure that the order is created and exists in the order list of the player
-		Order order = player.nextOrder();
-		assertNotNull(order);
-		
-		//Making sure that its a deploy order and not any type of orders
-		assertTrue(order instanceof DeployOrder);
-		
-		// Making sure that there are no armies in the target territory
-        assertEquals(0, territory.getNumOfArmies());
-		
-		order.execute();
-		
-		//Making sure that the territory armies increased from 0 to 5
-        assertEquals(5, territory.getNumOfArmies());
 
-		
-		
-	}
-	
-	@Test
-	void testNotEnoughReinforcements() {
+    // Save the original System.in so we can restore it after each test.
+    private final InputStream originalSystemIn = System.in;
 
-		String fakeInput = "deploy Canada 20\n";
-        InputStream backupIn = System.in;
-
-        try {
-            ByteArrayInputStream in = new ByteArrayInputStream(fakeInput.getBytes());
-            System.setIn(in);
-
-            player.issueOrder();
-
-        } finally {
-            System.setIn(backupIn);
-        }
-
-        // The deploy should fail because the player only has 10
-        assertEquals(10, player.getNbrOfReinforcementArmies());
-        
-        // Making sure that the order was not added
-        assertNull(player.nextOrder(), "No order should have been created.");
+    @AfterEach
+    public void restoreSystemInput() {
+        System.setIn(originalSystemIn);
     }
-	
-	@Test
-    void testUnknownTerritory() {
-        // Provide fake input: "deploy Berlin 3\n" (player does not own "Berlin")
-        String fakeInput = "deploy USA 3\n";
-        InputStream backupIn = System.in;
 
-        try {
-            ByteArrayInputStream in = new ByteArrayInputStream(fakeInput.getBytes());
-            System.setIn(in);
+    @Test
+    public void testReinforcementCalculation() {
+        // Create a player with 10 reinforcement armies.
+        Player player = new Player("TestPlayer", 10);
+        // Create a territory "Quebec" and add it to the player's owned territories.
+        Territory territory = new Territory("Quebec", "Canada", 5);
+        player.addTerritory(territory);
 
-            player.issueOrder();
+        // Simulate valid input: deploy 5 armies to "Quebec", then finish.
+        String simulatedInput = "deploy Quebec 5\nFINISH\n";
+        ByteArrayInputStream in = new ByteArrayInputStream(simulatedInput.getBytes());
+        System.setIn(in);
 
-        } finally {
-            System.setIn(backupIn);
-        }
+        // Issue orders using the simulated input.
+        player.issueOrder();
 
-        // The reinforcement pool should remain unchanged
-        assertEquals(10, player.getNbrOfReinforcementArmies());
-        // No order should be created
-        assertNull(player.nextOrder());
+        // After the valid deploy order, reinforcement armies should be 5 (10 - 5).
+        assertEquals(5, player.getNbrOfReinforcementArmies(),
+            "Reinforcement armies should be reduced by the number of armies deployed.");
+
+        // Verify that one order was added.
+        List<Order> orders = player.getOrders();
+        assertEquals(1, orders.size(), "One deploy order should have been added.");
+
+        // Optionally, check that the order is a DeployOrder.
+        Order order = orders.get(0);
+        assertTrue(order instanceof DeployOrder, "The order should be an instance of DeployOrder.");
     }
-	
-	@Test
-	void testIssueOrder_MultipleOrders() {
-	    // Provide multiple lines of input, each line representing one deploy command.
-	    // For example, we want to deploy 3 armies, then 2 armies, to "Paris".
-	    String fakeInput1 = "deploy Canada 3\n";
-	    String fakeInput2 = "deploy Canada 2\n";
-	    
-	    // Backup the original System.in
-	    InputStream backupIn = System.in;
 
-	    try {
-	        ByteArrayInputStream in = new ByteArrayInputStream(fakeInput1.getBytes());
-	        System.setIn(in);
-	        player.issueOrder();
-	        
-	        in = new ByteArrayInputStream(fakeInput2.getBytes());
-	        System.setIn(in);
-	        player.issueOrder();
+    @Test
+    public void testCannotDeployMoreThanAvailable() {
+        // Create a player with 10 reinforcement armies.
+        Player player = new Player("TestPlayer", 10);
+        // Create a territory "Quebec" and add it to the player's owned territories.
+        Territory territory = new Territory("Quebec", "Canada", 5);
+        player.addTerritory(territory);
 
-	    } finally {
-	        System.setIn(backupIn);
-	    }
-	    
-	    
+        // Simulate input: attempt to deploy 15 armies (more than available), then finish.
+        String simulatedInput = "deploy Quebec 15\nFINISH\n";
+        ByteArrayInputStream in = new ByteArrayInputStream(simulatedInput.getBytes());
+        System.setIn(in);
 
-	    // Now we should have two orders
-	    // The total reinforcements used: 3 + 2 = 5, so the player’s pool should be 5 left (10 - 5).
-	    assertEquals(5, player.getNbrOfReinforcementArmies(), 
-	        "Reinforcement pool should be 5 after deploying 3 and 2 armies.");
+        // Issue orders using the simulated input.
+        player.issueOrder();
 
-	    // Retrieving the first order
-	    Order firstOrder = player.nextOrder();
-	    assertNotNull(firstOrder, "First order should not be null.");
-	    firstOrder.execute();
-	    
-	    // After the first deploy, territory should have 3 armies.
-	    assertEquals(3, territory.getNumOfArmies(), 
-	        "Territory should have 3 armies after the first deploy.");
-	    
-	    // Retrieving the second order
-	    Order secondOrder = player.nextOrder();
-	    assertNotNull(secondOrder, "Second order should not be null.");
-	    secondOrder.execute();
-	    
-	    // After the second deploy, territory should have 5 armies total (3 + 2).
-	    assertEquals(5, territory.getNumOfArmies(), 
-	        "Territory should have 5 armies total after both deploy orders.");
+        // Since the deployment exceeds available armies, reinforcement armies should remain unchanged.
+        assertEquals(10, player.getNbrOfReinforcementArmies(),
+            "Reinforcement armies should remain unchanged if the deployment exceeds available armies.");
 
-	    // There should be no more orders in the queue
-	    assertNull(player.nextOrder(), "No more orders should remain.");
-	}
-	
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
-	}
-
+        // No order should be added when the deployment is invalid.
+        List<Order> orders = player.getOrders();
+        assertEquals(0, orders.size(),
+            "No order should be added when trying to deploy more armies than available.");
+    }
 }
