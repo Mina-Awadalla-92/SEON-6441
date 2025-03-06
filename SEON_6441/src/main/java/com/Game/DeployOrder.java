@@ -45,4 +45,8 @@ public class DeployOrder extends Order {
         
         System.out.println("Order Executed: " + this.d_targetTerritory.getName() + " has now " + this.d_targetTerritory.getNumOfArmies() + " armies.");
     }
+
+    public static void main(String[] args) {
+        // TODO Auto-generated method stub
+    }
 }

@@ -9,39 +9,19 @@ import java.io.InputStream;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Unit tests for the {@link MapLoader} class.
- * These tests ensure that the map loading functionality behaves as expected under different scenarios.
- */
-public class MapLoaderTest {
+class MapLoaderTest {
+    private MapLoader mapLoader;
 
-    /**
-     * The MapLoader instance used for testing.
-     */
-    private MapLoader d_mapLoader;
-
-    /**
-     * Sets up the test environment by initializing a new instance of {@link MapLoader}.
-     * This method is called before each test.
-     */
     @BeforeEach
     void setUp() {
-        d_mapLoader = new MapLoader();
+        mapLoader = new MapLoader();
     }
 
-    /**
-     * Test the default constructor of the {@link MapLoader} class.
-     * It ensures that the loaded map is initialized as null.
-     */
     @Test
     void testConstructor() {
-        assertNull(d_mapLoader.getLoadedMap(), "Default constructor should initialize loadedMap as null");
+        assertNull(mapLoader.getLoadedMap(), "Default constructor should initialize loadedMap as null");
     }
 
-    /**
-     * Test the copy constructor of the {@link MapLoader} class.
-     * It verifies that the copied MapLoader is a different instance and that the map is properly copied.
-     */
     @Test
     void testCopyConstructor() {
         MapLoader original = new MapLoader();
@@ -52,22 +32,17 @@ public class MapLoaderTest {
         assertNotNull(copy.getLoadedMap(), "Copied MapLoader should have a loaded map");
     }
 
-    /**
-     * Test the {@link MapLoader#read(String)} method with a valid map file.
-     * It verifies that the map is loaded correctly and that territories and borders are processed as expected.
-     * @throws IOException if an error occurs while reading the map file
-     */
     @Test
     void testReadValidFile() throws IOException {
 
         String filePath = "LoadingMaps/canada.map";
-        d_mapLoader.read(filePath);
+        mapLoader.read(filePath);
 
         // Ensure the map is loaded properly
-        assertNotNull(d_mapLoader.getLoadedMap(), "Map should be loaded for a valid file");
+        assertNotNull(mapLoader.getLoadedMap(), "Map should be loaded for a valid file");
 
         // Validate territories (countries)
-        List<Territory> territories = d_mapLoader.getLoadedMap().getTerritoryList();
+        List<Territory> territories = mapLoader.getLoadedMap().getTerritoryList();
         assertNotNull(territories, "Territories should not be null");
 
         // Example check for a specific territory
@@ -84,21 +59,12 @@ public class MapLoaderTest {
         assertTrue(princeEdwardIsland.getNeighborList().size() > 0, "Prince_Edward_Island should have neighbors");
     }
 
-    /**
-     * Test the {@link MapLoader#read(String)} method with an invalid map file.
-     * It verifies that the map remains null when an invalid file is read.
-     */
     @Test
     void testReadInvalidFile() {
-        d_mapLoader.read("non_existent_file.map");
-        assertNull(d_mapLoader.getLoadedMap(), "Loading an invalid file should keep loadedMap as null");
+        mapLoader.read("non_existent_file.map");
+        assertNull(mapLoader.getLoadedMap(), "Loading an invalid file should keep loadedMap as null");
     }
 
-    /**
-     * Test the {@link MapLoader#isValid(String)} method with a valid map file.
-     * It ensures that the method returns true for a valid map.
-     * @throws IOException if an error occurs while reading the map file
-     */
     @Test
     void testIsValidWithValidMap() throws IOException {
 
@@ -106,6 +72,6 @@ public class MapLoaderTest {
 
         // Ensure that the map file exists in the resources folder
         assertNotNull(inputStream, "Map file should be available in resources");
-        assertTrue(d_mapLoader.isValid("LoadingMaps/canada.map"), "Valid map should return true");
+        assertTrue(mapLoader.isValid("LoadingMaps/canada.map"), "Valid map should return true");
     }
 }

@@ -106,73 +106,38 @@ public class Player {
         return d_orders.isEmpty() ? null : d_orders.remove(0);
     }
 
-    /**
-     * Gets the number of reinforcement armies available.
-     * @return The number of reinforcement armies.
-     */
     public int getNbrOfReinforcementArmies() {
         return d_nbrOfReinforcementArmies;
     }
 
-    /**
-     * Sets the number of reinforcement armies available.
-     * @param p_nbrOfReinforcementArmies The number of reinforcement armies to set.
-     */
     public void setNbrOfReinforcementArmies(int p_nbrOfReinforcementArmies) {
         this.d_nbrOfReinforcementArmies = p_nbrOfReinforcementArmies;
     }
 
-    /**
-     * Gets the name of the player.
-     * @return The player's name.
-     */
     public String getName() {
         return d_name;
     }
 
-    /**
-     * Sets the name of the player.
-     * @param p_name The name to set for the player.
-     */
     public void setName(String p_name) {
         this.d_name = p_name;
     }
 
-    /**
-     * Gets the list of territories owned by the player.
-     * @return A list of owned territories.
-     */
     public List<Territory> getOwnedTerritories() {
         return d_ownedTerritories;
     }
 
-    /**
-     * Sets the list of territories owned by the player.
-     * @param p_ownedTerritories The list of territories to set.
-     */
     public void setOwnedTerritories(List<Territory> p_ownedTerritories) {
         this.d_ownedTerritories = p_ownedTerritories;
     }
 
-    /**
-     * Gets the list of orders issued by the player.
-     * @return A list of orders.
-     */
     public List<Order> getOrders() {
         return d_orders;
     }
 
-    /**
-     * Sets the list of orders issued by the player.
-     * @param p_orders The list of orders to set.
-     */
     public void setOrders(List<Order> p_orders) {
         this.d_orders = p_orders;
     }
 
-    /**
-     * Clears all orders issued by the player.
-     */
     public void clearOrders() {
         this.d_orders.clear();
     }
@@ -191,15 +156,13 @@ public class Player {
         return null;
     }
 
-    /**
-     * Returns a string representation of the player, including the player's name
-     * and the number of reinforcement armies available.
-     * @return A string representation of the player.
-     */
     @Override
     public String toString() {
         return "\nPlayer: " + this.d_name +
                "\nNumber of Reinforcement Armies: " + this.d_nbrOfReinforcementArmies;
     }
 
+    public static void main(String[] args) {
+        
+    }
 }
