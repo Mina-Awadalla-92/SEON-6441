@@ -13,17 +13,17 @@ import java.io.*;
  * Provides methods to manage territories, neighbors, continents, and save the map to a file.
  */
 public class Map {
-    private List<Territory> d_territoryList;
-    private java.util.Map<String, Integer> d_continents;
-    private boolean d_hasUniqueTerritories;
+    private List<Territory> l_territoryList;
+    private java.util.Map<String, Integer> l_continents;
+    private boolean l_hasUniqueTerritories;
 
     /**
      * Default constructor that initializes an empty map with no territories or continents.
      */
     public Map() {
-        this.d_territoryList = new ArrayList<>();
-        this.d_continents = new HashMap<>();
-        this.d_hasUniqueTerritories = true;
+        this.l_territoryList = new ArrayList<>();
+        this.l_continents = new HashMap<>();
+        this.l_hasUniqueTerritories = true;
     }
 
     /**
@@ -33,9 +33,9 @@ public class Map {
      */
     public Map(Map p_map) {
         this();
-        this.d_hasUniqueTerritories = p_map.d_hasUniqueTerritories;
-        for (Territory territory : p_map.d_territoryList) {
-            this.d_territoryList.add(new Territory(territory));
+        this.l_hasUniqueTerritories = p_map.l_hasUniqueTerritories;
+        for (Territory territory : p_map.l_territoryList) {
+            this.l_territoryList.add(new Territory(territory));
         }
     }
 
@@ -45,7 +45,7 @@ public class Map {
      * @return A list of territories.
      */
     public List<Territory> getTerritoryList() {
-        return d_territoryList;
+        return l_territoryList;
     }
 
     /**
@@ -55,9 +55,9 @@ public class Map {
      */
     public void addTerritory(Territory p_newTerritory) {
         if (getTerritoryByName(p_newTerritory.getName()) != null) {
-            d_hasUniqueTerritories = false;
+            l_hasUniqueTerritories = false;
         }
-        d_territoryList.add(p_newTerritory);
+        l_territoryList.add(p_newTerritory);
     }
 
     /**
@@ -67,7 +67,7 @@ public class Map {
      * @return The territory if found, otherwise null.
      */
     public Territory getTerritoryByName(String p_name) {
-        for (Territory territory : d_territoryList) {
+        for (Territory territory : l_territoryList) {
             if (territory.getName().equals(p_name)) {
                 return territory;
             }
@@ -83,7 +83,7 @@ public class Map {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("****Map*****\n");
-        for (Territory territory : d_territoryList) {
+        for (Territory territory : l_territoryList) {
             sb.append(territory).append("\n");
         }
         return sb.toString();
@@ -96,7 +96,7 @@ public class Map {
      * @param p_continentValue The value associated with the continent.
      */
     public void addContinent(String p_continentID, int p_continentValue) {
-        d_continents.put(p_continentID, p_continentValue);
+        l_continents.put(p_continentID, p_continentValue);
     }
 
     /**
@@ -105,8 +105,8 @@ public class Map {
      * @param p_continentID The ID of the continent to remove.
      */
     public void removeContinent(String p_continentID) {
-        d_continents.remove(p_continentID);
-        d_territoryList.removeIf(t -> t.getContinent().equals(p_continentID));
+        l_continents.remove(p_continentID);
+        l_territoryList.removeIf(t -> t.getContinent().equals(p_continentID));
     }
 
     /**
@@ -116,11 +116,11 @@ public class Map {
      * @param p_continentID The ID of the continent the country belongs to.
      */
     public void addCountry(String p_countryID, String p_continentID) {
-        if (!d_continents.containsKey(p_continentID)) {
+        if (!l_continents.containsKey(p_continentID)) {
             System.out.println("Continent does not exist.");
             return;
         }
-        d_territoryList.add(new Territory(p_countryID, p_continentID, d_continents.get(p_continentID)));
+        l_territoryList.add(new Territory(p_countryID, p_continentID, l_continents.get(p_continentID)));
     }
 
     /**
@@ -129,7 +129,7 @@ public class Map {
      * @param p_countryID The name of the country to remove.
      */
     public void removeCountry(String p_countryID) {
-        d_territoryList.removeIf(t -> t.getName().equals(p_countryID));
+        l_territoryList.removeIf(t -> t.getName().equals(p_countryID));
     }
 
     /**
@@ -168,7 +168,7 @@ public class Map {
      * @param p_continents A map of continent IDs to their corresponding values.
      */
     public void setContinents(java.util.Map<String, Integer> p_continents) {
-        this.d_continents = new HashMap<>(p_continents);
+        this.l_continents = new HashMap<>(p_continents);
     }
 
     /**
@@ -192,26 +192,26 @@ public class Map {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
             // Writing continents section
             writer.write("[continents]\n");
-            for (java.util.Map.Entry<String, Integer> entry : d_continents.entrySet()) {
+            for (java.util.Map.Entry<String, Integer> entry : l_continents.entrySet()) {
                 writer.write(entry.getKey() + " " + entry.getValue() + "\n");
             }
             writer.write("\n");
 
             // Writing countries section
             writer.write("[countries]\n");
-            for (int i = 0; i < d_territoryList.size(); i++) {
-                Territory t = d_territoryList.get(i);
-                writer.write((i + 1) + " " + t.getName() + " " + (new ArrayList<>(d_continents.keySet()).indexOf(t.getContinent()) + 1) + "\n");
+            for (int i = 0; i < l_territoryList.size(); i++) {
+                Territory t = l_territoryList.get(i);
+                writer.write((i + 1) + " " + t.getName() + " " + (new ArrayList<>(l_continents.keySet()).indexOf(t.getContinent()) + 1) + "\n");
             }
             writer.write("\n");
 
             // Writing borders section
             writer.write("[borders]\n");
-            for (int i = 0; i < d_territoryList.size(); i++) {
-                Territory t = d_territoryList.get(i);
+            for (int i = 0; i < l_territoryList.size(); i++) {
+                Territory t = l_territoryList.get(i);
                 writer.write((i + 1) + "");
                 for (Territory neighbor : t.getNeighborList()) {
-                    writer.write(" " + (d_territoryList.indexOf(neighbor) + 1));
+                    writer.write(" " + (l_territoryList.indexOf(neighbor) + 1));
                 }
                 writer.write("\n");
                 writer.flush(); // Forces any data in the buffer to be written to the file
