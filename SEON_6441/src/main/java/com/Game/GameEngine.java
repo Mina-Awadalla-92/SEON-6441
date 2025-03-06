@@ -20,6 +20,7 @@ public class GameEngine {
     private Player d_neutralPlayer; // For blockade orders
     private boolean d_gameStarted;
     private int d_currentPhase; // 0: Map Editing, 1: Startup, 2: Main Game
+    private boolean d_countriesAssigned = false;
     
     // Game phases constants
     private static final int MAP_EDITING_PHASE = 0;
@@ -37,6 +38,51 @@ public class GameEngine {
         this.d_gameStarted = false;
         this.d_currentPhase = MAP_EDITING_PHASE;
     }
+    
+    /**
+     * Displays menu for Map Editing Phase
+     */
+    public void displayMapEditingMenu() {
+        System.out.println("\n=== Map Editing Phase Menu ===\n");
+        System.out.println("1. editcontinent <args>   - Edit continent details");
+        System.out.println("2. editcountry <args>     - Edit country details");
+        System.out.println("3. editneighbor <args>    - Edit neighboring territories");
+        System.out.println("4. showmap                - Display the current map");
+        System.out.println("5. savemap <args>         - Save the current map");
+        System.out.println("6. editmap <args>         - Edit the map");
+        System.out.println("7. validatemap            - Validate the map");
+        System.out.println("8. loadmap <args>         - Load an existing map");
+        System.out.println("9. gameplayer <args>      - Setup players and transition to startup phase");
+        System.out.println("\nType 'exit' to quit the map editing phase.\n");
+    }
+    
+    /**
+     * Displays menu for startup phase
+     */
+    public void displayStartupMenu() {
+        System.out.println("\n=== Startup Phase Menu ===\n");
+        System.out.println("1. showmap            - Display the current map");
+        System.out.println("2. gameplayer <args>  - Manage game players");
+        System.out.println("3. assigncountries    - Assign countries to players");
+        System.out.println("4. startgame          - Start the main game");
+        System.out.println("5. editmap <args>     - Return to map editing phase");
+        System.out.println("6. loadmap <args>     - Load a different map");
+        System.out.println("\nType 'exit' to quit the startup phase.\n");
+    }
+
+    /**
+     * Displays menu for main game
+     */
+    public void displayMainGameMenu() {
+        System.out.println("\n=== Main Game Phase Menu ===\n");
+        System.out.println("1. showmap         - Display the current map");
+        System.out.println("2. reinforcement   - Handle the reinforcement phase");
+        System.out.println("3. issueorder      - Issue an order");
+        System.out.println("4. executeorders   - Execute all issued orders");
+        System.out.println("5. endturn         - End the current turn, and move to the next one");
+        System.out.println("\nType 'exit' to quit the main game phase.\n");
+    }
+
 
     /**
      * Starts the game and processes user commands.
@@ -49,21 +95,26 @@ public class GameEngine {
         boolean l_isMapLoaded = false;
 
         while (true) {
-            System.out.print("Enter command: ");
-            String l_input = l_scanner.nextLine().trim();
-            String[] l_commandParts = l_input.split("\\s+");
-
-            if (l_commandParts.length == 0) {
-                continue;
-            }
-
-            String l_command = l_commandParts[0];
-
-            if (l_command.equals("exit")) {
-                System.out.println("Exiting the program.");
-                System.exit(0); // Exit the program
-            } else if (d_currentPhase == MAP_EDITING_PHASE) {
+            
+            if (d_currentPhase == MAP_EDITING_PHASE) {
+            	
                 // Map editing phase
+            	displayMapEditingMenu();
+            	System.out.print("Enter command: ");
+                String l_input = l_scanner.nextLine().trim();
+                String[] l_commandParts = l_input.split("\\s+");
+
+                if (l_commandParts.length == 0) {
+                    continue;
+                }
+
+                String l_command = l_commandParts[0];
+
+                if (l_command.equals("exit")) {
+                    System.out.println("Exiting the program.");
+                    System.exit(0); // Exit the program
+                }
+                
                 if (!l_isMapLoaded && !l_command.equals("editmap") && !l_command.equals("loadmap")) {
                     System.out.println("You must load/edit a map first using the 'editmap' or 'loadmap' command.");
                 } else {
@@ -71,9 +122,39 @@ public class GameEngine {
                 }
             } else if (d_currentPhase == STARTUP_PHASE) {
                 // Startup phase
+            	displayStartupMenu();
+            	System.out.print("Enter command: ");
+                String l_input = l_scanner.nextLine().trim();
+                String[] l_commandParts = l_input.split("\\s+");
+
+                if (l_commandParts.length == 0) {
+                    continue;
+                }
+
+                String l_command = l_commandParts[0];
+
+                if (l_command.equals("exit")) {
+                    System.out.println("Exiting the program.");
+                    System.exit(0); // Exit the program
+                }
                 handleStartupPhase(l_commandParts, l_command);
             } else if (d_currentPhase == MAIN_GAME_PHASE) {
                 // Main game phase
+            	displayMainGameMenu();
+            	System.out.print("Enter command: ");
+                String l_input = l_scanner.nextLine().trim();
+                String[] l_commandParts = l_input.split("\\s+");
+
+                if (l_commandParts.length == 0) {
+                    continue;
+                }
+
+                String l_command = l_commandParts[0];
+
+                if (l_command.equals("exit")) {
+                    System.out.println("Exiting the program.");
+                    System.exit(0); // Exit the program
+                }
                 handleMainGamePhase(l_commandParts, l_command);
             }
         }
@@ -140,17 +221,23 @@ public class GameEngine {
     private void handleStartupPhase(String[] p_commandParts, String p_command) {
         switch (p_command) {
             case "showmap":
+            	
                 handleShowMap();
                 break;
             case "gameplayer":
                 handleGamePlayer(p_commandParts);
                 break;
             case "assigncountries":
+            	d_countriesAssigned = true;
                 handleAssignCountries();
                 break;
             case "startgame":
-                startMainGame();
-                break;
+            	if (!d_countriesAssigned) {
+                    System.out.println("Error: You must assign countries first using 'assigncountries' before starting the game.");
+                } else {
+                    startMainGame();
+                }
+            	break;
             case "editmap":
                 // Allow returning to map editing phase
                 d_currentPhase = MAP_EDITING_PHASE;
@@ -177,9 +264,7 @@ public class GameEngine {
             case "showmap":
                 handleShowMap();
                 break;
-            case "reinforcement":
-                handleReinforcement();
-                break;
+            
             case "issueorder":
                 handleIssueOrder();
                 break;
@@ -222,7 +307,7 @@ public class GameEngine {
             d_gameMap.removeContinent(l_continentID);
             System.out.println("Continent removed: " + l_continentID);
         } else {
-            System.out.println("Invalid action for editcontinent.");
+            System.out.println("Usage: editcontinent -add continentID continentvalue -remove continentID");
         }
     }
 
@@ -233,25 +318,39 @@ public class GameEngine {
      * @param p_commandParts Array of command components
      */
     private void handleEditCountry(String[] p_commandParts) {
-        if (p_commandParts.length < 4) {
-            System.out.println("Usage: editcountry -add countryID continentID -remove countryID");
+        if (p_commandParts.length < 2) {
+            System.out.println("Usage: editcountry -add countryID continentID | editcountry -remove countryID");
             return;
         }
         
         String l_action = p_commandParts[1];
-        String l_countryID = p_commandParts[2];
         
         if (l_action.equals("-add")) {
+            
+            if (p_commandParts.length != 4) {
+                System.out.println("Usage: editcountry -add countryID continentID");
+                return;
+            }
+            String l_countryID = p_commandParts[2];
             String l_continentID = p_commandParts[3];
             d_gameMap.addCountry(l_countryID, l_continentID);
             System.out.println("Country added: " + l_countryID);
+            
         } else if (l_action.equals("-remove")) {
+            
+            if (p_commandParts.length != 3) {
+                System.out.println("Usage: editcountry -remove countryID");
+                return;
+            }
+            String l_countryID = p_commandParts[2];
             d_gameMap.removeCountry(l_countryID);
             System.out.println("Country removed: " + l_countryID);
+            
         } else {
             System.out.println("Invalid action for editcountry.");
         }
     }
+
 
     /**
      * Handles the editneighbor command to add or remove connections between countries.
@@ -285,24 +384,63 @@ public class GameEngine {
      * Format: showmap
      */
     private void handleShowMap() {
-        if (d_currentPhase == MAIN_GAME_PHASE) {
-            // In main game, show more detailed information
-            System.out.println(d_gameMap);
-            System.out.println("\nPlayers status:");
-            
-            for (Player l_player : d_players) {
-                System.out.println(l_player.getName() + " - Territories: " + l_player.getOwnedTerritories().size() + 
-                                   ", Reinforcements: " + l_player.getNbrOfReinforcementArmies());
-                
-                for (Territory l_territory : l_player.getOwnedTerritories()) {
-                    System.out.println("  " + l_territory.getName() + " (" + l_territory.getNumOfArmies() + " armies)");
+        System.out.println("\n======== Game Map Overview ========");
+        
+        // Get the full list of territories from the map.
+        List<Territory> allTerritories = d_gameMap.getTerritoryList();
+        // Build a list of unique continents.
+        List<String> continents = new ArrayList<>();
+        for (Territory territory : allTerritories) {
+            String continent = territory.getContinent();
+            if (!continents.contains(continent)) {
+                continents.add(continent);
+            }
+        }
+        
+        // Print territories grouped by continent.
+        for (String continent : continents) {
+            System.out.println("\nContinent: " + continent);
+            System.out.println("----------------------------");
+            for (Territory territory : allTerritories) {
+                if (territory.getContinent().equals(continent)) {
+                    System.out.println("Territory: " + territory.getName() 
+                            + " | Armies: " + territory.getNumOfArmies());
+                    
+                    // Display neighbor list for this territory.
+                    List<Territory> neighbors = territory.getNeighborList();
+                    if (neighbors.isEmpty()) {
+                        System.out.println("    Neighbors: None");
+                    } else {
+                        System.out.print("    --> Neighbors: ");
+                        for (Territory neighbor : neighbors) {
+                        	System.out.print(neighbor.getName() + " || ");
+                        }
+                        System.out.println(); // Newline after listing neighbors.
+                    }
                 }
             }
-        } else {
-            // In map editing or startup, show basic map
-            System.out.println(d_gameMap);
         }
+        System.out.println("=====================================");
+        
+        // Then display detailed status for each player.
+        System.out.println("\nPlayers status:");
+        for (Player player : d_players) {
+            System.out.println("-------------------------------------------------");
+            System.out.println("Player Name: " + player.getName());
+            System.out.println("Total Territories Owned: " + player.getOwnedTerritories().size());
+            System.out.println("Available Reinforcement Armies: " + player.getNbrOfReinforcementArmies());
+            System.out.println("Territory Details:");
+            for (Territory territory : player.getOwnedTerritories()) {
+                System.out.println("    - " + territory.getName() 
+                        + " (" + territory.getNumOfArmies() + " armies)");
+                
+            }
+        }
+        System.out.println("-------------------------------------------------");
     }
+
+
+
 
     /**
      * Handles the savemap command to save the current map to a file.
@@ -394,7 +532,6 @@ public class GameEngine {
             d_gameMap = d_mapLoader.getLoadedMap();
             System.out.println(d_mapFilePath + " is loaded successfully.");
             d_currentPhase = STARTUP_PHASE;
-            System.out.println("Entering Startup Phase. Use 'gameplayer' to add players.");
         } else {
             System.out.println("The specified map does not exist or is invalid.");
         }
@@ -533,7 +670,7 @@ public class GameEngine {
             System.out.println(l_player.getName() + " receives " + l_reinforcements + " reinforcement armies.");
         }
         
-        System.out.println("\nEntering Issue Order Phase. Use 'issueorder' command to issue orders.");
+        System.out.println("\nPlayers have been assigned their armies!\n");
     }
     
     /**
@@ -566,8 +703,7 @@ public class GameEngine {
             }
         }
         
-        System.out.println("\nAll players have issued their orders.");
-        System.out.println("Use 'executeorders' command to execute all orders.");
+        System.out.println("\nAll players have issued their orders.\n");
     }
     
     /**
