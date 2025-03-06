@@ -33,6 +33,8 @@ public class DeployOrder extends Order {
      */
     public DeployOrder(DeployOrder p_order) {
         this.d_issuer = p_order.d_issuer;
+        this.d_targetTerritory = p_order.d_targetTerritory;
+        this.d_numberOfArmies = p_order.d_numberOfArmies;
     }
     
     /**
@@ -41,12 +43,13 @@ public class DeployOrder extends Order {
     @Override
     public void execute() {
         int l_currentNumberOfArmies = this.d_targetTerritory.getNumOfArmies();
-        d_targetTerritory.setNumOfArmies(l_currentNumberOfArmies + d_numberOfArmies);
+        this.d_targetTerritory.setNumOfArmies(l_currentNumberOfArmies + this.d_numberOfArmies);
         
-        System.out.println("Order Executed: " + this.d_targetTerritory.getName() + " has now " + this.d_targetTerritory.getNumOfArmies() + " armies.");
+        System.out.println("Order Executed: " + this.d_targetTerritory.getName() + " has now " 
+                           + this.d_targetTerritory.getNumOfArmies() + " armies.");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] p_args) {
         // TODO Auto-generated method stub
     }
 }

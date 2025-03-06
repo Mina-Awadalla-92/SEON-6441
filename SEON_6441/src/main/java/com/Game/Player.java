@@ -57,45 +57,55 @@ public class Player {
      * Allows the player to issue an order based on user input.
      */
     public void issueOrder() {
-        System.out.print(this.d_name + "'s order: ");
-        Scanner l_scanner = new Scanner(System.in);
-        String l_command = l_scanner.nextLine();
-        String[] l_commandParts = l_command.split(" ");
+    	
+    	Scanner l_scanner = new Scanner(System.in);
+    	
+    	while(true) {
+    		System.out.print("Hi " + this.d_name + ", please enter your next deploy order, or type FINISH: ");
+            
+            String l_command = l_scanner.nextLine();
+            String[] l_commandParts = l_command.split(" ");
+            
+            if (l_command.equalsIgnoreCase("FINISH")) {
+            	break;
+            }
+           
+            if (l_commandParts.length != 3) {
+                System.out.println("Invalid command format. Usage: <OrderType> <territoryName> <numArmies>");
+                continue;
+            }
 
-        if (l_commandParts.length < 3) {
-            System.out.println("Invalid command format. Usage: <OrderType> <territoryName> <numArmies>");
-            return;
-        }
+            String l_orderType = l_commandParts[0];
+            String l_targetTerritoryName = l_commandParts[1];
+            int l_numberOfArmies;
+            
+            try {
+                l_numberOfArmies = Integer.parseInt(l_commandParts[2]);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid number of armies: " + l_commandParts[2]);
+                continue;
+            }
 
-        String l_orderType = l_commandParts[0];
-        String l_targetTerritoryName = l_commandParts[1];
-        int l_numberOfArmies;
-        
-        try {
-            l_numberOfArmies = Integer.parseInt(l_commandParts[2]);
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid number of armies: " + l_commandParts[2]);
-            return;
-        }
+            Territory l_targetTerritory = findTerritoryByName(l_targetTerritoryName);
 
-        Territory l_targetTerritory = findTerritoryByName(l_targetTerritoryName);
+            if (l_targetTerritory == null) {
+                System.out.println("Territory not found!: " + l_targetTerritoryName);
+                continue;
+            }
 
-        if (l_targetTerritory == null) {
-            System.out.println("Territory not found!: " + l_commandParts[1]);
-            return;
-        }
-
-        if (l_numberOfArmies > this.d_nbrOfReinforcementArmies) {
-            System.out.println("Not enough reinforcements. You have " + this.d_nbrOfReinforcementArmies + " available.");
-            return;
-        }
-
-        if (l_orderType.equals("deploy")) {
-            DeployOrder l_deployOrder = new DeployOrder(this, l_targetTerritory, l_numberOfArmies);
-            d_orders.add(l_deployOrder);
-            this.d_nbrOfReinforcementArmies -= l_numberOfArmies;
-            System.out.println("Order issued: Deploy " + l_numberOfArmies + " armies to " + l_targetTerritoryName);
-        }
+            if (l_numberOfArmies > this.d_nbrOfReinforcementArmies) {
+                System.out.println("Not enough reinforcements. You have " + this.d_nbrOfReinforcementArmies + " available.");
+                continue;
+            }
+            
+            if (l_orderType.equalsIgnoreCase("deploy")) {
+                DeployOrder l_deployOrder = new DeployOrder(this, l_targetTerritory, l_numberOfArmies);
+                d_orders.add(l_deployOrder);
+                this.d_nbrOfReinforcementArmies -= l_numberOfArmies;
+                System.out.println(this.d_name + "'s deploy order issued: Deploy " + l_numberOfArmies + " armies to " + l_targetTerritoryName);
+                continue;
+            }
+    	}
     }
 
     /**
@@ -163,6 +173,15 @@ public class Player {
     }
 
     public static void main(String[] args) {
+    	
+        Player p1 = new Player("Ali");
+        Territory t1 = new Territory("Quebec", "Canada", 5);
+        t1.setOwner(p1);
+        p1.addTerritory(t1);
+        p1.setNbrOfReinforcementArmies(10);
         
+        p1.issueOrder();
+        //p1.getOrders().get(0).execute();
+      
     }
 }

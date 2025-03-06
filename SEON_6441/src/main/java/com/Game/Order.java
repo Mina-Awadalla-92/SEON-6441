@@ -43,7 +43,7 @@ public abstract class Order {
      */
     public abstract void execute();
     
-    public static void main(String[] args) {
+    public static void main(String[] p_args) {
         // TODO Auto-generated method stub
     }
 }
