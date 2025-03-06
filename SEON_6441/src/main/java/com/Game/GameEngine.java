@@ -2,17 +2,38 @@ package com.Game;
 
 import java.util.Scanner;
 
+/**
+ * The {@code GameEngine} class is responsible for managing the game's main loop and handling user commands.
+ * It loads and edits maps, manages continents, countries, and neighbors, and validates and saves maps.
+ */
 public class GameEngine {
 
-    private static Map gameMap;
-    private static MapLoader mapLoader;
-    private static String mapFilePath;
+    /**
+     * The current game map being used.
+     */
+    private static Map d_gameMap;
 
+    /**
+     * The map loader responsible for loading and validating maps.
+     */
+    private static MapLoader d_mapLoader;
+
+    /**
+     * The file path of the current map.
+     */
+    private static String d_mapFilePath;
+
+    /**
+     * Constructs a new {@code GameEngine} instance and initializes the game map and map loader.
+     */
     public GameEngine() {
-        gameMap = new Map();
-        mapLoader = new MapLoader();
+        d_gameMap = new Map();
+        d_mapLoader = new MapLoader();
     }
 
+    /**
+     * Starts the main game loop, accepting and processing user commands.
+     */
     public void startGame() {
         System.out.println("Welcome to Warzone Game!");
 
@@ -77,17 +98,21 @@ public class GameEngine {
         }
     }
 
-    private static void handleEditContinent(String[] commandParts) {
-        if (commandParts.length == 4) {
-            String action = commandParts[1];
-            String continentID = commandParts[2];
-            int continentValue = Integer.parseInt(commandParts[3]);
+    /**
+     * Handles the command to edit continents, allowing addition or removal.
+     * @param p_commandParts The command split into parts.
+     */
+    private static void handleEditContinent(String[] p_commandParts) {
+        if (p_commandParts.length == 4) {
+            String action = p_commandParts[1];
+            String continentID = p_commandParts[2];
+            int continentValue = Integer.parseInt(p_commandParts[3]);
 
             if (action.equals("-add")) {
-                gameMap.addContinent(continentID, continentValue);
+                d_gameMap.addContinent(continentID, continentValue);
                 System.out.println("Continent added: " + continentID);
             } else if (action.equals("-remove")) {
-                gameMap.removeContinent(continentID);
+                d_gameMap.removeContinent(continentID);
                 System.out.println("Continent removed: " + continentID);
             } else {
                 System.out.println("Invalid action for editcontinent.");
@@ -97,17 +122,21 @@ public class GameEngine {
         }
     }
 
-    private static void handleEditCountry(String[] commandParts) {
-        if (commandParts.length == 4) {
-            String action = commandParts[1];
-            String countryID = commandParts[2];
-            String continentID = commandParts[3];
+    /**
+     * Handles the command to edit countries, allowing addition or removal.
+     * @param p_commandParts The command split into parts.
+     */
+    private static void handleEditCountry(String[] p_commandParts) {
+        if (p_commandParts.length == 4) {
+            String action = p_commandParts[1];
+            String countryID = p_commandParts[2];
+            String continentID = p_commandParts[3];
 
             if (action.equals("-add")) {
-                gameMap.addCountry(countryID, continentID);
+                d_gameMap.addCountry(countryID, continentID);
                 System.out.println("Country added: " + countryID);
             } else if (action.equals("-remove")) {
-                gameMap.removeCountry(countryID);
+                d_gameMap.removeCountry(countryID);
                 System.out.println("Country removed: " + countryID);
             } else {
                 System.out.println("Invalid action for editcountry.");
@@ -117,17 +146,21 @@ public class GameEngine {
         }
     }
 
-    private static void handleEditNeighbor(String[] commandParts) {
-        if (commandParts.length == 4) {
-            String action = commandParts[1];
-            String countryID = commandParts[2];
-            String neighborCountryID = commandParts[3];
+    /**
+     * Handles the command to edit neighbors, allowing addition or removal.
+     * @param p_commandParts The command split into parts.
+     */
+    private static void handleEditNeighbor(String[] p_commandParts) {
+        if (p_commandParts.length == 4) {
+            String action = p_commandParts[1];
+            String countryID = p_commandParts[2];
+            String neighborCountryID = p_commandParts[3];
 
             if (action.equals("-add")) {
-                gameMap.addNeighbor(countryID, neighborCountryID);
+                d_gameMap.addNeighbor(countryID, neighborCountryID);
                 System.out.println("Neighbor added between: " + countryID + " and " + neighborCountryID);
             } else if (action.equals("-remove")) {
-                gameMap.removeNeighbor(countryID, neighborCountryID);
+                d_gameMap.removeNeighbor(countryID, neighborCountryID);
                 System.out.println("Neighbor removed between: " + countryID + " and " + neighborCountryID);
             } else {
                 System.out.println("Invalid action for editneighbor.");
@@ -137,29 +170,41 @@ public class GameEngine {
         }
     }
 
+    /**
+     * Displays the current map.
+     */
     private static void handleShowMap() {
-        System.out.println(mapLoader.getLoadedMap());
+        System.out.println(d_mapLoader.getLoadedMap());
     }
 
-    private static void handleSaveMap(String[] commandParts) {
-        if (commandParts.length == 2) {
-            String filename = commandParts[1];
-            gameMap.saveToFile(filename);
+    /**
+     * Saves the current map to a file.
+     * @param p_commandParts The command split into parts.
+     */
+    private static void handleSaveMap(String[] p_commandParts) {
+        if (p_commandParts.length == 2) {
+            String filename = p_commandParts[1];
+            d_gameMap.saveToFile(filename);
         } else {
             System.out.println("Usage: savemap filename");
         }
     }
 
-    private static void handleEditMap(String[] commandParts) {
-        if (commandParts.length == 2) {
-            mapFilePath = commandParts[1];
-            mapLoader.resetLoadedMap();
+    /**
+     * Loads or creates a new map based on the specified file.
+     * @param p_commandParts The command split into parts.
+     */
+    private static void handleEditMap(String[] p_commandParts)
+    {
+        if (p_commandParts.length == 2) {
+            d_mapFilePath = p_commandParts[1];
+            d_mapLoader.resetLoadedMap();
 
-            boolean isMapValid = mapLoader.isValid(mapFilePath);
+            boolean isMapValid = d_mapLoader.isValid(d_mapFilePath);
             if(isMapValid)
             {
-                mapLoader.read(mapFilePath);
-                System.out.println(mapFilePath + " is loaded successfully.");
+                d_mapLoader.read(d_mapFilePath);
+                System.out.println(d_mapFilePath + " is loaded successfully.");
             }
             else
             {
@@ -175,10 +220,13 @@ public class GameEngine {
         }
     }
 
+    /**
+     * Validates the current map to ensure it meets game requirements.
+     */
     private static void handleValidateMap() {
         // Call your map validation logic here
         // For example, you could add a method to the `Map` class to validate it
-        if (mapLoader.isValid(mapFilePath)) {
+        if (d_mapLoader.isValid(d_mapFilePath)) {
             System.out.println("Map is valid.");
         } else {
             System.out.println("Map is invalid.");
