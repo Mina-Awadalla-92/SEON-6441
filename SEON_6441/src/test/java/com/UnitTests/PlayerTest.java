@@ -16,13 +16,20 @@ public class PlayerTest {
 	
 	private Player player;
 	private Territory territory;
+
 	
 	@BeforeEach
 	void setup() {
 		player = new Player("Ali");
+		
 		territory = new Territory("Canada", "America", 5);
+		
+		
 		territory.setOwner(player);
+		
+		
 		player.getOwnedTerritories().add(territory);
+		
 		
 		player.setNbrOfReinforcementArmies(10);
 	}
@@ -30,19 +37,10 @@ public class PlayerTest {
 	@Test
 	void testValidDeployOrder() {
 		
-		String input = "deploy Canada 5\n";
+        DeployOrder l_deployOrder1 = new DeployOrder(player, territory, 3);
 		
-		InputStream backupIn = System.in;
 		
-		try {
-			ByteArrayInputStream in = new ByteArrayInputStream(input.getBytes());
-			System.setIn(in);
-			player.issueOrder();
-		} finally {
-			System.setIn(backupIn);
-		}
 		
-	
 		
 		//Making sure that the number of armies the player has went from 10 to 5
 		assertEquals(5, player.getNbrOfReinforcementArmies());
@@ -118,24 +116,13 @@ public class PlayerTest {
 	    // Provide multiple lines of input, each line representing one deploy command.
 	    // For example, we want to deploy 3 armies, then 2 armies, to "Paris".
 	    String fakeInput1 = "deploy Canada 3\n";
-	    String fakeInput2 = "deploy Canada 2\n";
+	    String fakeInput2 = "deploy M 2\n";
 	    
-	    // Backup the original System.in
-	    InputStream backupIn = System.in;
-
-	    try {
-	        ByteArrayInputStream in = new ByteArrayInputStream(fakeInput1.getBytes());
-	        System.setIn(in);
-	        player.issueOrder();
-	        
-	        in = new ByteArrayInputStream(fakeInput2.getBytes());
-	        System.setIn(in);
-	        player.issueOrder();
-
-	    } finally {
-	        System.setIn(backupIn);
-	    }
+        DeployOrder l_deployOrder1 = new DeployOrder(player, territory, 3);
+        DeployOrder l_deployOrder2 = new DeployOrder(player, territory, 2);
 	    
+        l_deployOrder1.execute();
+        l_deployOrder2.execute();
 	    
 
 	    // Now we should have two orders
@@ -150,7 +137,7 @@ public class PlayerTest {
 	    
 	    // After the first deploy, territory should have 3 armies.
 	    assertEquals(3, territory.getNumOfArmies(), 
-	        "Territory should have 3 armies after the first deploy.");
+	        "Canada should have 3 armies after the first deploy.");
 	    
 	    // Retrieving the second order
 	    Order secondOrder = player.nextOrder();
