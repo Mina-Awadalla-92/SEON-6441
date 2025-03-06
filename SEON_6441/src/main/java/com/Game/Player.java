@@ -61,10 +61,14 @@ public class Player {
     	Scanner l_scanner = new Scanner(System.in);
     	
     	while(true) {
-    		System.out.print(this.d_name + "'s order: ");
+    		System.out.print("Hi " + this.d_name + ", please enter your next deploy order, or type FINISH: ");
             
             String l_command = l_scanner.nextLine();
             String[] l_commandParts = l_command.split(" ");
+            
+            if (l_command.equalsIgnoreCase("FINISH")) {
+            	break;
+            }
            
             if (l_commandParts.length != 3) {
                 System.out.println("Invalid command format. Usage: <OrderType> <territoryName> <numArmies>");
@@ -94,12 +98,12 @@ public class Player {
                 continue;
             }
             
-            if (l_orderType.equals("deploy")) {
+            if (l_orderType.equalsIgnoreCase("deploy")) {
                 DeployOrder l_deployOrder = new DeployOrder(this, l_targetTerritory, l_numberOfArmies);
                 d_orders.add(l_deployOrder);
                 this.d_nbrOfReinforcementArmies -= l_numberOfArmies;
-                System.out.println("Order issued: Deploy " + l_numberOfArmies + " armies to " + l_targetTerritoryName);
-                break;
+                System.out.println(this.d_name + "'s deploy order issued: Deploy " + l_numberOfArmies + " armies to " + l_targetTerritoryName);
+                continue;
             }
     	}
     }
@@ -169,7 +173,7 @@ public class Player {
     }
 
     public static void main(String[] args) {
-    	/*
+    	
         Player p1 = new Player("Ali");
         Territory t1 = new Territory("Quebec", "Canada", 5);
         t1.setOwner(p1);
@@ -177,7 +181,7 @@ public class Player {
         p1.setNbrOfReinforcementArmies(10);
         
         p1.issueOrder();
-        p1.getOrders().get(0).execute();
-        */
+        //p1.getOrders().get(0).execute();
+      
     }
 }
