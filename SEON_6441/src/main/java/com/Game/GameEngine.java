@@ -230,11 +230,7 @@ public class GameEngine {
                 break;
             case "savemap":
                 handleSaveMap(p_commandParts);
-                // After saving a map, transition to the startup phase
-                if (d_currentPhase == MAP_EDITING_PHASE) {
-                    d_currentPhase = STARTUP_PHASE;
-                    System.out.println("Entering Startup Phase. Use 'gameplayer' to add players.");
-                }
+                
                 break;
             case "editmap":
                 p_isMapLoaded = true;
