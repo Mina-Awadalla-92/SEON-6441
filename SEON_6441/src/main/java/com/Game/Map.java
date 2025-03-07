@@ -243,4 +243,109 @@ public class Map {
             System.err.println("Error saving the file: " + e.getMessage());
         }
     }
+
+    /**
+     * Validates if the entire map is a connected graph.
+     *
+     * @return true if the map is connected, otherwise false.
+     */
+    public boolean mapValidation() {
+        if (d_territoryList.isEmpty()) return false;
+
+        // Track visited territories
+        boolean[] visited = new boolean[d_territoryList.size()];
+        dfs(0, visited);  // Start DFS from the first territory
+
+        // Check if all territories were visited
+        for (boolean isVisited : visited) {
+            if (!isVisited) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Validates if each continent in the map is a connected subgraph.
+     *
+     * @return true if all continents are connected subgraphs, otherwise false.
+     */
+    public boolean continentValidation() {
+        // Iterate over each continent
+        for (String continent : d_continents.keySet()) {
+            if (!isContinentConnected(continent)) {
+                return false;  // If any continent is not connected, return false
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Checks if a specific continent is a connected subgraph.
+     *
+     * @param p_continentID The ID of the continent to validate.
+     * @return true if the continent is connected, otherwise false.
+     */
+    private boolean isContinentConnected(String p_continentID) {
+        List<Territory> continentTerritories = new ArrayList<>();
+
+        // Collect territories belonging to the specified continent
+        for (Territory territory : d_territoryList) {
+            if (territory.getContinent().equals(p_continentID)) {
+                continentTerritories.add(territory);
+            }
+        }
+
+        if (continentTerritories.isEmpty()) return false;
+
+        // Track visited territories within the continent
+        boolean[] visited = new boolean[continentTerritories.size()];
+        dfs(continentTerritories, 0, visited);  // Start DFS from the first continent territory
+
+        // Check if all territories in the continent were visited
+        for (boolean isVisited : visited) {
+            if (!isVisited) return false;
+        }
+        return true;
+    }
+
+    /**
+     * Depth-First Search (DFS) to explore territories.
+     *
+     * @param index Starting index for DFS.
+     * @param visited Array to track visited territories.
+     */
+    private void dfs(int index, boolean[] visited) {
+        visited[index] = true;
+        Territory current = d_territoryList.get(index);
+
+        // Explore neighbors
+        for (Territory neighbor : current.getNeighborList()) {
+            int neighborIndex = d_territoryList.indexOf(neighbor);
+            if (neighborIndex != -1 && !visited[neighborIndex]) {
+                dfs(neighborIndex, visited);
+            }
+        }
+    }
+
+    /**
+     * Depth-First Search (DFS) for a specific continent.
+     *
+     * @param continentTerritories List of territories in the continent.
+     * @param index Starting index for DFS within the continent.
+     * @param visited Array to track visited territories in the continent.
+     */
+    private void dfs(List<Territory> continentTerritories, int index, boolean[] visited) {
+        visited[index] = true;
+        Territory current = continentTerritories.get(index);
+
+        // Explore neighbors within the same continent
+        for (Territory neighbor : current.getNeighborList()) {
+            if (neighbor.getContinent().equals(current.getContinent())) {
+                int neighborIndex = continentTerritories.indexOf(neighbor);
+                if (neighborIndex != -1 && !visited[neighborIndex]) {
+                    dfs(continentTerritories, neighborIndex, visited);
+                }
+            }
+        }
+    }
+
 }

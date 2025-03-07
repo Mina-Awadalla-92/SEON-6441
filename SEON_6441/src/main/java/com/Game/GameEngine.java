@@ -1,5 +1,6 @@
 package com.Game;
 
+import java.io.BufferedReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -515,12 +516,30 @@ public class GameEngine {
         d_mapFilePath = p_commandParts[1];
         d_mapLoader.resetLoadedMap();
 
-        boolean l_isMapValid = d_mapLoader.isValid(d_mapFilePath);
-        if (l_isMapValid) {
-            d_mapLoader.read(d_mapFilePath);
-            d_gameMap = d_mapLoader.getLoadedMap();
-            System.out.println(d_mapFilePath + " is loaded successfully.");
-        } else {
+        // Check if map exist.
+        BufferedReader l_reader = null;
+        boolean l_isMapExist = false;
+        l_reader = d_mapLoader.isMapExist(d_mapFilePath);
+        if (l_reader != null) {
+            l_isMapExist = true;
+        }
+
+        if(l_isMapExist)
+        {
+            boolean l_isMapInitiallyValid = d_mapLoader.isValid(d_mapFilePath);
+
+            if (l_isMapInitiallyValid) {
+                d_mapLoader.read(d_mapFilePath);
+                d_gameMap = d_mapLoader.getLoadedMap();
+
+                if(d_mapLoader.validateMap())
+                {
+                    System.out.println(d_mapFilePath + " is loaded successfully.");
+                }
+            }
+        }
+        else
+        {
             System.out.println("The specified map is not exist, a new map is created.");
             d_gameMap = new Map();
         }
@@ -531,24 +550,17 @@ public class GameEngine {
      * Format: validatemap
      */
     private void handleValidateMap() {
-        // First check if there's an in-memory map to validate
-        if (d_gameMap != null && !d_gameMap.getTerritoryList().isEmpty()) {
-            System.out.println("Validating in-memory map...");
-            // For now, we just do a simple check to see if there are territories
-            boolean l_valid = d_gameMap.getTerritoryList().size() > 0;
-            
-            if (l_valid) {
-                System.out.println("In-memory map is valid.");
-            } else {
-                System.out.println("In-memory map is invalid.");
-            }
-        } else if (d_mapFilePath != null) {
+
+        if (d_mapFilePath != null && d_gameMap != null)
+        {
             if (d_mapLoader.isValid(d_mapFilePath)) {
-                System.out.println("Map is valid.");
-            } else {
-                System.out.println("Map is invalid.");
+                d_mapLoader.validateMap();
             }
-        } else {
+            else {
+                System.out.println("The map is invalid.");
+            }
+        }
+        else {
             System.out.println("No map loaded to validate.");
         }
     }
@@ -568,14 +580,32 @@ public class GameEngine {
         d_mapFilePath = p_commandParts[1];
         d_mapLoader.resetLoadedMap();
 
-        boolean l_isMapValid = d_mapLoader.isValid(d_mapFilePath);
-        if (l_isMapValid) {
-            d_mapLoader.read(d_mapFilePath);
-            d_gameMap = d_mapLoader.getLoadedMap();
-            System.out.println(d_mapFilePath + " is loaded successfully.");
-            d_currentPhase = STARTUP_PHASE;
-        } else {
-            System.out.println("The specified map does not exist or is invalid.");
+        BufferedReader l_reader = null;
+        boolean l_isMapExist = false;
+        l_reader = d_mapLoader.isMapExist(d_mapFilePath);
+        if (l_reader != null) {
+            l_isMapExist = true;
+        }
+
+        if(l_isMapExist)
+        {
+            boolean l_isMapInitiallyValid = d_mapLoader.isValid(d_mapFilePath);
+            if (l_isMapInitiallyValid) {
+                d_mapLoader.read(d_mapFilePath);
+                d_gameMap = d_mapLoader.getLoadedMap();
+
+                if(d_mapLoader.validateMap())
+                {
+                    System.out.println(d_mapFilePath + " is loaded successfully.");
+                    d_currentPhase = STARTUP_PHASE;
+                }
+
+            }
+        }
+        else
+        {
+            System.out.println("The specified map does not exist.");
+            d_gameMap = new Map();
         }
     }
     

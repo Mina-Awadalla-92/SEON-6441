@@ -4,6 +4,8 @@ import com.Game.MapLoader;
 import com.Game.Territory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -107,5 +109,67 @@ public class MapLoaderTest {
         // Ensure that the map file exists in the resources folder
         assertNotNull(inputStream, "Map file should be available in resources");
         assertTrue(d_mapLoader.isValid("LoadingMaps/canada.map"), "Valid map should return true");
+    }
+
+    /**
+     * Tests the `validateMap` method by passing true for the `showMsg` flag,
+     * which should display a message indicating whether the map is valid.
+     *
+     * @see MapLoader#validateMap(boolean)
+     */
+    @Test
+    public void testValidateMap_withMessage() {
+        String filePath = "LoadingMaps/canada.map";
+        d_mapLoader.read(filePath);
+        boolean result = d_mapLoader.validateMap(true);  // Show message should be true
+
+        assertTrue(result, "Map should be valid.");
+    }
+
+    /**
+     * Tests the `validateMap` method by passing false for the `showMsg` flag,
+     * which should suppress the message indicating the map validity.
+     *
+     * @see MapLoader#validateMap(boolean)
+     */
+    @Test
+    public void testValidateMap_withoutMessage() {
+        String filePath = "LoadingMaps/canada.map";
+        d_mapLoader.read(filePath);
+
+        boolean result = d_mapLoader.validateMap(false);  // Show message should be false
+
+        assertTrue(result, "Map should be valid.");
+    }
+
+    /**
+     * Tests the `isMapExist` method by checking an existing map file.
+     * It ensures that a valid map file returns a non-null BufferedReader.
+     *
+     * @throws IOException if an I/O error occurs during file operations.
+     * @see MapLoader#isMapExist(String)
+     */
+    @Test
+    public void testIsMapExist_existingFile() throws IOException {
+
+        BufferedReader result = d_mapLoader.isMapExist("LoadingMaps/canada.map");
+
+        assertNotNull(result, "BufferedReader should not be null for existing file.");
+    }
+
+    /**
+     * Tests the `isMapExist` method by checking a non-existing map file.
+     * It ensures that a non-existing map file returns null.
+     *
+     * @throws IOException if an I/O error occurs during file operations.
+     * @see MapLoader#isMapExist(String)
+     */
+    @Test
+    public void testIsMapExist_nonExistingFile() throws IOException {
+        String nonExistingFile = "nonExistingMap.txt";
+
+        BufferedReader result = d_mapLoader.isMapExist(nonExistingFile);
+
+        assertNull(result, "BufferedReader should be null for non-existing file.");
     }
 }

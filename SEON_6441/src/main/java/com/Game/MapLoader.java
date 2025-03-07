@@ -166,6 +166,8 @@ public class MapLoader {
             try {
                 if (l_reader != null) {
                     l_reader.close();
+
+                    validateMap(false);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -180,27 +182,14 @@ public class MapLoader {
      * @return true if the map file is valid, false otherwise.
      */
     public boolean isValid(String p_mapFile) {
-        // First try to check the local file
-        File l_file = new File(p_mapFile);
         BufferedReader l_reader = null;
         
         try {
-            if (l_file.exists()) {
-                l_reader = new BufferedReader(new FileReader(l_file));
-            } else {
-                // Try with LoadingMaps prefix
-                String l_resourcePath = p_mapFile;
-                if (!l_resourcePath.contains("LoadingMaps/") && !l_resourcePath.contains("LoadingMaps\\")) {
-                    l_resourcePath = "LoadingMaps/" + l_resourcePath;
-                }
-                
-                InputStream l_inputStream = getClass().getClassLoader().getResourceAsStream(l_resourcePath);
-                if (l_inputStream == null) {
-                    return false;
-                }
-                l_reader = new BufferedReader(new InputStreamReader(l_inputStream));
+            l_reader = isMapExist(p_mapFile);
+            if (l_reader == null) {
+                return false;
             }
-            
+
             // Basic validation - check for required sections
             boolean l_hasContinents = false;
             boolean l_hasCountries = false;
@@ -216,7 +205,7 @@ public class MapLoader {
                     l_hasBorders = true;
                 }
             }
-            
+
             return l_hasContinents && l_hasCountries && l_hasBorders;
             
         } catch (IOException e) {
@@ -231,4 +220,68 @@ public class MapLoader {
             }
         }
     }
+
+    /**
+     * Validates the map by checking if both the map and continents are valid.
+     * This method defaults to printing the validation message.
+     *
+     * @return true if both the map and continents are valid, false otherwise.
+     */
+    public boolean validateMap() {
+        return validateMap(true);
+    }
+
+    /**
+     * Validates the map by checking if both the map and continents are valid.
+     * Optionally prints the validation result message based on the value of showMsg.
+     *
+     * @param showMsg a boolean indicating whether to display the validation message (true to display, false to suppress).
+     * @return true if both the map and continents are valid, false otherwise.
+     */
+    public boolean validateMap(boolean showMsg) {
+        boolean isValid = d_loadedMap.mapValidation() && d_loadedMap.continentValidation();
+
+        if (showMsg) {
+            System.out.println(isValid ? "The map is valid." : "The map is invalid.");
+        }
+
+        return isValid;
+    }
+
+    /**
+     * Checks if a map file exists either locally or as a resource, and returns a BufferedReader to read it.
+     * If the file does not exist or cannot be found, it returns null.
+     *
+     * @param p_mapFile the path or name of the map file to be checked.
+     * @return a BufferedReader for reading the map file if it exists, null otherwise.
+     */
+    public BufferedReader isMapExist(String p_mapFile) {
+        File l_file = new File(p_mapFile);
+        BufferedReader l_reader = null;
+
+        try {
+            if (l_file.exists()) {
+                // File exists locally, open it for reading
+                l_reader = new BufferedReader(new FileReader(l_file));
+            } else {
+                // Try with LoadingMaps prefix
+                String l_resourcePath = p_mapFile;
+                if (!l_resourcePath.contains("LoadingMaps/") && !l_resourcePath.contains("LoadingMaps\\")) {
+                    l_resourcePath = "LoadingMaps/" + l_resourcePath;
+                }
+
+                InputStream l_inputStream = getClass().getClassLoader().getResourceAsStream(l_resourcePath);
+                if (l_inputStream == null) {
+                    return null;
+                }
+                // Resource found, create a reader
+                l_reader = new BufferedReader(new InputStreamReader(l_inputStream));
+            }
+        } catch (IOException e) {
+            return null;
+        }
+
+        return l_reader;
+    }
+
 }
