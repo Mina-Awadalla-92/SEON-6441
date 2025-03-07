@@ -12,19 +12,66 @@ import java.util.Random;
  */
 public class GameEngine {
 
-    // Attributes
+    /**
+     * The current game map being used.
+     */
     private Map d_gameMap;
+
+    /**
+     * The map loader responsible for loading and validating maps.
+     */
     private MapLoader d_mapLoader;
+
+    /**
+     * The file path of the current map.
+     */
     private String d_mapFilePath;
+
+    /**
+     * The current player being used.
+     */
     private List<Player> d_players;
+
+    /**
+     * The current neutral player being used.
+     */
     private Player d_neutralPlayer; // For blockade orders
+
+    /**
+     * Indicates whether the game has started or not.
+     */
     private boolean d_gameStarted;
+
+    /**
+     * Represents the current phase of the game.
+     * <ul>
+     *   <li>0: Map Editing</li>
+     *   <li>1: Startup</li>
+     *   <li>2: Main Game</li>
+     * </ul>
+     */
     private int d_currentPhase; // 0: Map Editing, 1: Startup, 2: Main Game
+
+    /**
+     * Indicates whether the countries have been assigned to players.
+     */
     private boolean d_countriesAssigned = false;
-    
+
     // Game phases constants
+
+    /**
+     * Constant representing the Map Editing phase of the game.
+     */
     private static final int MAP_EDITING_PHASE = 0;
+
+    /**
+     * Constant representing the Startup phase of the game.
+     */
     private static final int STARTUP_PHASE = 1;
+
+    /**
+     * Constant representing the Main Game phase of the game.
+     */
     private static final int MAIN_GAME_PHASE = 2;
 
     /**
@@ -82,7 +129,6 @@ public class GameEngine {
         System.out.println("5. endturn         - End the current turn, and move to the next one");
         System.out.println("\nType 'exit' to quit the main game phase.\n");
     }
-
 
     /**
      * Starts the game and processes user commands.
@@ -351,7 +397,6 @@ public class GameEngine {
         }
     }
 
-
     /**
      * Handles the editneighbor command to add or remove connections between countries.
      * Format: editneighbor -add countryID neighborCountryID -remove countryID neighborCountryID
@@ -438,9 +483,6 @@ public class GameEngine {
         }
         System.out.println("-------------------------------------------------");
     }
-
-
-
 
     /**
      * Handles the savemap command to save the current map to a file.

@@ -13,6 +13,10 @@ import java.io.*;
  * This class is responsible for parsing the map file, validating its format, and storing the data in a Map object.
  */
 public class MapLoader {
+
+    /**
+     * Represents the loaded map data for the game.
+     */
     private Map d_loadedMap;
 
     /**

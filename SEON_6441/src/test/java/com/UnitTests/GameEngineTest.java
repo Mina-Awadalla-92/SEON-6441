@@ -13,25 +13,48 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
+/**
+ * Unit tests for the {@link GameEngine} class.
+ * This class tests various commands and phases of the game using reflection to access private methods.
+ */
 public class GameEngineTest {
 
-    // We'll capture System.out output for checking messages.
-    private final ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-    private final PrintStream originalOut = System.out;
+    /**
+     * Captures console output for verification in tests.
+     * <p>
+     * This stream is used to store {@code System.out} output during tests, allowing assertions
+     * on printed messages.
+     * </p>
+     */
+    private final ByteArrayOutputStream OUTCONTENT = new ByteArrayOutputStream();
 
+    /**
+     * Stores the original {@code System.out} stream.
+     */
+    private final PrintStream ORIGINALOUT = System.out;
+
+    /**
+     * Redirects System.out to capture console output for verification.
+     */
     @BeforeEach
     public void setUpStreams() {
-        System.setOut(new PrintStream(outContent));
+        System.setOut(new PrintStream(OUTCONTENT));
     }
-    
+
+    /**
+     * Restores System.out and clears captured output after each test.
+     */
     @AfterEach
     public void restoreStreams() {
-        System.setOut(originalOut);
-        outContent.reset();
+        System.setOut(ORIGINALOUT);
+        OUTCONTENT.reset();
     }
-    
+
     /**
-     * Test that the editcontinent command prints a confirmation message when a continent is added.
+     * Tests the {@code handleEditContinent} method.
+     * It prints a confirmation message when a continent is added.
+     *
+     * @throws Exception if reflection access fails.
      */
     @Test
     public void testHandleEditContinentOutput() throws Exception {
@@ -42,12 +65,15 @@ public class GameEngineTest {
         String[] cmd = {"editcontinent", "-add", "Asia", "7"};
         handleEditContinent.invoke(engine, (Object) cmd);
         
-        String output = outContent.toString();
+        String output = OUTCONTENT.toString();
         assertTrue(output.contains("Continent added: Asia"), "Output should confirm that 'Asia' was added.");
     }
-    
+
     /**
-     * Test that the editcountry command prints a usage message when given insufficient arguments.
+     * Tests the {@code handleEditCountry} method for invalid usage.
+     * It prints a usage message when given insufficient arguments.
+     *
+     * @throws Exception if reflection access fails.
      */
     @Test
     public void testHandleEditCountryInvalidUsage() throws Exception {
@@ -58,14 +84,16 @@ public class GameEngineTest {
         String[] cmd = {"editcountry", "-add", "India"};
         handleEditCountry.invoke(engine, (Object) cmd);
         
-        String output = outContent.toString();
+        String output = OUTCONTENT.toString();
         assertTrue(output.contains("Usage: editcountry -add countryID continentID"),
             "Output should display usage instructions for 'editcountry -add'.");
     }
-    
+
     /**
-     * Test that assigncountries distributes all territories among players.
+     * Tests the {@code handleAssignCountries} method that distributes all territories among players.
      * It verifies that after assignment, every territory has an owner and starts with 1 army.
+     *
+     * @throws Exception if reflection access fails.
      */
     @Test
     public void testAssignCountries() throws Exception {
@@ -97,7 +125,7 @@ public class GameEngineTest {
         assignCountries.setAccessible(true);
         assignCountries.invoke(engine);
         
-        String output = outContent.toString();
+        String output = OUTCONTENT.toString();
         assertTrue(output.contains("Countries assigned to players:"), 
             "Output should confirm that countries have been assigned.");
         
@@ -113,10 +141,12 @@ public class GameEngineTest {
             }
         }
     }
-    
+
     /**
      * Test that the reinforcement phase calculates reinforcement armies correctly.
      * For each player, reinforcement = Math.max(3, (territories owned)/3).
+     *
+     * @throws Exception if reflection access fails.
      */
     @Test
     public void testHandleReinforcementOutput() throws Exception {
@@ -159,12 +189,12 @@ public class GameEngineTest {
         currentPhaseField.set(engine, 2); // MAIN_GAME_PHASE
         
         // Clear previous output and call reinforcement phase.
-        outContent.reset();
+        OUTCONTENT.reset();
         Method handleReinforcement = GameEngine.class.getDeclaredMethod("handleReinforcement");
         handleReinforcement.setAccessible(true);
         handleReinforcement.invoke(engine);
         
-        String output = outContent.toString();
+        String output = OUTCONTENT.toString();
         assertTrue(output.contains("receives"), "Output should indicate reinforcement armies have been assigned.");
         
         // Retrieve players list and check reinforcement count.

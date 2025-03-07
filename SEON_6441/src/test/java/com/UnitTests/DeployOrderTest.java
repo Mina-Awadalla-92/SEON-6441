@@ -5,8 +5,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+/**
+ * Unit tests for the {@link DeployOrder} class.
+ * This class tests the execution of deploy orders and the functionality of the copy constructor.
+ */
 public class DeployOrderTest {
 
+    /**
+     * Tests the {@code execute} method of {@link DeployOrder}.
+     * <ul>
+     *   <li>Creates a player and a territory owned by that player.</li>
+     *   <li>Sets an initial number of armies in the territory.</li>
+     *   <li>Creates a deploy order to add 5 armies to the territory.</li>
+     *   <li>Executes the deploy order and verifies that the army count is updated correctly.</li>
+     * </ul>
+     */
     @Test
     public void testExecute() {
         // Create a player.
@@ -30,6 +43,13 @@ public class DeployOrderTest {
         assertEquals(15, l_testTerritory.getNumOfArmies());
     }
 
+    /**
+     * Tests the copy constructor of {@link DeployOrder}.
+     * <ul>
+     *   <li>Creates an original deploy order and a copy of it using the copy constructor.</li>
+     *   <li>Executes both orders and verifies that the army count is updated correctly each time.</li>
+     * </ul>
+     */
     @Test
     public void testCopyConstructor() {
         // Create a player.
@@ -59,6 +79,4 @@ public class DeployOrderTest {
         // After executing the copy order, territory armies should be 30 + 10 = 40.
         assertEquals(40, l_testTerritory.getNumOfArmies());
     }
-
-    
 }

@@ -13,107 +13,167 @@ import java.util.List;
 import java.util.HashMap;
 import static org.junit.jupiter.api.Assertions.*;
 
-class MapTest {
-    private Map map;
-    private final String testFilePath = "test_map.txt";
+/**
+ * Unit tests for the {@link Map} class.
+ * This class tests the functionality of adding, removing, and interacting with territories,
+ * continents, and neighbors, as well as saving the map to a file.
+ */
+public class MapTest {
 
+    /**
+     * The Map object being tested.
+     */
+    private Map d_map;
+
+    /**
+     * Path for the test file used in the save operation tests.
+     */
+    private final String TESTFILEPATH = "test_map.txt";
+
+    /**
+     * Sets up the test environment before each test case.
+     * Initializes the {@link Map} object.
+     */
     @BeforeEach
     void setUp() {
-        map = new Map();
+        d_map = new Map();
     }
 
+    /**
+     * Cleans up after each test case by deleting the test file if it exists.
+     */
     @AfterEach
     void tearDown() {
-        File file = new File(testFilePath);
+        File file = new File(TESTFILEPATH);
         if (file.exists()) {
             file.delete();
         }
     }
 
+    /**
+     * Tests the {@link Map#addTerritory(Territory)} method by adding a territory
+     * and verifying that it is added correctly to the map.
+     */
     @Test
     void testAddTerritory() {
         Territory territory = new Territory("Territory1", "Continent1", 5);
-        map.addTerritory(territory);
-        assertEquals(1, map.getTerritoryList().size());
-        assertEquals("Territory1", map.getTerritoryList().get(0).getName());
+        d_map.addTerritory(territory);
+        assertEquals(1, d_map.getTerritoryList().size());
+        assertEquals("Territory1", d_map.getTerritoryList().get(0).getName());
     }
 
+    /**
+     * Tests the {@link Map#getTerritoryByName(String)} method by checking if a territory
+     * can be retrieved by name and ensuring that non-existing territories return null.
+     */
     @Test
     void testGetTerritoryByName() {
         Territory territory = new Territory("Territory1", "Continent1", 5);
-        map.addTerritory(territory);
-        assertNotNull(map.getTerritoryByName("Territory1"));
-        assertNull(map.getTerritoryByName("NonExistent"));
+        d_map.addTerritory(territory);
+        assertNotNull(d_map.getTerritoryByName("Territory1"));
+        assertNull(d_map.getTerritoryByName("NonExistent"));
     }
 
+    /**
+     * Tests the {@link Map#addContinent(String, int)} method by adding a continent and
+     * verifying that the corresponding country is added correctly.
+     */
     @Test
     void testAddContinent() {
-        map.addContinent("Continent1", 5);
-        map.addCountry("Country1", "Continent1");
-        assertEquals(1, map.getTerritoryList().size());
+        d_map.addContinent("Continent1", 5);
+        d_map.addCountry("Country1", "Continent1");
+        assertEquals(1, d_map.getTerritoryList().size());
     }
 
+    /**
+     * Tests the {@link Map#removeContinent(String)} method by removing a continent
+     * and verifying that the territories in that continent are also removed.
+     */
     @Test
     void testRemoveContinent() {
-        map.addContinent("Continent1", 5);
-        map.addCountry("Country1", "Continent1");
-        map.removeContinent("Continent1");
-        assertEquals(0, map.getTerritoryList().size());
+        d_map.addContinent("Continent1", 5);
+        d_map.addCountry("Country1", "Continent1");
+        d_map.removeContinent("Continent1");
+        assertEquals(0, d_map.getTerritoryList().size());
     }
 
+    /**
+     * Tests the {@link Map#addNeighbor(String, String)} method by adding a neighbor relationship
+     * between two territories and verifying that the neighbors are correctly added.
+     */
     @Test
     void testAddNeighbor() {
         Territory t1 = new Territory("Territory1", "Continent1", 5);
         Territory t2 = new Territory("Territory2", "Continent1", 5);
-        map.addTerritory(t1);
-        map.addTerritory(t2);
-        map.addNeighbor("Territory1", "Territory2");
+        d_map.addTerritory(t1);
+        d_map.addTerritory(t2);
+        d_map.addNeighbor("Territory1", "Territory2");
         assertTrue(t1.getNeighborList().contains(t2));
         assertTrue(t2.getNeighborList().contains(t1));
     }
 
+    /**
+     * Tests the {@link Map#removeNeighbor(String, String)} method by removing a neighbor relationship
+     * between two territories and verifying that the relationship is correctly removed.
+     */
     @Test
     void testRemoveNeighbor() {
         Territory t1 = new Territory("Territory1", "Continent1", 5);
         Territory t2 = new Territory("Territory2", "Continent1", 5);
-        map.addTerritory(t1);
-        map.addTerritory(t2);
-        map.addNeighbor("Territory1", "Territory2");
-        map.removeNeighbor("Territory1", "Territory2");
+        d_map.addTerritory(t1);
+        d_map.addTerritory(t2);
+        d_map.addNeighbor("Territory1", "Territory2");
+        d_map.removeNeighbor("Territory1", "Territory2");
         assertFalse(t1.getNeighborList().contains(t2));
         assertFalse(t2.getNeighborList().contains(t1));
     }
 
+    /**
+     * Tests the {@link Map#addCountry(String, String)} method by adding a country to a continent
+     * and verifying that the country is added to the map under the correct continent.
+     */
     @Test
     void testAddCountry() {
-        map.addContinent("NorthAmerica", 5);
-        map.addCountry("Canada", "NorthAmerica");
+        d_map.addContinent("NorthAmerica", 5);
+        d_map.addCountry("Canada", "NorthAmerica");
 
-        List<Territory> territories = map.getTerritoryList();
+        List<Territory> territories = d_map.getTerritoryList();
         assertEquals(1, territories.size());
         assertEquals("Canada", territories.get(0).getName());
         assertEquals("NorthAmerica", territories.get(0).getContinent());
     }
 
+    /**
+     * Tests the behavior of adding a country to a non-existent continent.
+     * Ensures that the country is not added to the map.
+     */
     @Test
     void testAddCountryToNonExistentContinent() {
-        map.addCountry("Canada", "NonExistent");
-        assertEquals(0, map.getTerritoryList().size());
+        d_map.addCountry("Canada", "NonExistent");
+        assertEquals(0, d_map.getTerritoryList().size());
     }
 
+    /**
+     * Tests the {@link Map#removeCountry(String)} method by removing a country from the map
+     * and verifying that it is removed correctly.
+     */
     @Test
     void testRemoveCountry() {
-        map.addContinent("NorthAmerica", 5);
-        map.addCountry("Canada", "NorthAmerica");
-        map.addCountry("USA", "NorthAmerica");
+        d_map.addContinent("NorthAmerica", 5);
+        d_map.addCountry("Canada", "NorthAmerica");
+        d_map.addCountry("USA", "NorthAmerica");
 
-        map.removeCountry("Canada");
+        d_map.removeCountry("Canada");
 
-        List<Territory> territories = map.getTerritoryList();
+        List<Territory> territories = d_map.getTerritoryList();
         assertEquals(1, territories.size());
         assertEquals("USA", territories.get(0).getName());
     }
 
+    /**
+     * Tests the {@link Map#setContinents(java.util.Map)} method by setting multiple continents
+     * and verifying that countries are added correctly under those continents.
+     */
     @Test
     void testSetContinents() {
         // Add some continents
@@ -121,13 +181,13 @@ class MapTest {
         newContinents.put("Europe", 3);
         newContinents.put("Asia", 7);
 
-        map.setContinents(newContinents);
+        d_map.setContinents(newContinents);
 
         // Add territories after setting continents
-        map.addCountry("France", "Europe");
-        map.addCountry("China", "Asia");
+        d_map.addCountry("France", "Europe");
+        d_map.addCountry("China", "Asia");
 
-        List<Territory> territories = map.getTerritoryList();
+        List<Territory> territories = d_map.getTerritoryList();
 
         // Verify that the countries were added under the correct continent
         assertEquals(2, territories.size());
@@ -138,19 +198,25 @@ class MapTest {
         assertEquals("Asia", territories.get(1).getContinent());
     }
 
+    /**
+     * Tests the {@link Map#saveToFile(String)} method by saving the map to a file
+     * and verifying that the file is created and contains the expected data.
+     *
+     * @throws IOException if an I/O error occurs during file writing or reading.
+     */
     @Test
     void testSaveToFile() throws IOException {
-        map.addContinent("Asia", 5);
-        map.addCountry("India", "Asia");
-        map.addCountry("China", "Asia");
-        map.addNeighbor("India", "China");
+        d_map.addContinent("Asia", 5);
+        d_map.addCountry("India", "Asia");
+        d_map.addCountry("China", "Asia");
+        d_map.addNeighbor("India", "China");
 
-        map.saveToFile(testFilePath);
+        d_map.saveToFile(TESTFILEPATH);
 
-        File file = new File(testFilePath);
+        File file = new File(TESTFILEPATH);
         assertTrue(file.exists());
 
-        List<String> lines = Files.readAllLines(Paths.get(testFilePath));
+        List<String> lines = Files.readAllLines(Paths.get(TESTFILEPATH));
         assertFalse(lines.isEmpty());
         assertTrue(lines.contains("[continents]"));
         assertTrue(lines.contains("Asia 5"));
