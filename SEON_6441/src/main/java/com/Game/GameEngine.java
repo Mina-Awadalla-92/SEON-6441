@@ -124,10 +124,9 @@ public class GameEngine {
     public void displayMainGameMenu() {
         System.out.println("\n=== Main Game Phase Menu ===\n");
         System.out.println("1. showmap         - Display the current map");
-        System.out.println("2. reinforcement   - Handle the reinforcement phase");
-        System.out.println("3. issueorder      - Issue an order");
-        System.out.println("4. executeorders   - Execute all issued orders");
-        System.out.println("5. endturn         - End the current turn, and move to the next one");
+        System.out.println("2. issueorder      - Issue an order");
+        System.out.println("3. executeorders   - Execute all issued orders");
+        System.out.println("4. endturn         - End the current turn, and move to the next one");
         System.out.println("\nType 'exit' to quit the main game phase.\n");
     }
 
@@ -271,7 +270,7 @@ public class GameEngine {
                 handleGamePlayer(p_commandParts);
                 break;
             case "assigncountries":
-            	d_countriesAssigned = true;
+            	
                 handleAssignCountries();
                 break;
             case "startgame":
@@ -693,7 +692,7 @@ public class GameEngine {
         for (Player l_player : d_players) {
             System.out.println(l_player.getName() + " owns " + l_player.getOwnedTerritories().size() + " territories.");
         }
-        
+        d_countriesAssigned = true;
         System.out.println("Ready to start the game. Use 'startgame' command to begin.");
     }
     
