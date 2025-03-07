@@ -223,4 +223,62 @@ public class MapTest {
         assertTrue(lines.contains("[countries]"));
         assertTrue(lines.contains("[borders]"));
     }
+
+    /**
+     * Tests the {@link Map#mapValidation()} method to ensure the entire map is connected.
+     */
+    @Test
+    void testMapValidationConnected() {
+        // Ensure the entire map is connected
+        d_map.addContinent("Asia", 5);
+        d_map.addCountry("India", "Asia");
+        d_map.addCountry("China", "Asia");
+        d_map.addNeighbor("India", "China");
+
+        assertTrue(d_map.mapValidation(), "The map should be a connected graph.");
+    }
+
+    /**
+     * Tests the {@link Map#mapValidation()} method to ensure the map is disconnected.
+     */
+    @Test
+    void testMapValidationDisconnected() {
+        // Add territories but no neighbors (disconnected map)
+        d_map.addContinent("Asia", 5);
+        d_map.addCountry("India", "Asia");
+        d_map.addCountry("China", "Asia");
+
+        assertFalse(d_map.mapValidation(), "The map should be disconnected.");
+    }
+
+    /**
+     * Tests the {@link Map#continentValidation()} method to ensure each continent is a connected subgraph.
+     */
+    @Test
+    void testContinentValidationConnected() {
+        d_map.addContinent("Asia", 5);
+        d_map.addCountry("India", "Asia");
+        d_map.addCountry("China", "Asia");
+        d_map.addNeighbor("India", "China");
+
+        assertTrue(d_map.continentValidation(), "Each continent should be a connected subgraph.");
+    }
+
+    /**
+     * Tests the {@link Map#continentValidation()} method to ensure the continent is disconnected.
+     */
+    @Test
+    void testContinentValidationDisconnected() {
+        d_map.addContinent("Asia", 5);
+        d_map.addCountry("India", "Asia");
+        d_map.addCountry("China", "Asia");
+        d_map.addCountry("Pakistan", "Asia");
+
+        d_map.addNeighbor("India", "China");
+
+        // Remove neighbor between 'China' and 'Pakistan', making 'Asia' disconnected
+        d_map.getTerritoryByName("China").getNeighborList().remove(d_map.getTerritoryByName("Pakistan"));
+
+        assertFalse(d_map.continentValidation(), "The continent Asia should be disconnected.");
+    }
 }
