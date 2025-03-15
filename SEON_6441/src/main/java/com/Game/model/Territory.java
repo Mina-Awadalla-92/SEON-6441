@@ -1,4 +1,4 @@
-package com.Game;
+package com.Game.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,14 +52,14 @@ public class Territory {
     /**
      * Constructor to initialize a territory with a name, continent, and bonus value.
      *
-     * @param name The name of the territory.
-     * @param continent The continent the territory belongs to.
-     * @param bonus The bonus value of the territory.
+     * @param p_name The name of the territory.
+     * @param p_continent The continent the territory belongs to.
+     * @param p_bonus The bonus value of the territory.
      */
-    public Territory(String name, String continent, int bonus) {
-        this.d_name = name;
-        this.d_continent = continent;
-        this.d_bonus = bonus;
+    public Territory(String p_name, String p_continent, int p_bonus) {
+        this.d_name = p_name;
+        this.d_continent = p_continent;
+        this.d_bonus = p_bonus;
         this.d_numOfArmies = 0;
         this.d_owner = null;
         this.d_numOfReservedArmies = 0;
@@ -78,8 +78,8 @@ public class Territory {
         this.d_numOfReservedArmies = p_territory.d_numOfReservedArmies;
         this.d_owner = p_territory.d_owner;
 
-        for (Territory neighbor : p_territory.d_neighborList) {
-            this.d_neighborList.add(neighbor);
+        for (Territory l_neighbor : p_territory.d_neighborList) {
+            this.d_neighborList.add(l_neighbor);
         }
     }
 
@@ -88,28 +88,36 @@ public class Territory {
      *
      * @return The name of the territory.
      */
-    public String getName() { return d_name; }
+    public String getName() { 
+        return d_name; 
+    }
 
     /**
      * Gets the continent that the territory belongs to.
      *
      * @return The continent of the territory.
      */
-    public String getContinent() { return d_continent; }
+    public String getContinent() { 
+        return d_continent; 
+    }
 
     /**
      * Gets the bonus value of the territory.
      *
      * @return The bonus value of the territory.
      */
-    public int getBonus() { return d_bonus; }
+    public int getBonus() { 
+        return d_bonus; 
+    }
 
     /**
      * Gets the number of armies in the territory.
      *
      * @return The number of armies in the territory.
      */
-    public int getNumOfArmies() { return d_numOfArmies; }
+    public int getNumOfArmies() { 
+        return d_numOfArmies; 
+    }
 
     /**
      * Sets the number of armies in the territory.
@@ -117,28 +125,35 @@ public class Territory {
      * @param p_numOfArmies The number of armies to set.
      */
     public void setNumOfArmies(int p_numOfArmies) {
-        this.d_numOfArmies = p_numOfArmies; }
+        this.d_numOfArmies = p_numOfArmies; 
+    }
 
     /**
      * Gets the owner of the territory.
      *
      * @return The player who owns the territory.
      */
-    public Player getOwner() { return d_owner; }
+    public Player getOwner() { 
+        return d_owner; 
+    }
 
     /**
      * Sets the owner of the territory.
      *
      * @param p_owner The player to set as the owner.
      */
-    public void setOwner(Player p_owner) { this.d_owner = p_owner; }
+    public void setOwner(Player p_owner) { 
+        this.d_owner = p_owner; 
+    }
 
     /**
      * Gets the number of reserved armies in the territory.
      *
      * @return The number of reserved armies in the territory.
      */
-    public int getNumOfReservedArmies() { return d_numOfReservedArmies; }
+    public int getNumOfReservedArmies() { 
+        return d_numOfReservedArmies; 
+    }
 
     /**
      * Sets the number of reserved armies in the territory.
@@ -146,14 +161,17 @@ public class Territory {
      * @param p_numOfReservedArmies The number of reserved armies to set.
      */
     public void setNumOfReservedArmies(int p_numOfReservedArmies) {
-        this.d_numOfReservedArmies = p_numOfReservedArmies; }
+        this.d_numOfReservedArmies = p_numOfReservedArmies; 
+    }
 
     /**
      * Gets the list of neighboring territories.
      *
      * @return A list of neighboring territories.
      */
-    public List<Territory> getNeighborList() { return d_neighborList; }
+    public List<Territory> getNeighborList() { 
+        return d_neighborList; 
+    }
 
     /**
      * Checks if a given territory is a neighbor of this territory.
@@ -162,7 +180,6 @@ public class Territory {
      * @return true if the target territory is a neighbor, false otherwise.
      */
     public boolean hasNeighbor(Territory p_target) {
-
         return d_neighborList.contains(p_target);
     }
 
@@ -172,7 +189,6 @@ public class Territory {
      * @param p_neighbor The neighbor territory to add.
      */
     public void addNeighbor(Territory p_neighbor) {
-
         d_neighborList.add(p_neighbor);
     }
 
@@ -183,9 +199,9 @@ public class Territory {
      */
     public List<Territory> getEnemyNeighbors() {
         List<Territory> l_enemyNeighbors = new ArrayList<>();
-        for (Territory neighbor : d_neighborList) {
-            if (neighbor.getOwner() != this.d_owner) {
-                l_enemyNeighbors.add(neighbor);
+        for (Territory l_neighbor : d_neighborList) {
+            if (l_neighbor.getOwner() != this.d_owner) {
+                l_enemyNeighbors.add(l_neighbor);
             }
         }
         return l_enemyNeighbors;
@@ -203,7 +219,7 @@ public class Territory {
             return false;
         }
         Territory l_t = (Territory)p_obj;
-        return l_t.getName() == this.d_name && l_t.getContinent() == this.d_continent;
+        return l_t.getName().equals(this.d_name) && l_t.getContinent().equals(this.d_continent);
     }
 
     /**
@@ -218,8 +234,8 @@ public class Territory {
                 .append(" Continent: ").append(d_continent)
                 .append(" Number of Armies: ").append(d_numOfArmies)
                 .append(" Neighbors: ");
-        for (Territory neighbor : d_neighborList) {
-            l_sb.append(neighbor.getName()).append(", ");
+        for (Territory l_neighbor : d_neighborList) {
+            l_sb.append(l_neighbor.getName()).append(", ");
         }
         return l_sb.toString();
     }

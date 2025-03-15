@@ -1,4 +1,7 @@
-package com.Game;
+package com.Game.utils;
+
+import com.Game.model.Map;
+import com.Game.model.Territory;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -42,6 +45,15 @@ public class MapLoader {
      */
     public Map getLoadedMap() {
         return d_loadedMap;
+    }
+
+    /**
+     * Sets the loaded map.
+     * 
+     * @param p_loadedMap The map to set as loaded.
+     */
+    public void setLoadedMap(Map p_loadedMap) {
+        this.d_loadedMap = p_loadedMap;
     }
 
     /**
@@ -235,17 +247,17 @@ public class MapLoader {
      * Validates the map by checking if both the map and continents are valid.
      * Optionally prints the validation result message based on the value of showMsg.
      *
-     * @param showMsg a boolean indicating whether to display the validation message (true to display, false to suppress).
+     * @param p_showMsg a boolean indicating whether to display the validation message (true to display, false to suppress).
      * @return true if both the map and continents are valid, false otherwise.
      */
-    public boolean validateMap(boolean showMsg) {
-        boolean isValid = d_loadedMap.mapValidation() && d_loadedMap.continentValidation();
+    public boolean validateMap(boolean p_showMsg) {
+        boolean l_isValid = d_loadedMap.mapValidation() && d_loadedMap.continentValidation();
 
-        if (showMsg) {
-            System.out.println(isValid ? "The map is valid." : "The map is invalid.");
+        if (p_showMsg) {
+            System.out.println(l_isValid ? "The map is valid." : "The map is invalid.");
         }
 
-        return isValid;
+        return l_isValid;
     }
 
     /**
@@ -283,5 +295,4 @@ public class MapLoader {
 
         return l_reader;
     }
-
 }

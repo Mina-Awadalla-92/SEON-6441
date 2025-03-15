@@ -1,4 +1,4 @@
-package com.Game;
+package com.Game.model;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -28,7 +28,6 @@ public class Map {
     /**
      * Indicates whether all territories in the game are unique.
      */
-
     private boolean d_hasUniqueTerritories;
 
     /**
@@ -48,9 +47,10 @@ public class Map {
     public Map(Map p_map) {
         this();
         this.d_hasUniqueTerritories = p_map.d_hasUniqueTerritories;
-        for (Territory territory : p_map.d_territoryList) {
-            this.d_territoryList.add(new Territory(territory));
+        for (Territory l_territory : p_map.d_territoryList) {
+            this.d_territoryList.add(new Territory(l_territory));
         }
+        this.d_continents = new HashMap<>(p_map.d_continents);
     }
 
     /**
@@ -60,6 +60,24 @@ public class Map {
      */
     public List<Territory> getTerritoryList() {
         return d_territoryList;
+    }
+
+    /**
+     * Sets the territory list.
+     * 
+     * @param p_territoryList The territory list to set.
+     */
+    public void setTerritoryList(List<Territory> p_territoryList) {
+        this.d_territoryList = p_territoryList;
+    }
+
+    /**
+     * Gets the continents map.
+     * 
+     * @return The map of continents to their control values.
+     */
+    public java.util.Map<String, Integer> getContinents() {
+        return d_continents;
     }
 
     /**
@@ -81,9 +99,9 @@ public class Map {
      * @return The territory if found, otherwise null.
      */
     public Territory getTerritoryByName(String p_name) {
-        for (Territory territory : d_territoryList) {
-            if (territory.getName().equals(p_name)) {
-                return territory;
+        for (Territory l_territory : d_territoryList) {
+            if (l_territory.getName().equals(p_name)) {
+                return l_territory;
             }
         }
         return null;
@@ -97,8 +115,8 @@ public class Map {
     @Override
     public String toString() {
         StringBuilder l_sb = new StringBuilder("****Map*****\n");
-        for (Territory territory : d_territoryList) {
-            l_sb.append(territory).append("\n");
+        for (Territory l_territory : d_territoryList) {
+            l_sb.append(l_territory).append("\n");
         }
         return l_sb.toString();
     }
@@ -144,8 +162,8 @@ public class Map {
      */
     public void removeCountry(String p_countryID) {
         // First, remove p_countryID from the neighbor lists of all territories
-        for (Territory territory : d_territoryList) {
-            territory.getNeighborList().removeIf(neighbor -> neighbor.getName().equals(p_countryID));
+        for (Territory l_territory : d_territoryList) {
+            l_territory.getNeighborList().removeIf(neighbor -> neighbor.getName().equals(p_countryID));
         }
         // Then, remove the country itself from the territory list
         d_territoryList.removeIf(t -> t.getName().equals(p_countryID));
@@ -208,33 +226,32 @@ public class Map {
             l_parentDir.mkdirs();  // Creates the directories if they do not exist
         }
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(l_file))) {
+        try (BufferedWriter l_writer = new BufferedWriter(new FileWriter(l_file))) {
             // Writing continents section
-            writer.write("[continents]\n");
-            for (java.util.Map.Entry<String, Integer> entry : d_continents.entrySet()) {
-                writer.write(entry.getKey() + " " + entry.getValue() + "\n");
+            l_writer.write("[continents]\n");
+            for (java.util.Map.Entry<String, Integer> l_entry : d_continents.entrySet()) {
+                l_writer.write(l_entry.getKey() + " " + l_entry.getValue() + "\n");
             }
-            writer.write("\n");
+            l_writer.write("\n");
 
             // Writing countries section
-            writer.write("[countries]\n");
+            l_writer.write("[countries]\n");
             for (int i = 0; i < d_territoryList.size(); i++) {
                 Territory l_t = d_territoryList.get(i);
-                writer.write((i + 1) + " " + l_t.getName() + " " + (new ArrayList<>(d_continents.keySet()).indexOf(l_t.getContinent()) + 1) + "\n");
+                l_writer.write((i + 1) + " " + l_t.getName() + " " + (new ArrayList<>(d_continents.keySet()).indexOf(l_t.getContinent()) + 1) + "\n");
             }
-            writer.write("\n");
+            l_writer.write("\n");
 
             // Writing borders section
-            writer.write("[borders]\n");
+            l_writer.write("[borders]\n");
             for (int i = 0; i < d_territoryList.size(); i++) {
                 Territory l_t = d_territoryList.get(i);
-                writer.write((i + 1) + "");
-                for (Territory neighbor : l_t.getNeighborList()) {
-                    writer.write(" " + (d_territoryList.indexOf(neighbor) + 1));
+                l_writer.write((i + 1) + "");
+                for (Territory l_neighbor : l_t.getNeighborList()) {
+                    l_writer.write(" " + (d_territoryList.indexOf(l_neighbor) + 1));
                 }
-                writer.write("\n");
-                writer.flush(); // Forces any data in the buffer to be written to the file
-
+                l_writer.write("\n");
+                l_writer.flush(); // Forces any data in the buffer to be written to the file
             }
 
             System.out.println("File saved successfully!");
@@ -253,12 +270,12 @@ public class Map {
         if (d_territoryList.isEmpty()) return false;
 
         // Track visited territories
-        boolean[] visited = new boolean[d_territoryList.size()];
-        dfs(0, visited);  // Start DFS from the first territory
+        boolean[] l_visited = new boolean[d_territoryList.size()];
+        dfs(0, l_visited);  // Start DFS from the first territory
 
         // Check if all territories were visited
-        for (boolean isVisited : visited) {
-            if (!isVisited) return false;
+        for (boolean l_isVisited : l_visited) {
+            if (!l_isVisited) return false;
         }
         return true;
     }
@@ -270,8 +287,8 @@ public class Map {
      */
     public boolean continentValidation() {
         // Iterate over each continent
-        for (String continent : d_continents.keySet()) {
-            if (!isContinentConnected(continent)) {
+        for (String l_continent : d_continents.keySet()) {
+            if (!isContinentConnected(l_continent)) {
                 return false;  // If any continent is not connected, return false
             }
         }
@@ -285,24 +302,24 @@ public class Map {
      * @return true if the continent is connected, otherwise false.
      */
     private boolean isContinentConnected(String p_continentID) {
-        List<Territory> continentTerritories = new ArrayList<>();
+        List<Territory> l_continentTerritories = new ArrayList<>();
 
         // Collect territories belonging to the specified continent
-        for (Territory territory : d_territoryList) {
-            if (territory.getContinent().equals(p_continentID)) {
-                continentTerritories.add(territory);
+        for (Territory l_territory : d_territoryList) {
+            if (l_territory.getContinent().equals(p_continentID)) {
+                l_continentTerritories.add(l_territory);
             }
         }
 
-        if (continentTerritories.isEmpty()) return false;
+        if (l_continentTerritories.isEmpty()) return false;
 
         // Track visited territories within the continent
-        boolean[] visited = new boolean[continentTerritories.size()];
-        dfs(continentTerritories, 0, visited);  // Start DFS from the first continent territory
+        boolean[] l_visited = new boolean[l_continentTerritories.size()];
+        dfs(l_continentTerritories, 0, l_visited);  // Start DFS from the first continent territory
 
         // Check if all territories in the continent were visited
-        for (boolean isVisited : visited) {
-            if (!isVisited) return false;
+        for (boolean l_isVisited : l_visited) {
+            if (!l_isVisited) return false;
         }
         return true;
     }
@@ -310,18 +327,18 @@ public class Map {
     /**
      * Depth-First Search (DFS) to explore territories.
      *
-     * @param index Starting index for DFS.
-     * @param visited Array to track visited territories.
+     * @param p_index Starting index for DFS.
+     * @param p_visited Array to track visited territories.
      */
-    private void dfs(int index, boolean[] visited) {
-        visited[index] = true;
-        Territory current = d_territoryList.get(index);
+    private void dfs(int p_index, boolean[] p_visited) {
+        p_visited[p_index] = true;
+        Territory l_current = d_territoryList.get(p_index);
 
         // Explore neighbors
-        for (Territory neighbor : current.getNeighborList()) {
-            int neighborIndex = d_territoryList.indexOf(neighbor);
-            if (neighborIndex != -1 && !visited[neighborIndex]) {
-                dfs(neighborIndex, visited);
+        for (Territory l_neighbor : l_current.getNeighborList()) {
+            int l_neighborIndex = d_territoryList.indexOf(l_neighbor);
+            if (l_neighborIndex != -1 && !p_visited[l_neighborIndex]) {
+                dfs(l_neighborIndex, p_visited);
             }
         }
     }
@@ -329,23 +346,22 @@ public class Map {
     /**
      * Depth-First Search (DFS) for a specific continent.
      *
-     * @param continentTerritories List of territories in the continent.
-     * @param index Starting index for DFS within the continent.
-     * @param visited Array to track visited territories in the continent.
+     * @param p_continentTerritories List of territories in the continent.
+     * @param p_index Starting index for DFS within the continent.
+     * @param p_visited Array to track visited territories in the continent.
      */
-    private void dfs(List<Territory> continentTerritories, int index, boolean[] visited) {
-        visited[index] = true;
-        Territory current = continentTerritories.get(index);
+    private void dfs(List<Territory> p_continentTerritories, int p_index, boolean[] p_visited) {
+        p_visited[p_index] = true;
+        Territory l_current = p_continentTerritories.get(p_index);
 
         // Explore neighbors within the same continent
-        for (Territory neighbor : current.getNeighborList()) {
-            if (neighbor.getContinent().equals(current.getContinent())) {
-                int neighborIndex = continentTerritories.indexOf(neighbor);
-                if (neighborIndex != -1 && !visited[neighborIndex]) {
-                    dfs(continentTerritories, neighborIndex, visited);
+        for (Territory l_neighbor : l_current.getNeighborList()) {
+            if (l_neighbor.getContinent().equals(l_current.getContinent())) {
+                int l_neighborIndex = p_continentTerritories.indexOf(l_neighbor);
+                if (l_neighborIndex != -1 && !p_visited[l_neighborIndex]) {
+                    dfs(p_continentTerritories, l_neighborIndex, p_visited);
                 }
             }
         }
     }
-
 }
