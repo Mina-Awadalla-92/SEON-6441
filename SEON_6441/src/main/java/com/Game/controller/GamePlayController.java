@@ -136,44 +136,20 @@ public class GamePlayController {
                         l_player.getName(), l_player.getNbrOfReinforcementArmies());
                     
                     if (l_orderCommand.equalsIgnoreCase("FINISH")) {
-                        break;
+                        break;  // Player is done issuing orders
                     }
                     
-                    String[] l_orderParts = l_orderCommand.split(" ");
+                    // Just call issueOrder with the entire string
+                    boolean l_success = l_player.issueOrder(l_orderCommand);
                     
-                    if (l_orderParts.length != 3) {
-                        d_gameController.getView().displayError("Invalid command format. Usage: <OrderType> <territoryName> <numArmies>");
-                        continue;
-                    }
-                    
-                    String l_orderType = l_orderParts[0];
-                    String l_targetTerritoryName = l_orderParts[1];
-                    int l_numberOfArmies;
-                    
-                    try {
-                        l_numberOfArmies = Integer.parseInt(l_orderParts[2]);
-                    } catch (NumberFormatException e) {
-                        d_gameController.getView().displayError("Invalid number of armies: " + l_orderParts[2]);
-                        continue;
-                    }
-                    
-                    if (l_orderType.equalsIgnoreCase("deploy")) {
-                        boolean l_success = l_player.createDeployOrder(l_targetTerritoryName, l_numberOfArmies);
-                        
-                        if (l_success) {
-                            d_gameController.getView().displayMessage(
-                                l_player.getName() + "'s deploy order issued: Deploy " + 
-                                l_numberOfArmies + " armies to " + l_targetTerritoryName);
-                        } else {
-                            d_gameController.getView().displayError(
-                                "Failed to create deploy order. Check territory name and number of armies.");
-                        }
-                    } else {
-                        d_gameController.getView().displayError("Invalid order type. Only 'deploy' is supported in this phase.");
+                    if (!l_success) {
+                        d_gameController.getView().displayError(
+                            "Failed to create order. Please check your command format.");
                     }
                 }
             }
         }
+
         
         d_gameController.getView().displayIssueOrdersComplete();
     }

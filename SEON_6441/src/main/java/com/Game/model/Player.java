@@ -1,5 +1,6 @@
 package com.Game.model;
 
+
 import java.util.ArrayList;
 import java.util.List;
 import com.Game.model.order.DeployOrder;
@@ -30,6 +31,7 @@ public class Player {
      * A list of orders issued by the player.
      */
     private List<Order> d_orders;
+    private boolean d_hasConqueredThisTurn;
 
     /**
      * Constructor initializing player with a name.
@@ -41,6 +43,7 @@ public class Player {
         this.d_ownedTerritories = new ArrayList<>();
         this.d_orders = new ArrayList<>();
         this.d_nbrOfReinforcementArmies = 0;
+        this.d_hasConqueredThisTurn = false;
     }
 
     /**
@@ -54,7 +57,10 @@ public class Player {
         this.d_ownedTerritories = new ArrayList<>();
         this.d_orders = new ArrayList<>();
         this.d_nbrOfReinforcementArmies = p_nbrOfReinforcementArmies;
+        this.d_hasConqueredThisTurn = false;
     }
+    
+    
 
     /**
      * Adds a territory to the player's owned territories.
@@ -98,6 +104,64 @@ public class Player {
         this.d_nbrOfReinforcementArmies -= p_numberOfArmies;
         return true;
     }
+    
+    public boolean issueOrder(String p_command) {
+        // Split the command by spaces
+        String[] l_parts = p_command.split(" ");
+        if (l_parts.length < 3) {
+            // Could be "deploy territoryName num" (3 parts)
+            // or "advance territoryFrom territoryTo num" (4 parts)
+            return false;
+        }
+
+        String l_orderType = l_parts[0].toLowerCase();
+
+        // Handle "deploy" command
+        if (l_orderType.equalsIgnoreCase("deploy")) {
+            // Expect exactly 3 parts: deploy <territoryName> <numArmies>
+            if (l_parts.length != 3) {
+                return false;
+            }
+            String l_targetTerritoryName = l_parts[1];
+            int l_numberOfArmies;
+            
+            
+            try {
+                l_numberOfArmies = Integer.parseInt(l_parts[2]);
+            } catch (NumberFormatException e) {
+                return false;
+            }
+            
+            
+            Territory l_targetTerritory = findTerritoryByName(l_targetTerritoryName);
+            if (l_targetTerritory == null) {
+                return false;
+            }
+            
+            if (l_numberOfArmies > this.d_nbrOfReinforcementArmies) {
+                return false;
+            }
+            
+            if (!l_targetTerritory.getOwner().getName().equals(this.d_name)) {
+            	return false;
+            }
+            
+            DeployOrder l_deployOrder = new DeployOrder(this, l_targetTerritory, l_numberOfArmies);
+            d_orders.add(l_deployOrder);
+            this.d_nbrOfReinforcementArmies -= l_numberOfArmies;
+            return true;
+        }
+
+        // Handle "advance" command
+        else if (l_orderType.equalsIgnoreCase("advance")) {
+           
+        }
+
+        // If it's neither deploy nor advance
+        return false;
+    }
+    
+   
 
     /**
      * Legacy method for issuing orders directly through user input.
@@ -242,6 +306,15 @@ public class Player {
      */
     public void clearOrders() {
         this.d_orders.clear();
+    }
+    
+    /**
+     * Sets the conquered territory this turn.
+     * 
+     * @param boolean The boolean value of whether the player has conquered a territory this turn.
+     */
+    public void setConqueredThisTurn(Boolean p_hasConqueredThisTurn) {
+        this.d_hasConqueredThisTurn = p_hasConqueredThisTurn;
     }
 
     /**
