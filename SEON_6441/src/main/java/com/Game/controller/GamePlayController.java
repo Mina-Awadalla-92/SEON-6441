@@ -142,7 +142,7 @@ public class GamePlayController {
                     // Just call issueOrder with the entire string
                     boolean l_success = l_player.issueOrder(l_orderCommand);
                     
-                    if (!l_success) {
+                    if (!l_success) { 
                         d_gameController.getView().displayError(
                             "Failed to create order. Please check your command format.");
                     }

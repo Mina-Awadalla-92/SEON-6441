@@ -123,7 +123,7 @@ public class Player {
                 return false;
             }
             String l_targetTerritoryName = l_parts[1];
-            int l_numberOfArmies;
+            int l_numberOfArmies;  
             
             
             try {
