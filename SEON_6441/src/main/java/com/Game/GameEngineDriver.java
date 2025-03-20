@@ -1,17 +1,20 @@
 package com.Game;
 
+import com.Game.controller.GameController;
+
 /**
- * The {@code GameEngineDriver} class serves as the entry point for the game.
- * It creates an instance of {@code GameEngine} and starts the game.
+ * The entry point for the Warzone game application.
+ * This class initializes the GameController and starts the game.
  */
 public class GameEngineDriver {
 
     /**
-     * The main method to launch the game.
-     * @param args Command-line arguments (not used).
+     * The main method that starts the game.
+     * 
+     * @param p_args Command-line arguments (not used)
      */
-    public static void main(String[] args) {
-        GameEngine gameEngine = new GameEngine();
-        gameEngine.startGame();
+    public static void main(String[] p_args) {
+        GameController l_gameController = new GameController();
+        l_gameController.startGame();
     }
 }
