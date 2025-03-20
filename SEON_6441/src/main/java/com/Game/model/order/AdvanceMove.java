@@ -19,7 +19,8 @@ public class AdvanceMove extends AdvanceOrder {
 	@Override
 	public void execute() {
 		//getD_territoryFrom().setNumOfArmies(getD_territoryFrom().getNumOfArmies() - getD_numberOfArmies());
-		
 		getD_territoryTo().setNumOfArmies(getD_territoryTo().getNumOfArmies() + getD_numberOfArmies());
+		System.out.println(this.d_numberOfArmies + " armie(s) were moved from " + getD_territoryFrom().getName() + " to " + getD_territoryTo().getName());
+		
 	}
 }

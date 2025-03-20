@@ -6,7 +6,7 @@ import com.Game.model.Territory;
 import com.Game.model.order.Order;
 import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
-
+import com.Game.model.CardType;
 import java.util.List;
 import java.util.Random;
 
@@ -129,7 +129,7 @@ public class GamePlayController {
         for (Player l_player : d_players) {
             if (l_player.getNbrOfReinforcementArmies() > 0) {
                 d_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
-                d_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories());
+                d_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories(), l_player, d_gameMap);
                 
                 while (l_player.getNbrOfReinforcementArmies() > 0) {
                     String l_orderCommand = l_commandPromptView.getPlayerOrder(
@@ -140,7 +140,7 @@ public class GamePlayController {
                     }
                     
                     // Just call issueOrder with the entire string
-                    boolean l_success = l_player.issueOrder(l_orderCommand);
+                    boolean l_success = l_player.issueOrder(l_orderCommand, d_gameMap);
                     
                     if (!l_success) { 
                         d_gameController.getView().displayError(
@@ -182,6 +182,29 @@ public class GamePlayController {
                     l_ordersRemaining = true;
                 }
             }
+            
+            
+        }
+        System.out.println("\nCards awarding:\n");
+        for (Player l_player : d_players) {
+        	if (l_player.getHasConqueredThisTurn()) {
+        		CardType[] allCardTypes = CardType.values();
+
+        	    // Pick a random index
+        	    int randomIndex = new Random().nextInt(allCardTypes.length);
+
+        	    // Get the random card
+        	    CardType randomCard = allCardTypes[randomIndex];
+
+        	    // Add the card to the player's hand (or card collection)
+        	    l_player.addCard(randomCard);
+        	    System.out.println("Player "+ l_player.getName() + " was awarded " + randomCard.name());
+        	}
+        }
+        System.out.println();
+        
+        for (Player l_player : d_players) {
+        	l_player.setHasConqueredThisTurn(false);
         }
         
         d_gameController.getView().displayExecuteOrdersComplete();

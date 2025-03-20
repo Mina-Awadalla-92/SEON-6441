@@ -3,6 +3,7 @@ package com.Game.view;
 import com.Game.model.Map;
 import com.Game.model.Player;
 import com.Game.model.Territory;
+import com.Game.model.CardType;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -115,6 +116,11 @@ public class GameView {
             System.out.println("Player Name: " + l_player.getName());
             System.out.println("Total Territories Owned: " + l_player.getOwnedTerritories().size());
             System.out.println("Available Reinforcement Armies: " + l_player.getNbrOfReinforcementArmies());
+            
+            System.out.println("Cards Available:");
+            System.out.println(l_player.getFormattedCards());
+
+
             System.out.println("Territory Details:");
             for (Territory l_territory : l_player.getOwnedTerritories()) {
                 System.out.println("    - " + l_territory.getName() 

@@ -9,6 +9,8 @@ import java.util.InputMismatchException;
 import com.Game.model.CardType;
 import com.Game.model.order.AdvanceAttack;
 import com.Game.model.order.AdvanceMove;
+import com.Game.model.Map;
+import java.util.HashMap;
 
 
 /**
@@ -21,6 +23,8 @@ public class Player {
      * The name of the player.
      */
     private String d_name;
+    
+    private boolean d_hasConqueredThisTurn;
 
     /**
      * The number of reinforcement armies available to the player.
@@ -39,8 +43,8 @@ public class Player {
     private int d_territoriesConqueredPerTurn;
     
     
-    private List<CardType> cards; // Collection of cards
-
+    private HashMap<CardType, Integer> cards; // Collection of cards
+    
     /**
      * Constructor initializing player with a name.
      * 
@@ -51,7 +55,8 @@ public class Player {
         this.d_ownedTerritories = new ArrayList<>();
         this.d_orders = new ArrayList<>();
         this.d_nbrOfReinforcementArmies = 0;
-        this.cards = new ArrayList<>();
+        this.cards = new HashMap<>();
+        this.d_hasConqueredThisTurn = false;
       
     }
 
@@ -66,12 +71,21 @@ public class Player {
         this.d_ownedTerritories = new ArrayList<>();
         this.d_orders = new ArrayList<>();
         this.d_nbrOfReinforcementArmies = p_nbrOfReinforcementArmies;
-        this.cards = new ArrayList<>();
+        this.cards = new HashMap<>();
+        this.d_hasConqueredThisTurn = false;
     }
     
     
 
-    /**
+    public boolean getHasConqueredThisTurn() {
+		return d_hasConqueredThisTurn;
+	}
+
+	public void setHasConqueredThisTurn(boolean d_hasConqueredThisTurn) {
+		this.d_hasConqueredThisTurn = d_hasConqueredThisTurn;
+	}
+
+	/**
      * Adds a territory to the player's owned territories.
      * 
      * @param p_territory Territory to be added
@@ -113,115 +127,164 @@ public class Player {
         this.d_nbrOfReinforcementArmies -= p_numberOfArmies;
         return true;
     }
+    /**
+     * Validates the 'deploy' command.
+     * 
+     * @param p_parts The split command parts (e.g. ["deploy", "TerritoryName", "5"]).
+     * @return true if valid; false otherwise.
+     */
+    private boolean validateDeploy(String[] p_parts) {
+        // Expect exactly 3 parts: deploy <territoryName> <numArmies>
+        if (p_parts.length != 3) {
+            return false;
+        }
+
+        // Check if the number of armies is a valid integer
+        int l_numberOfArmies;
+        try {
+            l_numberOfArmies = Integer.parseInt(p_parts[2]);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        // Check territory exists
+        String l_targetTerritoryName = p_parts[1];
+        Territory l_targetTerritory = findTerritoryByName(l_targetTerritoryName);
+        if (l_targetTerritory == null) {
+            return false;
+        }
+
+        // Check if player has enough reinforcement armies
+        if (l_numberOfArmies > this.d_nbrOfReinforcementArmies) {
+            return false;
+        }
+
+        // Check if the territory belongs to this player
+        if (!l_targetTerritory.getOwner().getName().equals(this.d_name)) {
+            return false;
+        }
+
+        // If all checks pass, return true
+        return true;
+    }
     
-    public boolean issueOrder(String p_command, Map m) {
-        // Split the command by spaces
+    /**
+     * Validates the 'advance' command.
+     * 
+     * @param p_parts The split command parts (e.g. ["advance", "FromTerritory", "ToTerritory", "3"]).
+     * @param p_map   The Map object (or similar) used to find territories.
+     * @return true if valid; false otherwise.
+     */
+    private boolean validateAdvance(String[] p_parts, Map p_map) {
+        // Expect exactly 4 parts: advance <fromTerritory> <toTerritory> <numArmies>
+        if (p_parts.length != 4) {
+            return false;
+        }
+
+        // Check if the territories exist
+        Territory l_territoryFrom = findTerritoryByName(p_parts[1]);
+        Territory l_territoryTo = p_map.getTerritoryByName(p_parts[2]);
+        if (l_territoryFrom == null || l_territoryTo == null) {
+            System.err.println("Territorie(s) not found!");
+            return false;
+        }
+
+        // Check the number of armies
+        int l_numberOfArmies;
+        try {
+            l_numberOfArmies = Integer.parseInt(p_parts[3]);
+        } catch (NumberFormatException e) {
+            System.err.println("Invalid number of armies!");
+            return false;
+        }
+
+        // Check if 'from' territory belongs to this player
+        if (!l_territoryFrom.getOwner().getName().equals(this.getName())) {
+            System.err.println(l_territoryFrom + " does not belong to " + this.getName());
+            return false;
+        }
+
+        // Check adjacency
+        if (!l_territoryFrom.hasNeighbor(l_territoryTo)) {
+            System.err.println(l_territoryFrom.getName() + " is not adjacent to " + l_territoryTo.getName());
+            return false;
+        }
+
+        // Check if we have enough armies
+        if (l_territoryFrom.getNumOfArmies() - l_numberOfArmies < 0) {
+            System.err.println("Not enough armies on " + l_territoryFrom.getName() + ". Only " 
+                               + l_territoryFrom.getNumOfArmies() + " available!");
+            return false;
+        }
+
+        // All checks pass
+        return true;
+    }
+
+    
+    public boolean issueOrder(String p_command, Map p_map) {
+        // Split the command
         String[] l_parts = p_command.split(" ");
         if (l_parts.length < 2 || l_parts.length > 4) {
-            // None of the commands are there
+            // Basic sanity check: we expect 2-4 parts (e.g., "deploy X Y" or "advance A B C")
             return false;
         }
 
         String l_orderType = l_parts[0].toLowerCase();
-        
 
-        // Handle "deploy" command
-        if (l_orderType.equalsIgnoreCase("deploy")) {
-            // Expect exactly 3 parts: deploy <territoryName> <numArmies>
-            if (l_parts.length != 3) {
-                return false;
+        // Handle "deploy"
+        if (l_orderType.equals("deploy")) {
+            if (!validateDeploy(l_parts)) {
+                return false;  // Validation failed
             }
+
+            // If we reach here, validation succeeded. We can parse the input again or 
+            // retrieve the same values inside the function. Let's do a quick parse:
             String l_targetTerritoryName = l_parts[1];
-            int l_numberOfArmies;  
-            
-            
-            try {
-                l_numberOfArmies = Integer.parseInt(l_parts[2]);
-            } catch (NumberFormatException e) {
-                return false;
-            }
-            
-            
+            int l_numberOfArmies = Integer.parseInt(l_parts[2]);
+
             Territory l_targetTerritory = findTerritoryByName(l_targetTerritoryName);
-            if (l_targetTerritory == null) {
-                return false;
-            }
-            
-            if (l_numberOfArmies > this.d_nbrOfReinforcementArmies) {
-                return false;
-            }
-            
-            if (!l_targetTerritory.getOwner().getName().equals(this.d_name)) {
-            	return false;
-            }
-            
             DeployOrder l_deployOrder = new DeployOrder(this, l_targetTerritory, l_numberOfArmies);
             d_orders.add(l_deployOrder);
+
+            // Decrease the player's reinforcement pool
             this.d_nbrOfReinforcementArmies -= l_numberOfArmies;
+
             return true;
         }
 
-        // Handle "advance" command
-        else if (l_orderType.equalsIgnoreCase("advance")) {
-        	if (l_parts.length != 4) {
-        		return false;
-        	}
-        	
-        	Territory l_territoryFrom = findTerritoryByName(l_parts[1]);
-        	Territory l_territoryTo = m.getTerritoryByName(l_parts[2]);
-        	
-        	if(l_territoryFrom == null || l_territoryTo == null) {
-        		System.err.println("Territorie(s) not found!");
-        		return false;
-        	}
-        	
-        	int l_numberOfArmies;
-        	
-        	try {
-            	l_numberOfArmies = Integer.parseInt(l_parts[3]);
-        	}
-        	catch(InputMismatchException e) {
-        		System.err.println("Invalid number of armies!");
-        		return false;
-        	}
-        	
-        	if(!l_territoryFrom.getOwner().getName().equals(this.getName())) {
-        		System.err.println(l_territoryFrom + " does not belong to " + this.getName());
-        		return false;
-        	}
-        	
-        	if(!l_territoryFrom.hasNeighbor(l_territoryTo)) {
-        		System.err.println(l_territoryFrom.getName() + " is not adjacent to " + l_territoryTo.getName());
-        		return false;
-        	}
-        	
-        	if(l_territoryFrom.getNumOfArmies() - l_numberOfArmies < 0) {
-    			System.err.println("Not enough armies on " + l_territoryFrom.getName() + ". Only " + l_territoryFrom.getNumOfArmies() + " armie(s) available!");
-    			return false;
-    		}
-        	l_territoryFrom.setNumOfArmies(l_territoryFrom.getNumOfArmies() - l_numberOfArmies); // So that the user won't spam the same order again
-        	
-        	
-        	if(l_territoryTo.getOwner().getName().equals(this.getName())) { 
-        		// the territory belongs to the current player so we will move armies without attacking
-        		//check if terrFrom does not go negative
-        		AdvanceMove advanceMove = new AdvanceMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
-        		//System.out.println("DEBUG: Added advance move to d_orders");
-        		d_orders.add(advanceMove);
-        		return true;
-        	}
-        	else {
-        		AdvanceAttack advanceAttack = new AdvanceAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
-        		//System.out.println("DEBUG: Added advance attack to d_orders");
-        		d_orders.add(advanceAttack);
-        		return true;
-        	}
-        	
+        // Handle "advance"
+        else if (l_orderType.equals("advance")) {
+            if (!validateAdvance(l_parts, p_map)) {
+                return false;  // Validation failed
+            }
+
+            // If we reach here, validation succeeded
+            // We'll re-parse the arguments
+            Territory l_territoryFrom = findTerritoryByName(l_parts[1]);
+            Territory l_territoryTo = p_map.getTerritoryByName(l_parts[2]);
+            int l_numberOfArmies = Integer.parseInt(l_parts[3]);
+
+            // Subtract armies from 'from' territory (we know it's safe from validation)
+            l_territoryFrom.setNumOfArmies(l_territoryFrom.getNumOfArmies() - l_numberOfArmies);
+
+            // Check if it's a friendly move or an attack
+            if (l_territoryTo.getOwner().getName().equals(this.getName())) {
+                // Friendly territory -> AdvanceMove
+                AdvanceMove advanceMove = new AdvanceMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
+                d_orders.add(advanceMove);
+            } else {
+                // Enemy territory -> AdvanceAttack
+                AdvanceAttack advanceAttack = new AdvanceAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
+                d_orders.add(advanceAttack);
+            }
+            return true;
         }
 
-        // If it's neither deploy nor advance
+        // Neither deploy nor advance
         return false;
     }
+
     
    
 
@@ -229,6 +292,9 @@ public class Player {
      * Legacy method for issuing orders directly through user input.
      * To be refactored in future updates to follow MVC pattern.
      */
+    
+    
+    
     public void issueOrder() {
         // Legacy method - to be fully refactored in future updates
         // Current implementation left for backward compatibility
@@ -374,21 +440,52 @@ public class Player {
      * Adds a new card to the player's collection.
      */
     public void addCard(CardType p_card) {
-        cards.add(p_card);
+    	cards.put(p_card, cards.getOrDefault(p_card, 0) + 1);
+    }
+    
+    public int getCardCount(CardType p_card) {
+        return cards.getOrDefault(p_card, 0);
     }
 
     /**
      * Returns the player's current list of cards.
      */
-    public List<CardType> getCards() {
+    public HashMap<CardType, Integer> getCards() {
         return cards;
     }
 
     /**
      * (Optional) Use or remove a card from the player's collection.
      */
-    public boolean useCard(CardType p_card) {
-        return cards.remove(p_card);
+    public boolean removeCard(CardType p_card) {
+        // Check if the player has at least one of this card
+        if (cards.containsKey(p_card) && cards.get(p_card) > 0) {
+        	cards.put(p_card, cards.get(p_card) - 1);
+            // If count goes to zero, remove the entry
+            if (cards.get(p_card) == 0) {
+            	cards.remove(p_card);
+            }
+            return true;
+        }
+        return false;
+    }
+    
+    public String getFormattedCards() {
+        if (cards.isEmpty()) {
+            return "None";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (HashMap.Entry<CardType, Integer> entry : cards.entrySet()) {
+            CardType cardType = entry.getKey();
+            int cardCount = entry.getValue();
+            sb.append("    - ")
+              .append(cardType)
+              .append(": ")
+              .append(cardCount)
+              .append("\n");
+        }
+        return sb.toString();
     }
 
     /**

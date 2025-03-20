@@ -59,7 +59,7 @@ public class AdvanceAttack extends AdvanceOrder {
 	    
 	    int survivingAttackingArmies = attackingArmies - actualAttackerCasualties;
 	    int survivingDefendingArmies = defendingArmies - actualDefenderCasualties;
-	    CardType randomCard = null;
+	    
 	    if (survivingDefendingArmies <= 0) {
 	        // All defending armies are eliminated: attacker captures the territory.
 	    	//get old player that owned the lost territory and remove territory list from him/her
@@ -69,10 +69,7 @@ public class AdvanceAttack extends AdvanceOrder {
 	        // The surviving attacking armies occupy the conquered territory.
 	        getD_territoryTo().setNumOfArmies(survivingAttackingArmies);
 	        
-	        CardType[] allCardTypes = CardType.values();
-	        int randomIndex = new Random().nextInt(allCardTypes.length);
-	        randomCard = allCardTypes[randomIndex];
-	        getIssuer().addCard(randomCard);
+	        getIssuer().setHasConqueredThisTurn(true);
 	        
 	        //Increment the number of conquered territories per turn for card distribution (should be reset to 0 after round ends in GamePlay)
 	    } else {
@@ -90,7 +87,6 @@ public class AdvanceAttack extends AdvanceOrder {
 	    System.out.println(getD_territoryTo().getName() + " (defending) inflicted " + actualAttackerCasualties + " casualties");
 	    if (survivingDefendingArmies <= 0) {
 	        System.out.println(getIssuer().getName() + " captured "+ getD_territoryTo().getName() + " and the territory now has " + survivingAttackingArmies + " armies.");
-	        System.out.println(getIssuer().getName() + " will recieve a random card! Drum rolls... " + randomCard.name() + "!");
 	    } else {
 	        System.out.println(l_opposingPlayerName +" retained " + getD_territoryTo().getName() + " and the territory now has " + survivingDefendingArmies + " armies remaining.");
 	        System.out.println(getIssuer().getName() + " retained "+ getD_territoryFrom().getName() + " and the territory now has " + survivingAttackingArmies + " armies.");
