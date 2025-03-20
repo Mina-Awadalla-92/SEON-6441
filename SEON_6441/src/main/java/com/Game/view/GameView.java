@@ -188,11 +188,29 @@ public class GameView {
      * 
      * @param p_territories The list of territories to display
      */
-    public void displayPlayerTerritories(List<Territory> p_territories) {
+    public void displayPlayerTerritories(List<Territory> p_territories, Player p_player, Map p_gameMap) {
         System.out.println("Your territories:");
         for (int i = 0; i < p_territories.size(); i++) {
-            Territory l_t = p_territories.get(i);
-            System.out.println((i+1) + ". " + l_t.getName() + " (" + l_t.getNumOfArmies() + " armies)");
+            Territory l_territory = p_territories.get(i);
+            System.out.println((i+1) + ". " + l_territory.getName() + " (" + l_territory.getNumOfArmies() + " armies)");
+            List<Territory> neighbors = l_territory.getNeighborList();
+            System.out.print("		- Neighbors: ");
+            for (Territory l_neighbor : neighbors) {
+            	if(p_player.getOwnedTerritories().contains(l_neighbor)) {
+            		System.out.print(l_neighbor.getName() + "(Owned) || ");
+            	}
+            	else {
+            		if(l_neighbor.getOwner() != null) {
+            			System.out.print(l_neighbor.getName() + " (Enemy: "+ l_neighbor.getOwner().getName() +") || ");
+            		}
+            		else {
+            			System.out.print(l_neighbor.getName() + " (Enemy: No owner) || ");
+            		}
+            		
+            	}
+            	
+            }
+            System.out.println();
         }
     }
     

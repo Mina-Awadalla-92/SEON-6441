@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 import com.Game.model.order.DeployOrder;
 import com.Game.model.order.Order;
+import java.util.InputMismatchException;
+import com.Game.model.CardType;
+import com.Game.model.order.AdvanceAttack;
+import com.Game.model.order.AdvanceMove;
+
 
 /**
  * Represents a player in the game who owns territories and can issue orders.
@@ -31,7 +36,10 @@ public class Player {
      * A list of orders issued by the player.
      */
     private List<Order> d_orders;
-    private boolean d_hasConqueredThisTurn;
+    private int d_territoriesConqueredPerTurn;
+    
+    
+    private List<CardType> cards; // Collection of cards
 
     /**
      * Constructor initializing player with a name.
@@ -43,7 +51,8 @@ public class Player {
         this.d_ownedTerritories = new ArrayList<>();
         this.d_orders = new ArrayList<>();
         this.d_nbrOfReinforcementArmies = 0;
-        this.d_hasConqueredThisTurn = false;
+        this.cards = new ArrayList<>();
+      
     }
 
     /**
@@ -57,7 +66,7 @@ public class Player {
         this.d_ownedTerritories = new ArrayList<>();
         this.d_orders = new ArrayList<>();
         this.d_nbrOfReinforcementArmies = p_nbrOfReinforcementArmies;
-        this.d_hasConqueredThisTurn = false;
+        this.cards = new ArrayList<>();
     }
     
     
@@ -105,16 +114,16 @@ public class Player {
         return true;
     }
     
-    public boolean issueOrder(String p_command) {
+    public boolean issueOrder(String p_command, Map m) {
         // Split the command by spaces
         String[] l_parts = p_command.split(" ");
-        if (l_parts.length < 3) {
-            // Could be "deploy territoryName num" (3 parts)
-            // or "advance territoryFrom territoryTo num" (4 parts)
+        if (l_parts.length < 2 || l_parts.length > 4) {
+            // None of the commands are there
             return false;
         }
 
         String l_orderType = l_parts[0].toLowerCase();
+        
 
         // Handle "deploy" command
         if (l_orderType.equalsIgnoreCase("deploy")) {
@@ -154,7 +163,60 @@ public class Player {
 
         // Handle "advance" command
         else if (l_orderType.equalsIgnoreCase("advance")) {
-           
+        	if (l_parts.length != 4) {
+        		return false;
+        	}
+        	
+        	Territory l_territoryFrom = findTerritoryByName(l_parts[1]);
+        	Territory l_territoryTo = m.getTerritoryByName(l_parts[2]);
+        	
+        	if(l_territoryFrom == null || l_territoryTo == null) {
+        		System.err.println("Territorie(s) not found!");
+        		return false;
+        	}
+        	
+        	int l_numberOfArmies;
+        	
+        	try {
+            	l_numberOfArmies = Integer.parseInt(l_parts[3]);
+        	}
+        	catch(InputMismatchException e) {
+        		System.err.println("Invalid number of armies!");
+        		return false;
+        	}
+        	
+        	if(!l_territoryFrom.getOwner().getName().equals(this.getName())) {
+        		System.err.println(l_territoryFrom + " does not belong to " + this.getName());
+        		return false;
+        	}
+        	
+        	if(!l_territoryFrom.hasNeighbor(l_territoryTo)) {
+        		System.err.println(l_territoryFrom.getName() + " is not adjacent to " + l_territoryTo.getName());
+        		return false;
+        	}
+        	
+        	if(l_territoryFrom.getNumOfArmies() - l_numberOfArmies < 0) {
+    			System.err.println("Not enough armies on " + l_territoryFrom.getName() + ". Only " + l_territoryFrom.getNumOfArmies() + " armie(s) available!");
+    			return false;
+    		}
+        	l_territoryFrom.setNumOfArmies(l_territoryFrom.getNumOfArmies() - l_numberOfArmies); // So that the user won't spam the same order again
+        	
+        	
+        	if(l_territoryTo.getOwner().getName().equals(this.getName())) { 
+        		// the territory belongs to the current player so we will move armies without attacking
+        		//check if terrFrom does not go negative
+        		AdvanceMove advanceMove = new AdvanceMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
+        		//System.out.println("DEBUG: Added advance move to d_orders");
+        		d_orders.add(advanceMove);
+        		return true;
+        	}
+        	else {
+        		AdvanceAttack advanceAttack = new AdvanceAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
+        		//System.out.println("DEBUG: Added advance attack to d_orders");
+        		d_orders.add(advanceAttack);
+        		return true;
+        	}
+        	
         }
 
         // If it's neither deploy nor advance
@@ -309,12 +371,24 @@ public class Player {
     }
     
     /**
-     * Sets the conquered territory this turn.
-     * 
-     * @param boolean The boolean value of whether the player has conquered a territory this turn.
+     * Adds a new card to the player's collection.
      */
-    public void setConqueredThisTurn(Boolean p_hasConqueredThisTurn) {
-        this.d_hasConqueredThisTurn = p_hasConqueredThisTurn;
+    public void addCard(CardType p_card) {
+        cards.add(p_card);
+    }
+
+    /**
+     * Returns the player's current list of cards.
+     */
+    public List<CardType> getCards() {
+        return cards;
+    }
+
+    /**
+     * (Optional) Use or remove a card from the player's collection.
+     */
+    public boolean useCard(CardType p_card) {
+        return cards.remove(p_card);
     }
 
     /**
