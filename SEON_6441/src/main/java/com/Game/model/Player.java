@@ -220,6 +220,43 @@ public class Player {
         // All checks pass
         return true;
     }
+    
+    public boolean validateBomb(String[] l_parts, Map p_map) {
+    	if(l_parts.length != 2) {
+    		return false;
+    	}
+    	
+    	Territory l_territoryTo = p_map.getTerritoryByName(l_parts[1]);
+    	
+    	if (l_territoryTo == null) {
+    		System.err.println("Invalid Territory Name!");
+    		return false;
+    	}
+    	
+    	Boolean l_found = false;
+    	for(Territory l_territory: this.getOwnedTerritories()) {
+    		if(l_territory.hasNeighbor(l_territoryTo)) {
+    			l_found = true;
+    			break;
+    		}
+    	}
+    	if(!l_found) {
+    		System.err.println(l_territoryTo.getName() + " is not adjacent to any of your owned territories!");
+    		return false;
+    	}
+    	
+    	//check cards
+    	CardType[] allCardTypes = CardType.values();
+    	
+    	if(!this.removeCard(allCardTypes[0])) {
+    		System.err.println("No Bomb cards available!");
+    		return false;
+    	}
+    	
+    	//create bomb order object
+    	
+    	return true;
+    }
 
     
     public boolean issueOrder(String p_command, Map p_map) {
@@ -279,6 +316,12 @@ public class Player {
                 d_orders.add(advanceAttack);
             }
             return true;
+        }
+        else if (l_orderType.equalsIgnoreCase("bomb")) {
+        	if(!validateBomb(l_parts, p_map)) {
+        		return false;
+        	}
+        	
         }
 
         // Neither deploy nor advance
