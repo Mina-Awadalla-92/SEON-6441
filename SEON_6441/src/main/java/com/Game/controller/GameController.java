@@ -5,6 +5,8 @@ import com.Game.model.Player;
 import com.Game.utils.MapLoader;
 import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
+import com.Game.observer.LogEntryBuffer;
+import com.Game.observer.FileLogObserver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +94,11 @@ public class GameController {
     private GamePlayController d_gamePlayController;
     
     /**
+     * The log entry buffer for game logging.
+     */
+    private LogEntryBuffer d_logEntryBuffer;
+    
+    /**
      * Default constructor that initializes the game controller.
      */
     public GameController() {
@@ -105,6 +112,16 @@ public class GameController {
         
         this.d_view = new GameView();
         this.d_commandPromptView = new CommandPromptView();
+        
+        // Initialize logging system
+        this.d_logEntryBuffer = new LogEntryBuffer();
+        FileLogObserver l_fileLogObserver = new FileLogObserver("warzone_game_log.txt");
+        this.d_logEntryBuffer.addObserver(l_fileLogObserver);
+        
+        // Log game start
+        this.d_logEntryBuffer.logAction("Game controller initialized");
+        this.d_logEntryBuffer.logPhaseChange("Map Editing");
+        
         this.d_mapEditorController = new MapEditorController(this, d_gameMap, d_mapLoader);
         this.d_gamePlayController = new GamePlayController(this, d_gameMap, d_players);
     }
@@ -115,6 +132,7 @@ public class GameController {
      */
     public void startGame() {
         d_view.displayWelcomeMessage();
+        d_logEntryBuffer.logAction("Game started");
         boolean l_isMapLoaded = false;
         
         while (true) {
@@ -132,12 +150,16 @@ public class GameController {
                 
                 if (l_command.equals("exit")) {
                     d_view.displayMessage("Exiting the program.");
+                    d_logEntryBuffer.logAction("User exited the program");
                     d_commandPromptView.closeScanner();
                     System.exit(0);
                 }
                 
+                d_logEntryBuffer.logAction("Command received: " + l_input);
+                
                 if (!l_isMapLoaded && !l_command.equals("editmap") && !l_command.equals("loadmap")) {
                     d_view.displayError("You must load/edit a map first using the 'editmap' or 'loadmap' command.");
+                    d_logEntryBuffer.logAction("Command rejected: Map not loaded");
                 } else {
                     l_isMapLoaded = d_mapEditorController.handleCommand(l_commandParts, l_command, l_isMapLoaded);
                 }
@@ -152,10 +174,12 @@ public class GameController {
                 
                 if (l_command.equals("exit")) {
                     d_view.displayMessage("Exiting the program.");
+                    d_logEntryBuffer.logAction("User exited the program");
                     d_commandPromptView.closeScanner();
                     System.exit(0);
                 }
                 
+                d_logEntryBuffer.logAction("Command received: " + l_input);
                 handleStartupCommand(l_commandParts, l_command);
             } else if (d_currentPhase == MAIN_GAME_PHASE) {
                 d_view.displayMainGameMenu();
@@ -168,10 +192,12 @@ public class GameController {
                 
                 if (l_command.equals("exit")) {
                     d_view.displayMessage("Exiting the program.");
+                    d_logEntryBuffer.logAction("User exited the program");
                     d_commandPromptView.closeScanner();
                     System.exit(0);
                 }
                 
+                d_logEntryBuffer.logAction("Command received: " + l_input);
                 d_gamePlayController.handleCommand(l_commandParts, l_command);
             }
         }
@@ -187,6 +213,7 @@ public class GameController {
         switch (p_command) {
             case "showmap":
                 d_view.displayMap(d_gameMap, d_players);
+                d_logEntryBuffer.logAction("Displayed map in startup phase");
                 break;
             case "gameplayer":
                 if (p_commandParts.length >= 3) {
@@ -195,32 +222,44 @@ public class GameController {
                     handleGamePlayer(l_action, l_playerName);
                 } else {
                     d_view.displayError("Usage: gameplayer -add playerName OR gameplayer -remove playerName");
+                    d_logEntryBuffer.logAction("Invalid gameplayer command - insufficient parameters");
                 }
                 break;
             case "assigncountries":
+                d_logEntryBuffer.logAction("Starting country assignment");
                 if (d_gamePlayController.handleAssignCountries()) {
                     d_countriesAssigned = true;
+                    d_logEntryBuffer.logAction("Countries successfully assigned to players");
+                } else {
+                    d_logEntryBuffer.logAction("Country assignment failed");
                 }
                 break;
             case "startgame":
                 if (!d_countriesAssigned) {
                     d_view.displayError("You must assign countries first using 'assigncountries' before starting the game.");
+                    d_logEntryBuffer.logAction("Start game failed - countries not assigned");
                 } else {
+                    d_logEntryBuffer.logAction("Starting main game");
                     d_gamePlayController.startMainGame();
                 }
                 break;
             case "editmap":
                 // Allow returning to map editing phase
+                d_logEntryBuffer.logAction("Returning to map editing phase from startup phase");
                 d_currentPhase = MAP_EDITING_PHASE;
+                d_logEntryBuffer.logPhaseChange("Map Editing");
                 d_mapEditorController.handleCommand(p_commandParts, p_command, true);
                 break;
             case "loadmap":
                 // Allow loading a different map
+                d_logEntryBuffer.logAction("Loading new map from startup phase");
                 d_currentPhase = MAP_EDITING_PHASE;
+                d_logEntryBuffer.logPhaseChange("Map Editing");
                 d_mapEditorController.handleCommand(p_commandParts, p_command, true);
                 break;
             default:
                 d_view.displayError("Unknown command or invalid for current phase: " + p_command);
+                d_logEntryBuffer.logAction("Unknown command rejected in startup phase: " + p_command);
         }
     }
     
@@ -244,16 +283,51 @@ public class GameController {
             if (!l_playerExists) {
                 d_players.add(new Player(p_playerName));
                 d_view.displayMessage("Player added: " + p_playerName);
+                d_logEntryBuffer.logAction("Added player: " + p_playerName);
             } else {
                 d_view.displayError("Player already exists: " + p_playerName);
+                d_logEntryBuffer.logAction("Failed to add player - already exists: " + p_playerName);
             }
         } else if (p_action.equals("-remove")) {
+            int l_initialSize = d_players.size();
             d_players.removeIf(player -> player.getName().equals(p_playerName));
-            d_view.displayMessage("Player removed: " + p_playerName);
+            
+            if (d_players.size() < l_initialSize) {
+                d_view.displayMessage("Player removed: " + p_playerName);
+                d_logEntryBuffer.logAction("Removed player: " + p_playerName);
+            } else {
+                d_view.displayError("Player not found: " + p_playerName);
+                d_logEntryBuffer.logAction("Failed to remove player - not found: " + p_playerName);
+            }
         } else {
             d_view.displayError("Invalid action for gameplayer.");
+            d_logEntryBuffer.logAction("Invalid gameplayer action: " + p_action);
         }
     }
+    
+    /**
+     * Sets the current phase of the game.
+     * 
+     * @param p_currentPhase The current phase to set
+     */
+    public void setCurrentPhase(int p_currentPhase) {
+        this.d_currentPhase = p_currentPhase;
+        
+        // Log phase change
+        switch (p_currentPhase) {
+            case MAP_EDITING_PHASE:
+                d_logEntryBuffer.logPhaseChange("Map Editing");
+                break;
+            case STARTUP_PHASE:
+                d_logEntryBuffer.logPhaseChange("Startup");
+                break;
+            case MAIN_GAME_PHASE:
+                d_logEntryBuffer.logPhaseChange("Main Game");
+                break;
+        }
+    }
+    
+    // Existing getters and setters...
     
     /**
      * Gets the game view.
@@ -357,15 +431,6 @@ public class GameController {
     }
     
     /**
-     * Sets the current phase of the game.
-     * 
-     * @param p_currentPhase The current phase to set
-     */
-    public void setCurrentPhase(int p_currentPhase) {
-        this.d_currentPhase = p_currentPhase;
-    }
-    
-    /**
      * Checks if countries have been assigned to players.
      * 
      * @return true if countries have been assigned, false otherwise
@@ -381,5 +446,14 @@ public class GameController {
      */
     public void setCountriesAssigned(boolean p_countriesAssigned) {
         this.d_countriesAssigned = p_countriesAssigned;
+    }
+    
+    /**
+     * Gets the log entry buffer.
+     * 
+     * @return The log entry buffer
+     */
+    public LogEntryBuffer getLogEntryBuffer() {
+        return d_logEntryBuffer;
     }
 }

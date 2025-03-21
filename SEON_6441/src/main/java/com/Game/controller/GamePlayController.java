@@ -6,6 +6,7 @@ import com.Game.model.Territory;
 import com.Game.model.order.Order;
 import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
+import com.Game.observer.LogEntryBuffer;
 
 import java.util.List;
 import java.util.Random;
@@ -33,6 +34,11 @@ public class GamePlayController {
     private List<Player> d_players;
     
     /**
+     * Reference to the log entry buffer for logging actions.
+     */
+    private LogEntryBuffer d_logEntryBuffer;
+    
+    /**
      * Constructor initializing the controller with necessary references.
      * 
      * @param p_gameController Reference to the main game controller
@@ -43,6 +49,7 @@ public class GamePlayController {
         this.d_gameController = p_gameController;
         this.d_gameMap = p_gameMap;
         this.d_players = p_players;
+        this.d_logEntryBuffer = p_gameController.getLogEntryBuffer();
     }
     
     /**
@@ -73,6 +80,7 @@ public class GamePlayController {
         switch (p_command) {
             case "showmap":
                 d_gameController.getView().displayMap(d_gameMap, d_players);
+                d_logEntryBuffer.logAction("Displayed map in main game phase");
                 break;
             case "issueorder":
                 handleIssueOrder();
@@ -85,6 +93,7 @@ public class GamePlayController {
                 break;
             default:
                 d_gameController.getView().displayError("Unknown command or invalid for current phase: " + p_command);
+                d_logEntryBuffer.logAction("Unknown command rejected in main game phase: " + p_command);
         }
     }
     
@@ -95,10 +104,12 @@ public class GamePlayController {
     public void handleReinforcement() {
         if (!d_gameController.isGameStarted()) {
             d_gameController.getView().displayError("Game has not started yet. Use 'startgame' command.");
+            d_logEntryBuffer.logAction("Reinforcement phase failed - game not started");
             return;
         }
         
         d_gameController.getView().displayReinforcementPhase();
+        d_logEntryBuffer.logAction("Starting reinforcement phase");
         
         // Calculate reinforcements for each player
         for (Player l_player : d_players) {
@@ -107,9 +118,11 @@ public class GamePlayController {
             
             l_player.setNbrOfReinforcementArmies(l_reinforcements);
             d_gameController.getView().displayReinforcementAllocation(l_player.getName(), l_reinforcements);
+            d_logEntryBuffer.logAction("Player " + l_player.getName() + " received " + l_reinforcements + " reinforcement armies");
         }
         
         d_gameController.getView().displayReinforcementComplete();
+        d_logEntryBuffer.logAction("Reinforcement phase completed");
     }
     
     /**
@@ -119,10 +132,12 @@ public class GamePlayController {
     private void handleIssueOrder() {
         if (!d_gameController.isGameStarted()) {
             d_gameController.getView().displayError("Game has not started yet. Use 'startgame' command.");
+            d_logEntryBuffer.logAction("Issue orders phase failed - game not started");
             return;
         }
         
         d_gameController.getView().displayIssueOrdersPhase();
+        d_logEntryBuffer.logAction("Starting issue orders phase");
         
         CommandPromptView l_commandPromptView = d_gameController.getCommandPromptView();
         
@@ -130,19 +145,25 @@ public class GamePlayController {
             if (l_player.getNbrOfReinforcementArmies() > 0) {
                 d_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
                 d_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories());
+                d_logEntryBuffer.logAction("Player " + l_player.getName() + "'s turn to issue orders with " + 
+                                          l_player.getNbrOfReinforcementArmies() + " reinforcements");
                 
                 while (l_player.getNbrOfReinforcementArmies() > 0) {
                     String l_orderCommand = l_commandPromptView.getPlayerOrder(
                         l_player.getName(), l_player.getNbrOfReinforcementArmies());
                     
                     if (l_orderCommand.equalsIgnoreCase("FINISH")) {
+                        d_logEntryBuffer.logAction("Player " + l_player.getName() + " finished issuing orders with " + 
+                                                 l_player.getNbrOfReinforcementArmies() + " reinforcements remaining");
                         break;
                     }
                     
+                    d_logEntryBuffer.logAction("Player " + l_player.getName() + " issued command: " + l_orderCommand);
                     String[] l_orderParts = l_orderCommand.split(" ");
                     
                     if (l_orderParts.length != 3) {
                         d_gameController.getView().displayError("Invalid command format. Usage: <OrderType> <territoryName> <numArmies>");
+                        d_logEntryBuffer.logAction("Invalid order command format from " + l_player.getName());
                         continue;
                     }
                     
@@ -154,6 +175,7 @@ public class GamePlayController {
                         l_numberOfArmies = Integer.parseInt(l_orderParts[2]);
                     } catch (NumberFormatException e) {
                         d_gameController.getView().displayError("Invalid number of armies: " + l_orderParts[2]);
+                        d_logEntryBuffer.logAction("Invalid number of armies in order: " + l_orderParts[2]);
                         continue;
                     }
                     
@@ -164,18 +186,23 @@ public class GamePlayController {
                             d_gameController.getView().displayMessage(
                                 l_player.getName() + "'s deploy order issued: Deploy " + 
                                 l_numberOfArmies + " armies to " + l_targetTerritoryName);
+                            d_logEntryBuffer.logAction("Player " + l_player.getName() + " successfully created deploy order: " + 
+                                                      l_numberOfArmies + " armies to " + l_targetTerritoryName);
                         } else {
                             d_gameController.getView().displayError(
                                 "Failed to create deploy order. Check territory name and number of armies.");
+                            d_logEntryBuffer.logAction("Player " + l_player.getName() + " failed to create deploy order");
                         }
                     } else {
                         d_gameController.getView().displayError("Invalid order type. Only 'deploy' is supported in this phase.");
+                        d_logEntryBuffer.logAction("Invalid order type from " + l_player.getName() + ": " + l_orderType);
                     }
                 }
             }
         }
         
         d_gameController.getView().displayIssueOrdersComplete();
+        d_logEntryBuffer.logAction("Issue orders phase completed");
     }
     
     /**
@@ -185,16 +212,20 @@ public class GamePlayController {
     private void handleExecuteOrders() {
         if (!d_gameController.isGameStarted()) {
             d_gameController.getView().displayError("Game has not started yet. Use 'startgame' command.");
+            d_logEntryBuffer.logAction("Execute orders phase failed - game not started");
             return;
         }
         
         d_gameController.getView().displayExecuteOrdersPhase();
+        d_logEntryBuffer.logAction("Starting execute orders phase");
         
         // Loop until all orders are executed
         boolean l_ordersRemaining = true;
+        int l_round = 1;
         
         while (l_ordersRemaining) {
             l_ordersRemaining = false;
+            d_logEntryBuffer.logAction("Starting order execution round " + l_round);
             
             // Each player executes one order
             for (Player l_player : d_players) {
@@ -202,13 +233,17 @@ public class GamePlayController {
                 
                 if (l_nextOrder != null) {
                     d_gameController.getView().displayExecutingOrder(l_player.getName());
+                    d_logEntryBuffer.logAction("Executing order from " + l_player.getName());
                     l_nextOrder.execute();
                     l_ordersRemaining = true;
                 }
             }
+            
+            l_round++;
         }
         
         d_gameController.getView().displayExecuteOrdersComplete();
+        d_logEntryBuffer.logAction("Execute orders phase completed");
     }
     
     /**
@@ -218,20 +253,25 @@ public class GamePlayController {
     private void handleEndTurn() {
         if (!d_gameController.isGameStarted()) {
             d_gameController.getView().displayError("Game has not started yet. Use 'startgame' command.");
+            d_logEntryBuffer.logAction("End turn failed - game not started");
             return;
         }
+        
+        d_logEntryBuffer.logAction("Ending turn and checking for winner");
         
         // Check for game end condition
         Player l_winner = checkForWinner();
         
         if (l_winner != null) {
             d_gameController.getView().displayWinner(l_winner.getName());
+            d_logEntryBuffer.logAction("Game over - Player " + l_winner.getName() + " wins the game!");
             
             d_gameController.setGameStarted(false);
             d_gameController.setCurrentPhase(GameController.MAP_EDITING_PHASE);
         } else {
             // Start a new turn with reinforcement phase
             d_gameController.getView().displayEndTurn();
+            d_logEntryBuffer.logAction("No winner yet - starting a new turn");
             handleReinforcement();
         }
     }
@@ -245,6 +285,7 @@ public class GamePlayController {
         // Check if any player owns all territories
         for (Player l_player : d_players) {
             if (l_player.getOwnedTerritories().size() == d_gameMap.getTerritoryList().size()) {
+                d_logEntryBuffer.logAction("Player " + l_player.getName() + " owns all territories");
                 return l_player;
             }
         }
@@ -261,9 +302,13 @@ public class GamePlayController {
         }
         
         if (l_playersWithTerritories == 1) {
+            d_logEntryBuffer.logAction("Player " + l_lastPlayerWithTerritories.getName() + 
+                                      " is the only player with territories");
             return l_lastPlayerWithTerritories;
         }
         
+        d_logEntryBuffer.logAction("No winner yet - " + l_playersWithTerritories + 
+                                  " players still have territories");
         return null; // No winner yet
     }
     
@@ -276,6 +321,7 @@ public class GamePlayController {
     public boolean handleAssignCountries() {
         if (d_players.size() < 2) {
             d_gameController.getView().displayError("Need at least 2 players to start the game.");
+            d_logEntryBuffer.logAction("Country assignment failed - need at least 2 players");
             return false;
         }
         
@@ -284,8 +330,12 @@ public class GamePlayController {
         
         if (l_territories.isEmpty()) {
             d_gameController.getView().displayError("No territories in the map. Cannot assign countries.");
+            d_logEntryBuffer.logAction("Country assignment failed - no territories in map");
             return false;
         }
+        
+        d_logEntryBuffer.logAction("Randomly assigning " + l_territories.size() + 
+                                  " territories to " + d_players.size() + " players");
         
         // Shuffle territories for random assignment
         Random l_random = new Random();
@@ -312,15 +362,19 @@ public class GamePlayController {
             
             // Set initial armies (e.g., 1 per territory)
             l_territory.setNumOfArmies(1);
+            d_logEntryBuffer.logAction("Assigned " + l_territory.getName() + " to player " + l_player.getName());
         }
         
         d_gameController.getView().displayMessage("Countries assigned to players:");
         for (Player l_player : d_players) {
             d_gameController.getView().displayMessage(
                 l_player.getName() + " owns " + l_player.getOwnedTerritories().size() + " territories.");
+            d_logEntryBuffer.logAction("Player " + l_player.getName() + " now owns " + 
+                                      l_player.getOwnedTerritories().size() + " territories");
         }
         
         d_gameController.getView().displayMessage("Ready to start the game. Use 'startgame' command to begin.");
+        d_logEntryBuffer.logAction("Country assignment completed successfully");
         return true;
     }
     
@@ -332,12 +386,14 @@ public class GamePlayController {
     public boolean startMainGame() {
         if (d_players.size() < 2) {
             d_gameController.getView().displayError("Need at least 2 players to start the game.");
+            d_logEntryBuffer.logAction("Game start failed - need at least 2 players");
             return false;
         }
         
         // Initialize the game
         d_gameController.setGameStarted(true);
         d_gameController.setCurrentPhase(GameController.MAIN_GAME_PHASE);
+        d_logEntryBuffer.logAction("Main game started with " + d_players.size() + " players");
         
         d_gameController.getView().displayMessage("Game started! Beginning reinforcement phase.");
         // Start with reinforcement phase
