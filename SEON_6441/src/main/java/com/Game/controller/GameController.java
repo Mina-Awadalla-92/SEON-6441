@@ -377,6 +377,12 @@ public class GameController {
         this.d_currentPhase = p_currentPhase;
     }
 
+    /**
+     * Sets the game phase to the startup phase.
+     *
+     * @param p_gameController the game controller managing the game state
+     * @param p_commandParts   the command parts passed as input
+     */
     public void setStartupPhase(GameController p_gameController, String[] p_commandParts)
     {
         d_startupPhase.setPhase(PhaseType.STARTUP);
