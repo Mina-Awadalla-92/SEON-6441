@@ -213,6 +213,7 @@ public class MapEditorController {
         }
         
         String l_mapFilePath = p_commandParts[1];
+        d_gameController.setMapFilePath(l_mapFilePath);
         d_mapLoader.resetLoadedMap();
 
         // Check if map exists
