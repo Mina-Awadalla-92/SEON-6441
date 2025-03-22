@@ -16,19 +16,20 @@ public class IssueOrderPhase extends Phase{
      * Starts the Issue Order phase, allowing players to assign orders until they finish or run out of reinforcement armies.
      *
      * @param p_gameController    the game controller handling the game state
-     * @param d_players           list of players participating in the game
-     * @param l_commandPromptView view handling user interactions through the command prompt
+     * @param p_players           list of players participating in the game
+     * @param p_commandPromptView view handling user interactions through the command prompt
+     * @param p_commandParts       the command parts passed as input
      */
     @Override
-    public void StartPhase(GameController p_gameController, List<Player> d_players, CommandPromptView l_commandPromptView) {
+    public void StartPhase(GameController p_gameController, List<Player> p_players, CommandPromptView p_commandPromptView, String[] p_commandParts) {
 
-        for (Player l_player : d_players) {
+        for (Player l_player : p_players) {
             if (l_player.getNbrOfReinforcementArmies() > 0) {
                 p_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
                 p_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories());
 
                 while (l_player.getNbrOfReinforcementArmies() > 0) {
-                    String l_orderCommand = l_commandPromptView.getPlayerOrder(
+                    String l_orderCommand = p_commandPromptView.getPlayerOrder(
                             l_player.getName(), l_player.getNbrOfReinforcementArmies());
 
                     if (l_orderCommand.equalsIgnoreCase("FINISH")) {

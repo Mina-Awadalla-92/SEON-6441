@@ -19,8 +19,9 @@ public abstract class Phase {
      * @param p_gameController     the game controller handling the game state
      * @param p_players            list of players participating in the game
      * @param p_commandPromptView  view handling user interactions through the command prompt
+     * @param p_commandParts       the command parts passed as input
      */
-    public abstract void StartPhase(GameController p_gameController, List<Player> p_players, CommandPromptView p_commandPromptView);
+    public abstract void StartPhase(GameController p_gameController, List<Player> p_players, CommandPromptView p_commandPromptView, String[] p_commandParts);
 
     /**
      * Transitions to the next game phase based on the specified phase type.

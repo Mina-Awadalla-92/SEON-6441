@@ -19,10 +19,11 @@ public class OrderExecutionPhase extends Phase {
      *
      * @param p_gameController    the game controller handling the game state
      * @param p_players           list of players participating in the game
-     * @param l_commandPromptView view handling user interactions through the command prompt
+     * @param p_commandPromptView view handling user interactions through the command prompt
+     * @param p_commandParts       the command parts passed as input
      */
     @Override
-    public void StartPhase(GameController p_gameController, List<Player> p_players, CommandPromptView l_commandPromptView) {
+    public void StartPhase(GameController p_gameController, List<Player> p_players, CommandPromptView p_commandPromptView, String[] p_commandParts) {
 
         // Loop until all orders are executed
         boolean l_ordersRemaining = true;

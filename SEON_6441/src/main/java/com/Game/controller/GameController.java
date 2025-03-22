@@ -3,6 +3,7 @@ package com.Game.controller;
 import com.Game.Phases.IssueOrderPhase;
 import com.Game.Phases.Phase;
 import com.Game.Phases.PhaseType;
+import com.Game.Phases.StartupPhase;
 import com.Game.model.Map;
 import com.Game.model.Player;
 import com.Game.utils.MapLoader;
@@ -115,7 +116,7 @@ public class GameController {
         this.d_commandPromptView = new CommandPromptView();
         this.d_mapEditorController = new MapEditorController(this, d_gameMap, d_mapLoader);
         this.d_gamePlayController = new GamePlayController(this, d_gameMap, d_players);
-        d_startupPhase =  new IssueOrderPhase();
+        d_startupPhase =  new StartupPhase();
     }
     
     /**
@@ -374,6 +375,12 @@ public class GameController {
      */
     public void setCurrentPhase(int p_currentPhase) {
         this.d_currentPhase = p_currentPhase;
+    }
+
+    public void setStartupPhase(GameController p_gameController, String[] p_commandParts)
+    {
+        d_startupPhase.setPhase(PhaseType.STARTUP);
+        d_startupPhase.StartPhase(p_gameController, null, null, p_commandParts);
     }
 
 }

@@ -71,7 +71,6 @@ public class GamePlayController {
      */
     public Phase d_currentPhase =  new IssueOrderPhase();;
 
-    
     /**
      * Handles a command in the main game phase.
      * 
@@ -134,7 +133,7 @@ public class GamePlayController {
         d_gameController.getView().displayIssueOrdersPhase();
 
         d_currentPhase = d_currentPhase.setPhase(PhaseType.ISSUE_ORDER);
-        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView());
+        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null);
 
         
         d_gameController.getView().displayIssueOrdersComplete();
@@ -153,7 +152,7 @@ public class GamePlayController {
         d_gameController.getView().displayExecuteOrdersPhase();
 
         d_currentPhase = d_currentPhase.setPhase(PhaseType.ORDER_EXECUTION);
-        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView());
+        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null);
 
         
         d_gameController.getView().displayExecuteOrdersComplete();

@@ -17,11 +17,20 @@ public class StartupPhase extends Phase {
      * This method will handle game setup, such as initializing players and allocating resources.
      *
      * @param p_gameController    the game controller handling the game state
-     * @param d_players           list of players participating in the game
-     * @param l_commandPromptView view handling user interactions through the command prompt
+     * @param p_players           list of players participating in the game
+     * @param p_commandPromptView view handling user interactions through the command prompt
+     * @param p_commandParts       the command parts passed as input
      */
     @Override
-    public void StartPhase(GameController p_gameController, List<Player> d_players, CommandPromptView l_commandPromptView) {
-        // Implementation for the Startup phase will be added here.
+    public void StartPhase(GameController p_gameController, List<Player> p_players, CommandPromptView p_commandPromptView, String[] p_commandParts) {
+        if (p_commandParts.length < 3) {
+            p_gameController.getView().displayError("Usage: gameplayer -add playerName OR gameplayer -remove playerName");
+            return;
+        }
+
+        String l_action = p_commandParts[1];
+        String l_playerName = p_commandParts[2];
+
+        p_gameController.handleGamePlayer(l_action, l_playerName);
     }
 }
