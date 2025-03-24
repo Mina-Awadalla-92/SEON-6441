@@ -3,6 +3,6 @@ com.Game.command
 com.Game.controller
 com.Game.model
 com.Game.model.order
-com.Game.state
+com.Game.Phases
 com.Game.utils
 com.Game.view
