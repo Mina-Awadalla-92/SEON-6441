@@ -1,17 +1,13 @@
 package com.Game.controller;
 
-import com.Game.Phases.IssueOrderPhase;
-import com.Game.Phases.Phase;
-import com.Game.Phases.PhaseType;
-import com.Game.Phases.StartupPhase;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.Game.model.Map;
 import com.Game.model.Player;
 import com.Game.utils.MapLoader;
-import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.Game.view.GameView;
 
 /**
  * Main controller class that coordinates the game flow.
@@ -94,12 +90,7 @@ public class GameController {
      * Controller for gameplay operations.
      */
     private GamePlayController d_gamePlayController;
-
-    /**
-     * Represents the startup phase of the game.
-     */
-    private Phase d_startupPhase;;
-
+    
     /**
      * Default constructor that initializes the game controller.
      */
@@ -116,7 +107,6 @@ public class GameController {
         this.d_commandPromptView = new CommandPromptView();
         this.d_mapEditorController = new MapEditorController(this, d_gameMap, d_mapLoader);
         this.d_gamePlayController = new GamePlayController(this, d_gameMap, d_players);
-        d_startupPhase =  new StartupPhase();
     }
     
     /**
@@ -124,11 +114,9 @@ public class GameController {
      * Provides a command prompt that's available throughout the game.
      */
     public void startGame() {
-
-        d_startupPhase.setPhase(PhaseType.STARTUP);
-
         d_view.displayWelcomeMessage();
         boolean l_isMapLoaded = false;
+
         while (true) {
             String l_input;
             String[] l_commandParts;
@@ -138,7 +126,8 @@ public class GameController {
                 l_input = d_commandPromptView.getCommand();
                 l_commandParts = l_input.split("\\s+");
 
-                if (l_commandParts.length == 0) continue;
+                if (l_commandParts.length == 0)
+                    continue;
 
                 String l_command = l_commandParts[0];
 
@@ -158,7 +147,8 @@ public class GameController {
                 l_input = d_commandPromptView.getCommand();
                 l_commandParts = l_input.split("\\s+");
 
-                if (l_commandParts.length == 0) continue;
+                if (l_commandParts.length == 0)
+                    continue;
 
                 String l_command = l_commandParts[0];
 
@@ -174,7 +164,8 @@ public class GameController {
                 l_input = d_commandPromptView.getCommand();
                 l_commandParts = l_input.split("\\s+");
 
-                if (l_commandParts.length == 0) continue;
+                if (l_commandParts.length == 0)
+                    continue;
 
                 String l_command = l_commandParts[0];
 
@@ -187,6 +178,43 @@ public class GameController {
                 d_gamePlayController.handleCommand(l_commandParts, l_command);
             }
         }
+    }
+    
+    // New public setter methods (for test injection or reconfiguration)
+    /**
+     * Allows injection or replacement of the GameView instance used
+     * for displaying game information to the user.
+     * @param p_view The GameView instance to use for this controller.
+     */
+    public void setView(GameView p_view) {
+        this.d_view = p_view;
+    }
+
+    /**
+     * Allows injection or replacement of the CommandPromptView instance used
+     * for capturing and processing user commands in text form.
+     * @param p_promptView The CommandPromptView instance to use for this controller.
+     */
+    public void setCommandPromptView(CommandPromptView p_promptView) {
+        this.d_commandPromptView = p_promptView;
+    }
+
+    /**
+     * Allows injection or replacement of the MapEditorController, which handles
+     * the map editing phase commands and logic on behalf of this controller.
+     * @param p_controller The MapEditorController instance to use for this controller.
+     */
+    public void setMapEditorController(MapEditorController p_controller) {
+        this.d_mapEditorController = p_controller;
+    }
+
+    /**
+     * Allows injection or replacement of the GamePlayController, which handles
+     * the main game phase logic and player interactions on behalf of this controller.
+     * @param p_controller The GamePlayController instance to use for this controller.
+     */
+    public void setGamePlayController(GamePlayController p_controller) {
+        this.d_gamePlayController = p_controller;
     }
     
     /**
@@ -252,7 +280,7 @@ public class GameController {
                     break;
                 }
             }
-
+            
             if (!l_playerExists) {
                 d_players.add(new Player(p_playerName));
                 d_view.displayMessage("Player added: " + p_playerName);
@@ -376,17 +404,22 @@ public class GameController {
     public void setCurrentPhase(int p_currentPhase) {
         this.d_currentPhase = p_currentPhase;
     }
-
+    
     /**
-     * Sets the game phase to the startup phase.
-     *
-     * @param p_gameController the game controller managing the game state
-     * @param p_commandParts   the command parts passed as input
+     * Checks if countries have been assigned to players.
+     * 
+     * @return true if countries have been assigned, false otherwise
      */
-    public void setStartupPhase(GameController p_gameController, String[] p_commandParts)
-    {
-        d_startupPhase.setPhase(PhaseType.STARTUP);
-        d_startupPhase.StartPhase(p_gameController, null, null, p_commandParts);
+    public boolean areCountriesAssigned() {
+        return d_countriesAssigned;
     }
-
+    
+    /**
+     * Sets whether countries have been assigned to players.
+     * 
+     * @param p_countriesAssigned The countries assigned status to set
+     */
+    public void setCountriesAssigned(boolean p_countriesAssigned) {
+        this.d_countriesAssigned = p_countriesAssigned;
+    }
 }

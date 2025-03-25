@@ -13,7 +13,8 @@
     <description>Java module project for Javadoc generation</description>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>  <!-- Update if using a newer Java version -->
+        <!-- Update if using a newer Java version -->
+        <maven.compiler.source>17</maven.compiler.source>  
         <junit.jupiter.version>5.9.2</junit.jupiter.version>
         <maven.compiler.target>17</maven.compiler.target>
 
@@ -29,12 +30,21 @@
             <version>${junit.jupiter.version}</version>
             <scope>test</scope>
         </dependency>
+        <!-- Mockito for mocking in tests -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>4.11.0</version>
+            <scope>test</scope>
+        </dependency>
+
         
         <!-- Other dependencies your project needs -->
     </dependencies>
 
-   <build>
+<build>
     <plugins>
+    <!-- Javadoc plugin -->
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
@@ -48,8 +58,18 @@
                 </execution>
             </executions>
         </plugin>
+        <!-- Maven Surefire plugin to discover and run JUnit tests -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M7</version>
+                <configuration>
+                    <!-- Helps avoid certain classloader issues -->
+                    <useSystemClassLoader>false</useSystemClassLoader>
+                </configuration>
+            </plugin>
     </plugins>
-</build>
+    </build>
 
 
 </project>
