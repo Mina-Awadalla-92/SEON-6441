@@ -1,13 +1,19 @@
 package com.Game.controller;
 
-import java.util.List;
-import java.util.Random;
-
+import com.Game.Phases.IssueOrderPhase;
+import com.Game.Phases.Phase;
+import com.Game.Phases.PhaseType;
 import com.Game.model.Map;
 import com.Game.model.Player;
 import com.Game.model.Territory;
 import com.Game.model.order.Order;
+import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
+import com.Game.model.CardType;
+import java.util.List;
+import java.util.Random;
+import java.util.ArrayList;
+import com.Game.controller.GameController;
 
 /**
  * Controller class responsible for handling gameplay operations.
@@ -61,7 +67,12 @@ public class GamePlayController {
     public void setPlayers(List<Player> p_players) {
         this.d_players = p_players;
     }
-    
+
+    /**
+     * Represents the current phase of the game.
+     */
+    public Phase d_currentPhase =  new IssueOrderPhase();;
+
     /**
      * Handles a command in the main game phase.
      * 
@@ -122,57 +133,11 @@ public class GamePlayController {
         }
         
         d_gameController.getView().displayIssueOrdersPhase();
-        
-        CommandPromptView l_commandPromptView = d_gameController.getCommandPromptView();
-        
-        for (Player l_player : d_players) {
-            if (l_player.getNbrOfReinforcementArmies() > 0) {
-                d_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
-                d_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories());
-                
-                while (l_player.getNbrOfReinforcementArmies() > 0) {
-                    String l_orderCommand = l_commandPromptView.getPlayerOrder(
-                        l_player.getName(), l_player.getNbrOfReinforcementArmies());
-                    
-                    if (l_orderCommand.equalsIgnoreCase("FINISH")) {
-                        break;
-                    }
-                    
-                    String[] l_orderParts = l_orderCommand.split(" ");
-                    
-                    if (l_orderParts.length != 3) {
-                        d_gameController.getView().displayError("Invalid command format. Usage: <OrderType> <territoryName> <numArmies>");
-                        continue;
-                    }
-                    
-                    String l_orderType = l_orderParts[0];
-                    String l_targetTerritoryName = l_orderParts[1];
-                    int l_numberOfArmies;
-                    
-                    try {
-                        l_numberOfArmies = Integer.parseInt(l_orderParts[2]);
-                    } catch (NumberFormatException e) {
-                        d_gameController.getView().displayError("Invalid number of armies: " + l_orderParts[2]);
-                        continue;
-                    }
-                    
-                    if (l_orderType.equalsIgnoreCase("deploy")) {
-                        boolean l_success = l_player.createDeployOrder(l_targetTerritoryName, l_numberOfArmies);
-                        
-                        if (l_success) {
-                            d_gameController.getView().displayMessage(
-                                l_player.getName() + "'s deploy order issued: Deploy " + 
-                                l_numberOfArmies + " armies to " + l_targetTerritoryName);
-                        } else {
-                            d_gameController.getView().displayError(
-                                "Failed to create deploy order. Check territory name and number of armies.");
-                        }
-                    } else {
-                        d_gameController.getView().displayError("Invalid order type. Only 'deploy' is supported in this phase.");
-                    }
-                }
-            }
-        }
+
+        d_currentPhase = d_currentPhase.setPhase(PhaseType.ISSUE_ORDER);
+        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null, d_gameMap);
+
+
         
         d_gameController.getView().displayIssueOrdersComplete();
     }
@@ -188,24 +153,13 @@ public class GamePlayController {
         }
         
         d_gameController.getView().displayExecuteOrdersPhase();
+
+
+        d_currentPhase = d_currentPhase.setPhase(PhaseType.ORDER_EXECUTION);
+        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null,d_gameMap);
+
+
         
-        // Loop until all orders are executed
-        boolean l_ordersRemaining = true;
-        
-        while (l_ordersRemaining) {
-            l_ordersRemaining = false;
-            
-            // Each player executes one order
-            for (Player l_player : d_players) {
-                Order l_nextOrder = l_player.nextOrder();
-                
-                if (l_nextOrder != null) {
-                    d_gameController.getView().displayExecutingOrder(l_player.getName());
-                    l_nextOrder.execute();
-                    l_ordersRemaining = true;
-                }
-            }
-        }
         
         d_gameController.getView().displayExecuteOrdersComplete();
     }
@@ -233,6 +187,35 @@ public class GamePlayController {
             d_gameController.getView().displayEndTurn();
             handleReinforcement();
         }
+        
+        System.out.println("\nCards awarding:\n");
+        for (Player l_player : d_players) {
+        	if (l_player.getHasConqueredThisTurn()) {
+        		CardType[] allCardTypes = CardType.values();
+        		
+        	    // Pick a random index
+        	    int randomIndex = new Random().nextInt(allCardTypes.length);
+
+        	    // Get the random card
+        	    CardType randomCard = allCardTypes[randomIndex];
+
+        	    // Add the card to the player's hand (or card collection)
+        	    
+        		l_player.addCard(randomCard);
+        			
+        	    
+        	    System.out.println("Player "+ l_player.getName() + " was awarded " + randomCard.name());
+        	}
+        }
+        System.out.println();
+        
+        //clean up
+        for (Player l_player : d_players) {
+        	l_player.setHasConqueredThisTurn(false);
+        	l_player.setNegociatedPlayersPerTurn(new ArrayList<>());
+        }
+        
+        
     }
     
     /**
