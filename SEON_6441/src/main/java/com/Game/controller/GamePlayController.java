@@ -9,9 +9,10 @@ import com.Game.model.Territory;
 import com.Game.model.order.Order;
 import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
-
+import com.Game.model.CardType;
 import java.util.List;
 import java.util.Random;
+import java.util.ArrayList;
 
 /**
  * Controller class responsible for handling gameplay operations.
@@ -135,6 +136,7 @@ public class GamePlayController {
         d_currentPhase = d_currentPhase.setPhase(PhaseType.ISSUE_ORDER);
         d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null);
 
+
         
         d_gameController.getView().displayIssueOrdersComplete();
     }
@@ -151,9 +153,12 @@ public class GamePlayController {
         
         d_gameController.getView().displayExecuteOrdersPhase();
 
+
         d_currentPhase = d_currentPhase.setPhase(PhaseType.ORDER_EXECUTION);
         d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null);
 
+
+        
         
         d_gameController.getView().displayExecuteOrdersComplete();
     }
@@ -181,6 +186,35 @@ public class GamePlayController {
             d_gameController.getView().displayEndTurn();
             handleReinforcement();
         }
+        
+        System.out.println("\nCards awarding:\n");
+        for (Player l_player : d_players) {
+        	if (l_player.getHasConqueredThisTurn()) {
+        		CardType[] allCardTypes = CardType.values();
+        		
+        	    // Pick a random index
+        	    int randomIndex = new Random().nextInt(allCardTypes.length);
+
+        	    // Get the random card
+        	    CardType randomCard = allCardTypes[randomIndex];
+
+        	    // Add the card to the player's hand (or card collection)
+        	    
+        		l_player.addCard(randomCard);
+        			
+        	    
+        	    System.out.println("Player "+ l_player.getName() + " was awarded " + randomCard.name());
+        	}
+        }
+        System.out.println();
+        
+        //clean up
+        for (Player l_player : d_players) {
+        	l_player.setHasConqueredThisTurn(false);
+        	l_player.setNegociatedPlayersPerTurn(new ArrayList<>());
+        }
+        
+        
     }
     
     /**
