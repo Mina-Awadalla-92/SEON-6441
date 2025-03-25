@@ -9,6 +9,8 @@ import com.Game.model.Player;
 import com.Game.utils.MapLoader;
 import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
+import com.Game.controller.MapEditorController;
+import com.Game.controller.GamePlayController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -386,7 +388,7 @@ public class GameController {
     public void setStartupPhase(GameController p_gameController, String[] p_commandParts)
     {
         d_startupPhase.setPhase(PhaseType.STARTUP);
-        d_startupPhase.StartPhase(p_gameController, null, null, p_commandParts);
+        d_startupPhase.StartPhase(p_gameController, null, null, p_commandParts, d_gameMap);
     }
 
 }

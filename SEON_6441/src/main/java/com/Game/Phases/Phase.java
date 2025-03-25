@@ -3,6 +3,7 @@ package com.Game.Phases;
 import com.Game.model.Player;
 import com.Game.controller.GameController;
 import com.Game.view.CommandPromptView;
+import com.Game.model.Map;
 
 import java.util.List;
 
@@ -21,7 +22,7 @@ public abstract class Phase {
      * @param p_commandPromptView  view handling user interactions through the command prompt
      * @param p_commandParts       the command parts passed as input
      */
-    public abstract void StartPhase(GameController p_gameController, List<Player> p_players, CommandPromptView p_commandPromptView, String[] p_commandParts);
+    public abstract void StartPhase(GameController p_gameController, List<Player> p_players, CommandPromptView p_commandPromptView, String[] p_commandParts, Map p_gameMap);
 
     /**
      * Transitions to the next game phase based on the specified phase type.
