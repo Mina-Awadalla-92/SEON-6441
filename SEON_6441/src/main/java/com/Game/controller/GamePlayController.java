@@ -1,5 +1,8 @@
 package com.Game.controller;
 
+import com.Game.Phases.IssueOrderPhase;
+import com.Game.Phases.Phase;
+import com.Game.Phases.PhaseType;
 import com.Game.model.Map;
 import com.Game.model.Player;
 import com.Game.model.Territory;
@@ -63,7 +66,12 @@ public class GamePlayController {
     public void setPlayers(List<Player> p_players) {
         this.d_players = p_players;
     }
-    
+
+    /**
+     * Represents the current phase of the game.
+     */
+    public Phase d_currentPhase =  new IssueOrderPhase();;
+
     /**
      * Handles a command in the main game phase.
      * 
@@ -124,32 +132,10 @@ public class GamePlayController {
         }
         
         d_gameController.getView().displayIssueOrdersPhase();
-        
-        CommandPromptView l_commandPromptView = d_gameController.getCommandPromptView();
-        
-        for (Player l_player : d_players) {
-            if (l_player.getNbrOfReinforcementArmies() > 0) {
-                d_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
-                d_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories(), l_player, d_gameMap);
-                
-                while (l_player.getNbrOfReinforcementArmies() > 0) {
-                    String l_orderCommand = l_commandPromptView.getPlayerOrder(
-                        l_player.getName(), l_player.getNbrOfReinforcementArmies());
-                    
-                    if (l_orderCommand.equalsIgnoreCase("FINISH")) {
-                        break;  // Player is done issuing orders
-                    }
-                    
-                    // Just call issueOrder with the entire string
-                    boolean l_success = l_player.issueOrder(l_orderCommand, d_gameMap, d_players);
-                    
-                    if (!l_success) { 
-                        d_gameController.getView().displayError(
-                            "Failed to create order. Please check your command format.");
-                    }
-                }
-            }
-        }
+
+        d_currentPhase = d_currentPhase.setPhase(PhaseType.ISSUE_ORDER);
+        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null);
+
 
         
         d_gameController.getView().displayIssueOrdersComplete();
@@ -166,26 +152,12 @@ public class GamePlayController {
         }
         
         d_gameController.getView().displayExecuteOrdersPhase();
-        
-        // Loop until all orders are executed
-        boolean l_ordersRemaining = true;
-        
-        while (l_ordersRemaining) {
-            l_ordersRemaining = false;
-            
-            // Each player executes one order
-            for (Player l_player : d_players) {
-                Order l_nextOrder = l_player.nextOrder();
-                
-                if (l_nextOrder != null) {
-                    d_gameController.getView().displayExecutingOrder(l_player.getName());
-                    l_nextOrder.execute();
-                    l_ordersRemaining = true;
-                }
-            }
-            
-            
-        }
+
+
+        d_currentPhase = d_currentPhase.setPhase(PhaseType.ORDER_EXECUTION);
+        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null);
+
+
         
         
         d_gameController.getView().displayExecuteOrdersComplete();
