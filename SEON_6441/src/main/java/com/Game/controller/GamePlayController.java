@@ -13,6 +13,7 @@ import com.Game.model.CardType;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
+import com.Game.controller.GameController;
 
 /**
  * Controller class responsible for handling gameplay operations.
@@ -134,7 +135,7 @@ public class GamePlayController {
         d_gameController.getView().displayIssueOrdersPhase();
 
         d_currentPhase = d_currentPhase.setPhase(PhaseType.ISSUE_ORDER);
-        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null);
+        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null, d_gameMap);
 
 
         
@@ -155,7 +156,7 @@ public class GamePlayController {
 
 
         d_currentPhase = d_currentPhase.setPhase(PhaseType.ORDER_EXECUTION);
-        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null);
+        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null,d_gameMap);
 
 
         

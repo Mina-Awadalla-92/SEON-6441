@@ -5,6 +5,7 @@ import com.Game.model.Map;
 import com.Game.model.Territory;
 import com.Game.utils.MapLoader;
 import com.Game.view.GameView;
+import com.Game.controller.GameController;
 
 import java.io.BufferedReader;
 
