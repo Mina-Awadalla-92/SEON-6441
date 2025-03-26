@@ -7,6 +7,7 @@ import com.Game.model.Territory;
  * Represents a negotiate order in the game.
  * When executed, the order establishes a negotiation agreement between the issuing player
  * and the specified player, preventing direct attacks between them during that turn.
+ * In the Command pattern, this is a concrete Command implementation.
  */
 public class NegotiateOrder extends Order {
 	
@@ -47,14 +48,21 @@ public class NegotiateOrder extends Order {
 	 * Executes the negotiate order.
 	 * The method adds the target player to the issuer's list of negotiated players for the turn,
 	 * and vice versa, preventing attacks between these players during the turn.
+	 * In the Command pattern, this is the concrete implementation of the execute() method.
 	 */
 	@Override
 	public void execute() {
 		System.out.println();
-		System.out.println("Negociating with: " + this.d_playerTo.getName());
+		System.out.println("Negotiating with: " + this.d_playerTo.getName());
 		this.d_issuer.getNegociatedPlayersPerTurn().add(d_playerTo);
 		d_playerTo.getNegociatedPlayersPerTurn().add(this.d_issuer);
 		System.out.println();
+		
+		String l_logMessage = "Negotiate Order Executed: Player " + this.d_issuer.getName() + 
+							  " established diplomacy with " + this.d_playerTo.getName() + 
+							  ". They cannot attack each other for this turn.";
+		
+		logOrderExecution(l_logMessage);
 	}
 	
 	/**

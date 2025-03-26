@@ -3,11 +3,11 @@ package com.Game.model.order;
 import com.Game.model.Player;
 import com.Game.model.Territory;
 import java.util.Random;
-import com.Game.model.CardType;
 
 /**
  * Represents an airlift attack order, which is a specialized form of airlift order where
  * the attacking player attempts to capture an enemy territory using airlifted armies.
+ * In the Command pattern, this is a concrete Command implementation.
  */
 public class AirliftAttack extends AirliftOrder {
 	
@@ -44,15 +44,22 @@ public class AirliftAttack extends AirliftOrder {
 	 * Executes the airlift attack order. This method simulates a battle by calculating
 	 * casualties based on random chance. If diplomacy is in effect, the attack is undone.
 	 * Depending on the outcome, the method updates the territories' ownership and army counts.
+	 * In the Command pattern, this is the concrete implementation of the execute() method.
 	 */
 	@Override
 	public void execute() {
-		//System.out.println("DEBUG: Attack");
+		String l_logMessage;
 		
 		if(getIssuer().getNegociatedPlayersPerTurn().contains(d_territoryTo.getOwner())) {
 			d_territoryFrom.setNumOfArmies(d_territoryFrom.getNumOfArmies() + d_numberOfArmies);
+			
+			l_logMessage = "Airlift Attack cancelled: Player " + getIssuer().getName() + 
+						   " has a diplomacy agreement with " + d_territoryTo.getOwner().getName();
+						   
 			System.out.println("Undo Airlift order from: " + getIssuer().getName());
 			System.out.println("Diplomacy between: " + getIssuer().getName() + " and " + d_territoryTo.getOwner().getName());
+			
+			logOrderExecution(l_logMessage);
 			return;
 		}
 	    int attackingArmies = getD_numberOfArmies();
@@ -92,6 +99,8 @@ public class AirliftAttack extends AirliftOrder {
 	    int survivingAttackingArmies = attackingArmies - actualAttackerCasualties;
 	    int survivingDefendingArmies = defendingArmies - actualDefenderCasualties;
 	    
+	    boolean l_conquered = false;
+	    
 	    if (survivingDefendingArmies <= 0) {
 	        // All defending armies are eliminated: attacker captures the territory.
 	        // Remove the territory from the previous owner and assign it to the attacker.
@@ -102,6 +111,7 @@ public class AirliftAttack extends AirliftOrder {
 	        getD_territoryTo().setNumOfArmies(survivingAttackingArmies);
 	        
 	        getIssuer().setHasConqueredThisTurn(true);
+	        l_conquered = true;
 	        
 	        // Increment the number of conquered territories per turn for card distribution 
 	        // (should be reset to 0 after round ends in GamePlay)
@@ -118,11 +128,27 @@ public class AirliftAttack extends AirliftOrder {
 	    System.out.println(getD_territoryTo().getName() + " (defending) had: " + defendingArmies + " armies");
 	    System.out.println(getD_territoryFrom().getName() + " (attacking) inflicted " + actualDefenderCasualties + " casualties");
 	    System.out.println(getD_territoryTo().getName() + " (defending) inflicted " + actualAttackerCasualties + " casualties");
-	    if (survivingDefendingArmies <= 0) {
+	    
+	    if (l_conquered) {
 	        System.out.println(getIssuer().getName() + " captured "+ getD_territoryTo().getName() + " and the territory now has " + survivingAttackingArmies + " armies.");
+	        
+	        l_logMessage = "Airlift Attack succeeded: Player " + getIssuer().getName() + 
+	                       " conquered " + getD_territoryTo().getName() + 
+	                       " from " + l_opposingPlayerName + ". " +
+	                       survivingAttackingArmies + " attacking armies survived.";
 	    } else {
-	        System.out.println(l_opposingPlayerName +" retained " + getD_territoryTo().getName() + " and the territory now has " + survivingDefendingArmies + " armies remaining.");
-	        System.out.println(getIssuer().getName() + " retained "+ getD_territoryFrom().getName() + " and the territory now has " + survivingAttackingArmies + " armies.");
+	        System.out.println(l_opposingPlayerName + " retained " + getD_territoryTo().getName() + 
+	                           " and the territory now has " + survivingDefendingArmies + " armies remaining.");
+	        System.out.println(getIssuer().getName() + " retained "+ getD_territoryFrom().getName() + 
+	                           " and the territory now has " + survivingAttackingArmies + " armies.");
+	        
+	        l_logMessage = "Airlift Attack failed: Player " + getIssuer().getName() + 
+	                       " attacked " + getD_territoryTo().getName() + 
+	                       " owned by " + l_opposingPlayerName + ". " +
+	                       "Defender retained territory with " + survivingDefendingArmies + " armies. " +
+	                       survivingAttackingArmies + " attacking armies returned to " + getD_territoryFrom().getName() + ".";
 	    }
+	    
+	    logOrderExecution(l_logMessage);
 	}
 }

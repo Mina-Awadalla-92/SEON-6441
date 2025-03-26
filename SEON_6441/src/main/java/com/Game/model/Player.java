@@ -382,13 +382,11 @@ public class Player {
         }
         return true;
     }
-
+    
     /**
      * Issues an order based on the provided command.
-     * <p>
-     * This method parses the command, validates it using the appropriate validation method, and
-     * creates the corresponding order if the command is valid.
-     * </p>
+     * The Player acts as the Invoker in the Command pattern, creating concrete
+     * Command objects (Orders) and adding them to its list of orders.
      *
      * @param p_command The command string containing the order type and its parameters.
      * @param p_map The map containing the territories.
@@ -400,70 +398,83 @@ public class Player {
         if (l_parts.length < 2 || l_parts.length > 4) {
             return false;
         }
+        
         String l_orderType = l_parts[0].toLowerCase();
+        Order l_order = null;
+        
+        // Create the appropriate order object based on the command type
         if (l_orderType.equals("deploy")) {
             if (!validateDeploy(l_parts)) {
                 return false;
             }
+            
             String l_targetTerritoryName = l_parts[1];
             int l_numberOfArmies = Integer.parseInt(l_parts[2]);
             Territory l_targetTerritory = findTerritoryByName(l_targetTerritoryName);
-            DeployOrder l_deployOrder = new DeployOrder(this, l_targetTerritory, l_numberOfArmies);
-            d_orders.add(l_deployOrder);
+            
+            // Create the Deploy Order
+            l_order = new DeployOrder(this, l_targetTerritory, l_numberOfArmies);
             this.d_nbrOfReinforcementArmies -= l_numberOfArmies;
-            return true;
-        } else if (l_orderType.equals("advance")) {
+        } 
+        else if (l_orderType.equals("advance")) {
             if (!validateAdvance(l_parts, p_map)) {
                 return false;
             }
+            
             Territory l_territoryFrom = findTerritoryByName(l_parts[1]);
             Territory l_territoryTo = p_map.getTerritoryByName(l_parts[2]);
             int l_numberOfArmies = Integer.parseInt(l_parts[3]);
+            
+            // Deduct armies from source territory
             l_territoryFrom.setNumOfArmies(l_territoryFrom.getNumOfArmies() - l_numberOfArmies);
+            
+            // Create the appropriate Advance Order (Move or Attack)
             if (l_territoryTo.getOwner() == null || l_territoryTo.getOwner().getName().equals(this.getName())) {
-                AdvanceMove advanceMove = new AdvanceMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
-                d_orders.add(advanceMove);
+                l_order = new AdvanceMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
             } else {
-                AdvanceAttack advanceAttack = new AdvanceAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
-                d_orders.add(advanceAttack);
+                l_order = new AdvanceAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
             }
-            return true;
-        } else if (l_orderType.equalsIgnoreCase("bomb")) {
+        }
+        else if (l_orderType.equalsIgnoreCase("bomb")) {
             if (!validateBomb(l_parts, p_map)) {
                 return false;
             }
+            
             Territory l_territoryTo = p_map.getTerritoryByName(l_parts[1]);
-            BombOrder bombOrder = new BombOrder(this, l_territoryTo);
-            d_orders.add(bombOrder);
-            return true;
-        } else if (l_orderType.equalsIgnoreCase("blockade")) {
+            l_order = new BombOrder(this, l_territoryTo);
+        }
+        else if (l_orderType.equalsIgnoreCase("blockade")) {
             if (!validateBlockade(l_parts)) {
                 return false;
             }
+            
             Territory l_territoryTo = findTerritoryByName(l_parts[1]);
-            BlockadeOrder blockadeOrder = new BlockadeOrder(this, l_territoryTo);
-            d_orders.add(blockadeOrder);
-            return true;
-        } else if (l_orderType.equalsIgnoreCase("airlift")) {
+            l_order = new BlockadeOrder(this, l_territoryTo);
+        }
+        else if (l_orderType.equalsIgnoreCase("airlift")) {
             if (!validateAirlift(l_parts, p_map)) {
                 return false;
             }
+            
             Territory l_territoryFrom = findTerritoryByName(l_parts[1]);
             Territory l_territoryTo = p_map.getTerritoryByName(l_parts[2]);
             int l_numberOfArmies = Integer.parseInt(l_parts[3]);
+            
+            // Deduct armies from source territory
             l_territoryFrom.setNumOfArmies(l_territoryFrom.getNumOfArmies() - l_numberOfArmies);
+            
+            // Create the appropriate Airlift Order (Move or Attack)
             if (l_territoryTo.getOwner() == null || l_territoryTo.getOwner().getName().equals(this.getName())) {
-                AirliftMove airliftMove = new AirliftMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
-                d_orders.add(airliftMove);
+                l_order = new AirliftMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
             } else {
-                AirliftAttack airliftAttack = new AirliftAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
-                d_orders.add(airliftAttack);
+                l_order = new AirliftAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
             }
-            return true;
-        } else if (l_orderType.equalsIgnoreCase("negotiate")) {
+        }
+        else if (l_orderType.equalsIgnoreCase("negotiate")) {
             if (!validateNegociate(l_parts, p_players)) {
                 return false;
             }
+            
             Player l_playerToNegotiateWith = null;
             for (Player l_player : p_players) {
                 if (l_player.getName().equals(l_parts[1])) {
@@ -471,13 +482,25 @@ public class Player {
                     break;
                 }
             }
-            NegotiateOrder negotiateOrder = new NegotiateOrder(this, l_playerToNegotiateWith);
-            negotiateOrder.execute();
+            
+            l_order = new NegotiateOrder(this, l_playerToNegotiateWith);
+            // Execute the negotiate order immediately
+            l_order.execute();
             return true;
-        } else {
+        }
+        else {
             return false;
         }
+        
+        // Add the created order to the player's order list (except negotiate which executed immediately)
+        if (l_order != null) {
+            d_orders.add(l_order);
+            return true;
+        }
+        
+        return false;
     }
+
 
     /**
      * Prompts the user to issue an order.

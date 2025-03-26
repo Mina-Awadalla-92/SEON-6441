@@ -6,14 +6,18 @@ import com.Game.Phases.PhaseType;
 import com.Game.Phases.StartupPhase;
 import com.Game.model.Map;
 import com.Game.model.Player;
+import com.Game.observer.GameLogger;
 import com.Game.utils.MapLoader;
 import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
 import com.Game.controller.MapEditorController;
 import com.Game.controller.GamePlayController;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.io.File;
 
 /**
  * Main controller class that coordinates the game flow.
@@ -100,7 +104,12 @@ public class GameController {
     /**
      * Represents the startup phase of the game.
      */
-    private Phase d_startupPhase;;
+    private Phase d_startupPhase;
+    
+    /**
+     * Game logger for logging game events.
+     */
+    private GameLogger d_gameLogger;
 
     /**
      * Default constructor that initializes the game controller.
@@ -118,7 +127,18 @@ public class GameController {
         this.d_commandPromptView = new CommandPromptView();
         this.d_mapEditorController = new MapEditorController(this, d_gameMap, d_mapLoader);
         this.d_gamePlayController = new GamePlayController(this, d_gameMap, d_players);
-        d_startupPhase =  new StartupPhase();
+        d_startupPhase = new StartupPhase();
+        
+        File logsDir = new File("logs");
+        if (!logsDir.exists()) {
+            logsDir.mkdir();
+        }
+        
+        // Initialize the game logger with a timestamped log file name
+        SimpleDateFormat l_dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
+        String l_timestamp = l_dateFormat.format(new Date());
+        String l_logFilePath = "logs/warzone_game_" + l_timestamp + ".log";
+        this.d_gameLogger = GameLogger.getInstance(l_logFilePath, false);
     }
     
     /**
@@ -126,8 +146,8 @@ public class GameController {
      * Provides a command prompt that's available throughout the game.
      */
     public void startGame() {
-
         d_startupPhase.setPhase(PhaseType.STARTUP);
+        d_gameLogger.logAction("Game started");
 
         d_view.displayWelcomeMessage();
         boolean l_isMapLoaded = false;
@@ -143,15 +163,18 @@ public class GameController {
                 if (l_commandParts.length == 0) continue;
 
                 String l_command = l_commandParts[0];
+                d_gameLogger.logAction("Command entered: " + l_input);
 
                 if (l_command.equals("exit")) {
                     d_view.displayMessage("Exiting the program.");
+                    d_gameLogger.logAction("Program exited");
                     d_commandPromptView.closeScanner();
                     System.exit(0);
                 }
 
                 if (!l_isMapLoaded && !l_command.equals("editmap") && !l_command.equals("loadmap")) {
                     d_view.displayError("You must load/edit a map first using the 'editmap' or 'loadmap' command.");
+                    d_gameLogger.logAction("Error: Attempt to use command without loading a map first");
                 } else {
                     l_isMapLoaded = d_mapEditorController.handleCommand(l_commandParts, l_command, l_isMapLoaded);
                 }
@@ -163,9 +186,11 @@ public class GameController {
                 if (l_commandParts.length == 0) continue;
 
                 String l_command = l_commandParts[0];
+                d_gameLogger.logAction("Command entered: " + l_input);
 
                 if (l_command.equals("exit")) {
                     d_view.displayMessage("Exiting the program.");
+                    d_gameLogger.logAction("Program exited");
                     d_commandPromptView.closeScanner();
                     System.exit(0);
                 }
@@ -179,9 +204,11 @@ public class GameController {
                 if (l_commandParts.length == 0) continue;
 
                 String l_command = l_commandParts[0];
+                d_gameLogger.logAction("Command entered: " + l_input);
 
                 if (l_command.equals("exit")) {
                     d_view.displayMessage("Exiting the program.");
+                    d_gameLogger.logAction("Program exited");
                     d_commandPromptView.closeScanner();
                     System.exit(0);
                 }
@@ -201,6 +228,7 @@ public class GameController {
         switch (p_command) {
             case "showmap":
                 d_view.displayMap(d_gameMap, d_players);
+                d_gameLogger.logAction("Map displayed");
                 break;
             case "gameplayer":
                 if (p_commandParts.length >= 3) {
@@ -209,32 +237,41 @@ public class GameController {
                     handleGamePlayer(l_action, l_playerName);
                 } else {
                     d_view.displayError("Usage: gameplayer -add playerName OR gameplayer -remove playerName");
+                    d_gameLogger.logAction("Error: Invalid gameplayer command format");
                 }
                 break;
             case "assigncountries":
                 if (d_gamePlayController.handleAssignCountries()) {
                     d_countriesAssigned = true;
+                    d_gameLogger.logAction("Countries assigned to players");
+                } else {
+                    d_gameLogger.logAction("Failed to assign countries");
                 }
                 break;
             case "startgame":
                 if (!d_countriesAssigned) {
                     d_view.displayError("You must assign countries first using 'assigncountries' before starting the game.");
+                    d_gameLogger.logAction("Error: Attempt to start game without assigning countries");
                 } else {
                     d_gamePlayController.startMainGame();
+                    d_gameLogger.logPhaseChange("MAIN GAME");
                 }
                 break;
             case "editmap":
                 // Allow returning to map editing phase
                 d_currentPhase = MAP_EDITING_PHASE;
+                d_gameLogger.logPhaseChange("MAP EDITING");
                 d_mapEditorController.handleCommand(p_commandParts, p_command, true);
                 break;
             case "loadmap":
                 // Allow loading a different map
                 d_currentPhase = MAP_EDITING_PHASE;
+                d_gameLogger.logPhaseChange("MAP EDITING");
                 d_mapEditorController.handleCommand(p_commandParts, p_command, true);
                 break;
             default:
                 d_view.displayError("Unknown command or invalid for current phase: " + p_command);
+                d_gameLogger.logAction("Error: Unknown command '" + p_command + "' in startup phase");
         }
     }
     
@@ -258,14 +295,18 @@ public class GameController {
             if (!l_playerExists) {
                 d_players.add(new Player(p_playerName));
                 d_view.displayMessage("Player added: " + p_playerName);
+                d_gameLogger.logAction("Player added: " + p_playerName);
             } else {
                 d_view.displayError("Player already exists: " + p_playerName);
+                d_gameLogger.logAction("Error: Player already exists: " + p_playerName);
             }
         } else if (p_action.equals("-remove")) {
             d_players.removeIf(player -> player.getName().equals(p_playerName));
             d_view.displayMessage("Player removed: " + p_playerName);
+            d_gameLogger.logAction("Player removed: " + p_playerName);
         } else {
             d_view.displayError("Invalid action for gameplayer.");
+            d_gameLogger.logAction("Error: Invalid action for gameplayer: " + p_action);
         }
     }
     
@@ -390,5 +431,13 @@ public class GameController {
         d_startupPhase.setPhase(PhaseType.STARTUP);
         d_startupPhase.StartPhase(p_gameController, null, null, p_commandParts, d_gameMap);
     }
-
+    
+    /**
+     * Gets the game logger instance.
+     * 
+     * @return The game logger
+     */
+    public GameLogger getGameLogger() {
+        return d_gameLogger;
+    }
 }
