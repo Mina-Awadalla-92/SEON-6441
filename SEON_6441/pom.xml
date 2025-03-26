@@ -15,7 +15,7 @@
     <properties>
         <!-- Update if using a newer Java version -->
         <maven.compiler.source>17</maven.compiler.source>  
-        <junit.jupiter.version>5.9.2</junit.jupiter.version>
+        <junit.jupiter.version>5.9.3</junit.jupiter.version>
         <maven.compiler.target>17</maven.compiler.target>
 
         <sonar.organization>mina-awadalla-92-1</sonar.organization>
@@ -31,6 +31,12 @@
             <scope>test</scope>
         </dependency>
         <!-- Mockito for mocking in tests -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>4.11.0</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
