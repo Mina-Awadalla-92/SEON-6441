@@ -191,8 +191,10 @@ public class GameView {
     
     /**
      * Displays a player's territories.
-     * 
-     * @param p_territories The list of territories to display
+     *
+     * @param p_territories The list of territories owned by the player.
+     * @param p_player The player whose territories are being displayed.
+     * @param p_gameMap The game map containing all territories and their connections.
      */
     public void displayPlayerTerritories(List<Territory> p_territories, Player p_player, Map p_gameMap) {
         System.out.println("Your territories:");
