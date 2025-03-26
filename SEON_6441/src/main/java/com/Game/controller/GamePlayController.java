@@ -21,7 +21,13 @@ import com.Game.controller.GameController;
  * executing orders, and managing the game turn cycle.
  */
 public class GamePlayController {
-    
+
+    /**
+     * Message displayed when a command is issued before the game has started.
+     */
+    private static final String GAME_NOT_STARTED_MESSAGE = "Game has not started yet. Use 'startgame' command.";
+
+
     /**
      * Reference to the main game controller.
      */
@@ -36,7 +42,13 @@ public class GamePlayController {
      * The list of players in the game.
      */
     private List<Player> d_players;
-    
+
+    /**
+     * An instance of {@link Random} used to generate random values throughout the class.
+     * This ensures that the same Random object is reused, improving performance and consistency.
+     */
+    private Random d_random = new Random();
+
     /**
      * Constructor initializing the controller with necessary references.
      * 
@@ -104,7 +116,7 @@ public class GamePlayController {
      */
     public void handleReinforcement() {
         if (!d_gameController.isGameStarted()) {
-            d_gameController.getView().displayError("Game has not started yet. Use 'startgame' command.");
+            d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
             return;
         }
         
@@ -128,7 +140,7 @@ public class GamePlayController {
      */
     private void handleIssueOrder() {
         if (!d_gameController.isGameStarted()) {
-            d_gameController.getView().displayError("Game has not started yet. Use 'startgame' command.");
+            d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
             return;
         }
         
@@ -148,7 +160,7 @@ public class GamePlayController {
      */
     private void handleExecuteOrders() {
         if (!d_gameController.isGameStarted()) {
-            d_gameController.getView().displayError("Game has not started yet. Use 'startgame' command.");
+            d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
             return;
         }
         
@@ -170,7 +182,7 @@ public class GamePlayController {
      */
     private void handleEndTurn() {
         if (!d_gameController.isGameStarted()) {
-            d_gameController.getView().displayError("Game has not started yet. Use 'startgame' command.");
+            d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
             return;
         }
         
@@ -194,10 +206,10 @@ public class GamePlayController {
         		CardType[] allCardTypes = CardType.values();
         		
         	    // Pick a random index
-        	    int randomIndex = new Random().nextInt(allCardTypes.length);
+                int l_randomIndex = d_random.nextInt(allCardTypes.length);
 
         	    // Get the random card
-        	    CardType randomCard = allCardTypes[randomIndex];
+        	    CardType randomCard = allCardTypes[l_randomIndex];
 
         	    // Add the card to the player's hand (or card collection)
         	    
@@ -268,11 +280,10 @@ public class GamePlayController {
             d_gameController.getView().displayError("No territories in the map. Cannot assign countries.");
             return false;
         }
-        
+
         // Shuffle territories for random assignment
-        Random l_random = new Random();
         for (int i = l_territories.size() - 1; i > 0; i--) {
-            int l_index = l_random.nextInt(i + 1);
+            int l_index = d_random.nextInt(i + 1);
             Territory l_temp = l_territories.get(l_index);
             l_territories.set(l_index, l_territories.get(i));
             l_territories.set(i, l_temp);
