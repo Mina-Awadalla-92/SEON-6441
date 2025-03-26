@@ -1,14 +1,17 @@
 package com.Game.model;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class CardTypeTest {
 
     @Test
     void testCardTypeValues() {
         // Verify that all enum values are present
+        // Note: Update this test if new CardType values are added or existing ones are removed.
         CardType[] cardTypes = CardType.values();
         assertNotNull(cardTypes, "CardType values should not be null.");
         assertEquals(4, cardTypes.length, "CardType should have exactly 4 values.");
@@ -22,6 +25,18 @@ public class CardTypeTest {
         assertEquals(CardType.BLOCKADE, CardType.valueOf("BLOCKADE"), "CardType.valueOf should return the BLOCKADE constant.");
         assertEquals(CardType.AIRLIFT, CardType.valueOf("AIRLIFT"), "CardType.valueOf should return the AIRLIFT constant.");
         assertEquals(CardType.NEGOTIATE, CardType.valueOf("NEGOTIATE"), "CardType.valueOf should return the NEGOTIATE constant.");
+    }
+
+    @Test
+    void testCardTypeValueOfInvalid() {
+        // Verify that valueOf throws an exception for invalid input
+        assertThrows(IllegalArgumentException.class, () -> CardType.valueOf("INVALID"), "CardType.valueOf should throw an exception for invalid input.");
+    }
+
+    @Test
+    void testCardTypeValueOfCaseSensitivity() {
+        // Verify that valueOf is case-sensitive
+        assertThrows(IllegalArgumentException.class, () -> CardType.valueOf("bomb"), "CardType.valueOf should be case-sensitive.");
     }
 
     @Test

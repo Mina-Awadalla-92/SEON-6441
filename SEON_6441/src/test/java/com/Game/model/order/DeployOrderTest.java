@@ -1,63 +1,73 @@
-package com.Game.model.order; 
-@Test
-void testConstructorWithParameters() {
-    Player player = new Player("Player1");
-    Territory territory = new Territory("Territory1", "Continent1", 5);
+package com.Game.model.order;
 
-    DeployOrder deployOrder = new DeployOrder(player, territory, 10);
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
-    assertEquals(player, deployOrder.getIssuer(), "The issuer should match the provided player.");
-    assertEquals(territory, deployOrder.getTargetTerritory(), "The target territory should match the provided territory.");
-    assertEquals(10, deployOrder.getNumberOfArmies(), "The number of armies should match the provided value.");
-}
+import com.Game.model.Player;
+import com.Game.model.Territory;
 
-@Test
-void testCopyConstructor() {
-    Player player = new Player("Player1");
-    Territory territory = new Territory("Territory1", "Continent1", 5);
+public class DeployOrderTest {
 
-    DeployOrder original = new DeployOrder(player, territory, 10);
-    DeployOrder copy = new DeployOrder(original);
+    @Test
+    void testConstructorWithParameters() {
+        Player player = new Player("Player1");
+        Territory territory = new Territory("Territory1", "Continent1", 5);
 
-    assertEquals(original.getIssuer(), copy.getIssuer(), "The issuer should match the original order.");
-    assertEquals(original.getTargetTerritory(), copy.getTargetTerritory(), "The target territory should match the original order.");
-    assertEquals(original.getNumberOfArmies(), copy.getNumberOfArmies(), "The number of armies should match the original order.");
-}
+        DeployOrder deployOrder = new DeployOrder(player, territory, 10);
 
-@Test
-void testSetAndGetTargetTerritory() {
-    Territory territory1 = new Territory("Territory1", "Continent1", 5);
-    Territory territory2 = new Territory("Territory2", "Continent2", 10);
+        assertEquals(player, deployOrder.getIssuer(), "The issuer should match the provided player.");
+        assertEquals(territory, deployOrder.getTargetTerritory(), "The target territory should match the provided territory.");
+        assertEquals(10, deployOrder.getNumberOfArmies(), "The number of armies should match the provided value.");
+    }
 
-    DeployOrder deployOrder = new DeployOrder();
-    deployOrder.setTargetTerritory(territory1);
+    @Test
+    void testCopyConstructor() {
+        Player player = new Player("Player1");
+        Territory territory = new Territory("Territory1", "Continent1", 5);
 
-    assertEquals(territory1, deployOrder.getTargetTerritory(), "The target territory should match the set value.");
+        DeployOrder original = new DeployOrder(player, territory, 10);
+        DeployOrder copy = new DeployOrder(original);
 
-    deployOrder.setTargetTerritory(territory2);
-    assertEquals(territory2, deployOrder.getTargetTerritory(), "The target territory should match the updated value.");
-}
+        assertEquals(original.getIssuer(), copy.getIssuer(), "The issuer should match the original order.");
+        assertEquals(original.getTargetTerritory(), copy.getTargetTerritory(), "The target territory should match the original order.");
+        assertEquals(original.getNumberOfArmies(), copy.getNumberOfArmies(), "The number of armies should match the original order.");
+    }
 
-@Test
-void testSetAndGetNumberOfArmies() {
-    DeployOrder deployOrder = new DeployOrder();
+    @Test
+    void testSetAndGetTargetTerritory() {
+        Territory territory1 = new Territory("Territory1", "Continent1", 5);
+        Territory territory2 = new Territory("Territory2", "Continent2", 10);
 
-    deployOrder.setNumberOfArmies(10);
-    assertEquals(10, deployOrder.getNumberOfArmies(), "The number of armies should match the set value.");
+        DeployOrder deployOrder = new DeployOrder();
+        deployOrder.setTargetTerritory(territory1);
 
-    deployOrder.setNumberOfArmies(20);
-    assertEquals(20, deployOrder.getNumberOfArmies(), "The number of armies should match the updated value.");
-}
+        assertEquals(territory1, deployOrder.getTargetTerritory(), "The target territory should match the set value.");
 
-@Test
-void testExecute() {
-    Player player = new Player("Player1");
-    Territory territory = new Territory("Territory1", "Continent1", 5);
+        deployOrder.setTargetTerritory(territory2);
+        assertEquals(territory2, deployOrder.getTargetTerritory(), "The target territory should match the updated value.");
+    }
 
-    territory.setNumOfArmies(10);
+    @Test
+    void testSetAndGetNumberOfArmies() {
+        DeployOrder deployOrder = new DeployOrder();
 
-    DeployOrder deployOrder = new DeployOrder(player, territory, 15);
-    deployOrder.execute();
+        deployOrder.setNumberOfArmies(10);
+        assertEquals(10, deployOrder.getNumberOfArmies(), "The number of armies should match the set value.");
 
-    assertEquals(25, territory.getNumOfArmies(), "The number of armies in the territory should be updated after execution.");
+        deployOrder.setNumberOfArmies(20);
+        assertEquals(20, deployOrder.getNumberOfArmies(), "The number of armies should match the updated value.");
+    }
+
+    @Test
+    void testExecute() {
+        Player player = new Player("Player1");
+        Territory territory = new Territory("Territory1", "Continent1", 5);
+
+        territory.setNumOfArmies(10);
+
+        DeployOrder deployOrder = new DeployOrder(player, territory, 15);
+        deployOrder.execute();
+
+        assertEquals(25, territory.getNumOfArmies(), "The number of armies in the territory should be updated after execution.");
+    }
 }

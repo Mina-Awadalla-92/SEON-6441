@@ -12,133 +12,198 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.Game.model.Map;
 
-@Test
-void testSetLoadedMap() {
-    Map map = new Map();
-    mapLoader.setLoadedMap(map);
+class MapLoaderTest {
 
-    assertEquals(map, mapLoader.getLoadedMap(), "The loaded map should match the map set using setLoadedMap.");
-}
+    private final MapLoader mapLoader = new MapLoader();
 
-@Test
-void testRead_InvalidMapFile() throws IOException {
-    // Create a temporary file with invalid content
-    File tempFile = File.createTempFile("invalidMap", ".map");
-    tempFile.deleteOnExit();
+    @Test
+    void testSetLoadedMap() {
+        Map map = new Map();
+        mapLoader.setLoadedMap(map);
 
-    try (FileWriter fw = new FileWriter(tempFile)) {
-        fw.write("Invalid content that doesn't match map format");
+        assertEquals(map, mapLoader.getLoadedMap(), "The loaded map should match the map set using setLoadedMap.");
     }
 
-    mapLoader.read(tempFile.getAbsolutePath());
+    @Test
+    void testRead_InvalidMapFile() throws IOException {
+        File tempFile = File.createTempFile("invalidMap", ".map");
+        tempFile.deleteOnExit();
 
-    // After reading an invalid file, the loaded map should remain null
-    assertNull(mapLoader.getLoadedMap(), "Loaded map should remain null after reading an invalid file.");
-}
+        try (FileWriter fw = new FileWriter(tempFile)) {
+            fw.write("Invalid content that doesn't match map format");
+        }
 
-@Test
-void testIsValid_MissingSections() throws IOException {
-    // Create a temporary file missing one or more required sections
-    String incompleteMapContent = 
-          "[continents]\n"
-        + "Asia 5\n\n"
-        + "[countries]\n"
-        + "1 Japan 1\n\n";
-        // Missing [borders] section
-
-    File tempFile = File.createTempFile("incompleteMap", ".map");
-    tempFile.deleteOnExit();
-
-    try (FileWriter fw = new FileWriter(tempFile)) {
-        fw.write(incompleteMapContent);
+        mapLoader.read(tempFile.getAbsolutePath());
+        assertNull(mapLoader.getLoadedMap(), "Loaded map should remain null after reading an invalid file.");
     }
 
-    boolean valid = mapLoader.isValid(tempFile.getAbsolutePath());
-    assertFalse(valid, "A map file missing required sections should be considered invalid.");
-}
+    @Test
+    void testIsValid_WhenMapIsMissingSections() throws IOException {
+        String incompleteMapContent = 
+              "[continents]\n"
+            + "Asia 5\n\n"
+            + "[countries]\n"
+            + "1 Japan 1\n\n"; // Missing [borders] section
 
-@Test
-void testValidateMap_ValidMap() throws IOException {
-    // Create a valid map file
-    String validMapContent = 
-          "[continents]\n"
-        + "Asia 5\n\n"
-        + "[countries]\n"
-        + "1 Japan 1\n\n"
-        + "[borders]\n"
-        + "1\n";
+        File tempFile = File.createTempFile("incompleteMap", ".map");
+        tempFile.deleteOnExit();
 
-    File tempFile = File.createTempFile("validMap", ".map");
-    tempFile.deleteOnExit();
+        try (FileWriter fw = new FileWriter(tempFile)) {
+            fw.write(incompleteMapContent);
+        }
 
-    try (FileWriter fw = new FileWriter(tempFile)) {
-        fw.write(validMapContent);
+        boolean valid = mapLoader.isValid(tempFile.getAbsolutePath());
+        assertFalse(valid, "A map file missing required sections should be considered invalid.");
     }
 
-    mapLoader.read(tempFile.getAbsolutePath());
-    boolean result = mapLoader.validateMap(false);
-
-    assertTrue(result, "A valid map should pass validation.");
-}
-
-@Test
-void testRead_FileWithExtraSections() throws IOException {
-    // Create a map file with extra sections
-    String mapWithExtraSections = 
-          "[continents]\n"
-        + "Asia 5\n\n"
-        + "[countries]\n"
-        + "1 Japan 1\n\n"
-        + "[borders]\n"
-        + "1\n"
-        + "[extraSection]\n"
-        + "Extra data\n";
-
-    File tempFile = File.createTempFile("extraSectionsMap", ".map");
-    tempFile.deleteOnExit();
-
-    try (FileWriter fw = new FileWriter(tempFile)) {
-        fw.write(mapWithExtraSections);
+    @Test
+    void testValidateMap_WhenMapIsEmpty() {
+        mapLoader.resetLoadedMap();
+        boolean result = mapLoader.validateMap(false);
+        assertFalse(result, "An empty map can't be valid (not connected).");
     }
 
-    mapLoader.read(tempFile.getAbsolutePath());
+    @Test
+    void testValidateMap_WithDuplicateTerritories() throws IOException {
+        String duplicateTerritoriesMapContent = 
+              "[continents]\n"
+            + "Asia 5\n\n"
+            + "[countries]\n"
+            + "1 Japan 1\n"
+            + "1 Japan 1\n\n" // Duplicate territory
+            + "[borders]\n"
+            + "1\n";
 
-    assertNotNull(mapLoader.getLoadedMap(), "Loaded map should not be null even with extra sections.");
-    assertFalse(mapLoader.getLoadedMap().getTerritoryList().isEmpty(), "Loaded map should contain territories.");
-}
+        File tempFile = File.createTempFile("duplicateTerritories", ".map");
+        tempFile.deleteOnExit();
 
-@Test
-void testIsMapExist_ResourceFile() {
-    // Assuming a valid map file exists in the resources folder
-    String resourceFileName = "LoadingMaps/sample.map";
+        try (FileWriter fw = new FileWriter(tempFile)) {
+            fw.write(duplicateTerritoriesMapContent);
+        }
 
-    BufferedReader reader = mapLoader.isMapExist(resourceFileName);
-    assertNotNull(reader, "Expected a non-null reader for an existing resource file.");
+        mapLoader.read(tempFile.getAbsolutePath());
+        boolean result = mapLoader.validateMap(false);
 
-    try {
-        reader.close();
-    } catch (IOException e) {
-        e.printStackTrace();
+        assertFalse(result, "A map with duplicate territories should be considered invalid.");
     }
-}
 
-@Test
-void testValidateMap_InvalidBorders() throws IOException {
-    // Create a map file with invalid borders
-    String invalidBordersMapContent = 
-          "[continents]\n"
-        + "Asia 5\n\n"
-        + "[countries]\n"
-        + "1 Japan 1\n\n"
-        + "[borders]\n"
-        // By default, d_loadedMap is null
-        assertNull(mapLoader.getLoadedMap(), 
-                   "Initially, loadedMap should be null (per constructor).");
+    @Test
+    void testValidateMap_WithCircularBorders() throws IOException {
+        String circularBordersMapContent = 
+              "[continents]\n"
+            + "Asia 5\n\n"
+            + "[countries]\n"
+            + "1 Japan 1\n"
+            + "2 China 1\n\n"
+            + "[borders]\n"
+            + "1 2\n"
+            + "2 1\n"; // Circular reference
+
+        File tempFile = File.createTempFile("circularBorders", ".map");
+        tempFile.deleteOnExit();
+
+        try (FileWriter fw = new FileWriter(tempFile)) {
+            fw.write(circularBordersMapContent);
+        }
+
+        mapLoader.read(tempFile.getAbsolutePath());
+        boolean result = mapLoader.validateMap(false);
+
+        assertTrue(result, "A map with circular references in borders should be considered valid.");
+    }
+
+    @Test
+    void testValidateMap_ValidMap() throws IOException {
+        // Create a valid map file
+        String validMapContent = 
+              "[continents]\n"
+            + "Asia 5\n\n"
+            + "[countries]\n"
+            + "1 Japan 1\n\n"
+            + "[borders]\n"
+            + "1\n";
+
+        File tempFile = File.createTempFile("validMap", ".map");
+        tempFile.deleteOnExit();
+
+        try (FileWriter fw = new FileWriter(tempFile)) {
+            fw.write(validMapContent);
+        }
+
+        mapLoader.read(tempFile.getAbsolutePath());
+        boolean result = mapLoader.validateMap(false);
+
+        assertTrue(result, "A valid map should pass validation.");
+    }
+
+    @Test
+    void testRead_FileWithExtraSections() throws IOException {
+        // Create a map file with extra sections
+        String mapWithExtraSections = 
+              "[continents]\n"
+            + "Asia 5\n\n"
+            + "[countries]\n"
+            + "1 Japan 1\n\n"
+            + "[borders]\n"
+            + "1\n"
+            + "[extraSection]\n"
+            + "Extra data\n";
+
+        File tempFile = File.createTempFile("extraSectionsMap", ".map");
+        tempFile.deleteOnExit();
+
+        try (FileWriter fw = new FileWriter(tempFile)) {
+            fw.write(mapWithExtraSections);
+        }
+
+        mapLoader.read(tempFile.getAbsolutePath());
+
+        assertNotNull(mapLoader.getLoadedMap(), "Loaded map should not be null even with extra sections.");
+        assertFalse(mapLoader.getLoadedMap().getTerritoryList().isEmpty(), "Loaded map should contain territories.");
+    }
+
+    @Test
+    void testIsMapExist_ResourceFile() {
+        // Assuming a valid map file exists in the resources folder
+        String resourceFileName = "LoadingMaps/sample.map";
+
+        BufferedReader reader = mapLoader.isMapExist(resourceFileName);
+        assertNotNull(reader, "Expected a non-null reader for an existing resource file.");
+
+        try {
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    void testValidateMap_InvalidBorders() throws IOException {
+        // Create a map file with invalid borders
+        String invalidBordersMapContent = 
+              "[continents]\n"
+            + "Asia 5\n\n"
+            + "[countries]\n"
+            + "1 Japan 1\n\n"
+            + "[borders]\n"
+            + "1 2\n"
+            + "2 3\n"; // Invalid border reference
+
+        File tempFile = File.createTempFile("invalidBorders", ".map");
+        tempFile.deleteOnExit();
+
+        try (FileWriter fw = new FileWriter(tempFile)) {
+            fw.write(invalidBordersMapContent);
+        }
+
+        mapLoader.read(tempFile.getAbsolutePath());
+        boolean result = mapLoader.validateMap(false);
+
+        assertFalse(result, "A map with invalid borders should be considered invalid.");
     }
 
     @Test

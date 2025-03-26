@@ -1,8 +1,9 @@
 package com.Game;
 
-import com.Game.controller.GameController;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+
+import com.Game.controller.GameController;
 
 class GameEngineDriverTest {
 
@@ -58,20 +59,6 @@ class GameEngineDriverTest {
 
             // Verify that the GameController instance was created
             mockedStatic.verify(GameController::new);
-        }
-    }
-}
-        GameController mockGameController = Mockito.mock(GameController.class);
-
-        // Use Mockito to mock the static method call to create a GameController instance
-        try (var mockedStatic = Mockito.mockStatic(GameController.class)) {
-            mockedStatic.when(GameController::new).thenReturn(mockGameController);
-
-            // Call the main method
-            GameEngineDriver.main(new String[]{});
-
-            // Verify that startGame was called
-            Mockito.verify(mockGameController).startGame();
         }
     }
 }

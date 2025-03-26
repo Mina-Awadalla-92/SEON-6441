@@ -1,5 +1,7 @@
 package com.Game.model;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
@@ -57,6 +60,21 @@ public class PlayerTest {
 
         player.removeTerritory(territory);
         assertTrue(player.getOwnedTerritories().isEmpty());
+    }
+
+    @Test
+    void testAddNullTerritory() {
+        Player player = new Player("Bob");
+        assertThrows(NullPointerException.class, () -> player.addTerritory(null), "Adding a null territory should throw an exception.");
+    }
+
+    @Test
+    void testAddDuplicateTerritory() {
+        Player player = new Player("Dave");
+        Territory territory = new Territory("Territory1", "Continent1", 5);
+        player.addTerritory(territory);
+        player.addTerritory(territory);
+        assertEquals(1, player.getOwnedTerritories().size(), "Adding the same territory twice should not create duplicates.");
     }
 
     @Test
@@ -136,101 +154,115 @@ public class PlayerTest {
     }
 
     @Test
+    void testClearOrders_WhenNoOrdersExist() {
+        Player player = new Player("Charlie");
+        player.clearOrders();
+        assertTrue(player.getOrders().isEmpty(), "Clearing orders when no orders exist should not cause errors.");
+    }
+
+    @Test
     void testToString() {
         Player player = new Player("Jack", 15);
         String str = player.toString();
         assertTrue(str.contains("Jack"), "toString() should contain player's name.");
         assertTrue(str.contains("15"), "toString() should contain the number of reinforcement armies.");
     }
-}
-@Test
-void testAddCard() {
-    Player player = new Player("Alice");
-    player.addCard(CardType.BOMB);
-    player.addCard(CardType.AIRLIFT);
-    player.addCard(CardType.BOMB);
 
-    HashMap<CardType, Integer> cards = player.getCards();
-    assertEquals(2, cards.get(CardType.BOMB));
-    assertEquals(1, cards.get(CardType.AIRLIFT));
-    assertEquals(2, cards.size());
-}
+    @Test
+    void testAddCard() {
+        Player player = new Player("Alice");
+        player.addCard(CardType.BOMB);
+        player.addCard(CardType.AIRLIFT);
+        player.addCard(CardType.BOMB);
 
-@Test
-void testRemoveCard_Success() {
-    Player player = new Player("Bob");
-    player.addCard(CardType.BOMB);
-    player.addCard(CardType.BOMB);
+        HashMap<CardType, Integer> cards = player.getCards();
+        assertEquals(2, cards.get(CardType.BOMB));
+        assertEquals(1, cards.get(CardType.AIRLIFT));
+        assertEquals(2, cards.size());
+    }
 
-    boolean removed = player.removeCard(CardType.BOMB);
-    assertTrue(removed);
-    assertEquals(1, player.getCards().get(CardType.BOMB));
-}
+    @Test
+    void testAddNullCard() {
+        Player player = new Player("Alice");
+        assertThrows(NullPointerException.class, () -> player.addCard(null), "Adding a null card should throw an exception.");
+    }
 
-@Test
-void testRemoveCard_Failure() {
-    Player player = new Player("Charlie");
-    player.addCard(CardType.AIRLIFT);
+    @Test
+    void testRemoveCard_Success() {
+        Player player = new Player("Bob");
+        player.addCard(CardType.BOMB);
+        player.addCard(CardType.BOMB);
 
-    boolean removed = player.removeCard(CardType.BOMB);
-    assertFalse(removed);
-    assertEquals(1, player.getCards().size());
-}
+        boolean removed = player.removeCard(CardType.BOMB);
+        assertTrue(removed);
+        assertEquals(1, player.getCards().get(CardType.BOMB));
+    }
 
-@Test
-void testGetFormattedCards() {
-    Player player = new Player("Dave");
-    player.addCard(CardType.BOMB);
-    player.addCard(CardType.AIRLIFT);
-    player.addCard(CardType.BOMB);
+    @Test
+    void testRemoveCard_Failure() {
+        Player player = new Player("Charlie");
+        player.addCard(CardType.AIRLIFT);
 
-    String formattedCards = player.getFormattedCards();
-    assertTrue(formattedCards.contains("BOMB: 2"));
-    assertTrue(formattedCards.contains("AIRLIFT: 1"));
-}
+        boolean removed = player.removeCard(CardType.BOMB);
+        assertFalse(removed);
+        assertEquals(1, player.getCards().size());
+    }
 
-@Test
-void testIncrementConqueredTerritoriesPerTurn() {
-    Player player = new Player("Eve");
-    player.incrementConqueredTerritoriesPerTurn();
-    player.incrementConqueredTerritoriesPerTurn();
+    @Test
+    void testGetFormattedCards() {
+        Player player = new Player("Dave");
+        player.addCard(CardType.BOMB);
+        player.addCard(CardType.AIRLIFT);
+        player.addCard(CardType.BOMB);
 
-    assertEquals(2, player.getConqueredTerritoriesPerTurn());
-}
+        String formattedCards = player.getFormattedCards();
+        assertTrue(formattedCards.contains("BOMB: 2"));
+        assertTrue(formattedCards.contains("AIRLIFT: 1"));
+    }
 
-@Test
-void testResetConqueredTerritoriesPerTurn() {
-    Player player = new Player("Frank");
-    player.incrementConqueredTerritoriesPerTurn();
-    player.incrementConqueredTerritoriesPerTurn();
-    player.resetConqueredTerritoriesPerTurn();
+    @Test
+    void testIncrementConqueredTerritoriesPerTurn() {
+        Player player = new Player("Eve");
+        player.incrementConqueredTerritoriesPerTurn();
+        player.incrementConqueredTerritoriesPerTurn();
 
-    assertEquals(0, player.getConqueredTerritoriesPerTurn());
-}
+        assertEquals(2, player.getConqueredTerritoriesPerTurn());
+    }
 
-@Test
-void testSetAndResetNegotiatedPlayers() {
-    Player player1 = new Player("Grace");
-    Player player2 = new Player("Henry");
-    Player player3 = new Player("Ivy");
+    @Test
+    void testResetConqueredTerritoriesPerTurn() {
+        Player player = new Player("Frank");
+        player.incrementConqueredTerritoriesPerTurn();
+        player.incrementConqueredTerritoriesPerTurn();
+        player.resetConqueredTerritoriesPerTurn();
 
-    List<Player> negotiatedPlayers = new ArrayList<>();
-    negotiatedPlayers.add(player2);
-    negotiatedPlayers.add(player3);
+        assertEquals(0, player.getConqueredTerritoriesPerTurn());
+    }
 
-    player1.setNegociatedPlayersPerTurn(negotiatedPlayers);
-    assertEquals(2, player1.getNegociatedPlayersPerTurn().size());
+    @Test
+    void testSetAndResetNegotiatedPlayers() {
+        Player player1 = new Player("Grace");
+        Player player2 = new Player("Henry");
+        Player player3 = new Player("Ivy");
 
-    player1.resetNegociatedPlayersPerTurn();
-    assertTrue(player1.getNegociatedPlayersPerTurn().isEmpty());
-}
+        List<Player> negotiatedPlayers = new ArrayList<>();
+        negotiatedPlayers.add(player2);
+        negotiatedPlayers.add(player3);
 
-@Test
-void testSetAndGetHasConqueredThisTurn() {
-    Player player = new Player("Jack");
-    player.setHasConqueredThisTurn(true);
-    assertTrue(player.getHasConqueredThisTurn());
+        player1.setNegociatedPlayersPerTurn(negotiatedPlayers);
+        assertEquals(2, player1.getNegociatedPlayersPerTurn().size());
 
-    player.setHasConqueredThisTurn(false);
-    assertFalse(player.getHasConqueredThisTurn());
+        player1.resetNegociatedPlayersPerTurn();
+        assertTrue(player1.getNegociatedPlayersPerTurn().isEmpty());
+    }
+
+    @Test
+    void testSetAndGetHasConqueredThisTurn() {
+        Player player = new Player("Jack");
+        player.setHasConqueredThisTurn(true);
+        assertTrue(player.getHasConqueredThisTurn());
+
+        player.setHasConqueredThisTurn(false);
+        assertFalse(player.getHasConqueredThisTurn());
+    }
 }

@@ -1,99 +1,109 @@
-package com.Game.model.order; 
-@Test
-void testConstructorWithParameters() {
-    Player player = new Player("Player1");
-    Territory source = new Territory("Source", "Continent1", 5);
-    Territory target = new Territory("Target", "Continent1", 5);
+package com.Game.model.order;
 
-    AdvanceOrder advanceOrder = new AdvanceOrder(player, source, target, 10) {
-        @Override
-        public void execute() {
-            // Mock implementation for abstract method
-        }
-    };
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
-    assertEquals(player, advanceOrder.getIssuer());
-    assertEquals(source, advanceOrder.getD_territoryFrom());
-    assertEquals(target, advanceOrder.getD_territoryTo());
-    assertEquals(10, advanceOrder.getD_numberOfArmies());
-}
+import com.Game.model.Player;
+import com.Game.model.Territory;
 
-@Test
-void testCopyConstructor() {
-    Player player = new Player("Player1");
-    Territory source = new Territory("Source", "Continent1", 5);
-    Territory target = new Territory("Target", "Continent1", 5);
+public class AdvanceOrderTest {
 
-    AdvanceOrder original = new AdvanceOrder(player, source, target, 10) {
-        @Override
-        public void execute() {
-            // Mock implementation for abstract method
-        }
-    };
+    @Test
+    void testConstructorWithParameters() {
+        Player player = new Player("Player1");
+        Territory source = new Territory("Source", "Continent1", 5);
+        Territory target = new Territory("Target", "Continent1", 5);
 
-    AdvanceOrder copy = new AdvanceOrder(original) {
-        @Override
-        public void execute() {
-            // Mock implementation for abstract method
-        }
-    };
+        AdvanceOrder advanceOrder = new AdvanceOrder(player, source, target, 10) {
+            @Override
+            public void execute() {
+                // Mock implementation for abstract method
+            }
+        };
 
-    assertEquals(original.getIssuer(), copy.getIssuer());
-    assertEquals(original.getD_territoryFrom(), copy.getD_territoryFrom());
-    assertEquals(original.getD_territoryTo(), copy.getD_territoryTo());
-    assertEquals(original.getD_numberOfArmies(), copy.getD_numberOfArmies());
-}
+        assertEquals(player, advanceOrder.getIssuer());
+        assertEquals(source, advanceOrder.getD_territoryFrom());
+        assertEquals(target, advanceOrder.getD_territoryTo());
+        assertEquals(10, advanceOrder.getD_numberOfArmies());
+    }
 
-@Test
-void testSetAndGetD_territoryFrom() {
-    Territory source = new Territory("Source", "Continent1", 5);
-    Territory newSource = new Territory("NewSource", "Continent2", 3);
+    @Test
+    void testCopyConstructor() {
+        Player player = new Player("Player1");
+        Territory source = new Territory("Source", "Continent1", 5);
+        Territory target = new Territory("Target", "Continent1", 5);
 
-    AdvanceOrder advanceOrder = new AdvanceOrder() {
-        @Override
-        public void execute() {
-            // Mock implementation for abstract method
-        }
-    };
+        AdvanceOrder original = new AdvanceOrder(player, source, target, 10) {
+            @Override
+            public void execute() {
+                // Mock implementation for abstract method
+            }
+        };
 
-    advanceOrder.setD_territoryFrom(source);
-    assertEquals(source, advanceOrder.getD_territoryFrom());
+        AdvanceOrder copy = new AdvanceOrder(original) {
+            @Override
+            public void execute() {
+                // Mock implementation for abstract method
+            }
+        };
 
-    advanceOrder.setD_territoryFrom(newSource);
-    assertEquals(newSource, advanceOrder.getD_territoryFrom());
-}
+        assertEquals(original.getIssuer(), copy.getIssuer());
+        assertEquals(original.getD_territoryFrom(), copy.getD_territoryFrom());
+        assertEquals(original.getD_territoryTo(), copy.getD_territoryTo());
+        assertEquals(original.getD_numberOfArmies(), copy.getD_numberOfArmies());
+    }
 
-@Test
-void testSetAndGetD_territoryTo() {
-    Territory target = new Territory("Target", "Continent1", 5);
-    Territory newTarget = new Territory("NewTarget", "Continent2", 3);
+    @Test
+    void testSetAndGetD_territoryFrom() {
+        Territory source = new Territory("Source", "Continent1", 5);
+        Territory newSource = new Territory("NewSource", "Continent2", 3);
 
-    AdvanceOrder advanceOrder = new AdvanceOrder() {
-        @Override
-        public void execute() {
-            // Mock implementation for abstract method
-        }
-    };
+        AdvanceOrder advanceOrder = new AdvanceOrder() {
+            @Override
+            public void execute() {
+                // Mock implementation for abstract method
+            }
+        };
 
-    advanceOrder.setD_territoryTo(target);
-    assertEquals(target, advanceOrder.getD_territoryTo());
+        advanceOrder.setD_territoryFrom(source);
+        assertEquals(source, advanceOrder.getD_territoryFrom());
 
-    advanceOrder.setD_territoryTo(newTarget);
-    assertEquals(newTarget, advanceOrder.getD_territoryTo());
-}
+        advanceOrder.setD_territoryFrom(newSource);
+        assertEquals(newSource, advanceOrder.getD_territoryFrom());
+    }
 
-@Test
-void testSetAndGetD_numberOfArmies() {
-    AdvanceOrder advanceOrder = new AdvanceOrder() {
-        @Override
-        public void execute() {
-            // Mock implementation for abstract method
-        }
-    };
+    @Test
+    void testSetAndGetD_territoryTo() {
+        Territory target = new Territory("Target", "Continent1", 5);
+        Territory newTarget = new Territory("NewTarget", "Continent2", 3);
 
-    advanceOrder.setD_numberOfArmies(10);
-    assertEquals(10, advanceOrder.getD_numberOfArmies());
+        AdvanceOrder advanceOrder = new AdvanceOrder() {
+            @Override
+            public void execute() {
+                // Mock implementation for abstract method
+            }
+        };
 
-    advanceOrder.setD_numberOfArmies(20);
-    assertEquals(20, advanceOrder.getD_numberOfArmies());
+        advanceOrder.setD_territoryTo(target);
+        assertEquals(target, advanceOrder.getD_territoryTo());
+
+        advanceOrder.setD_territoryTo(newTarget);
+        assertEquals(newTarget, advanceOrder.getD_territoryTo());
+    }
+
+    @Test
+    void testSetAndGetD_numberOfArmies() {
+        AdvanceOrder advanceOrder = new AdvanceOrder() {
+            @Override
+            public void execute() {
+                // Mock implementation for abstract method
+            }
+        };
+
+        advanceOrder.setD_numberOfArmies(10);
+        assertEquals(10, advanceOrder.getD_numberOfArmies());
+
+        advanceOrder.setD_numberOfArmies(20);
+        assertEquals(20, advanceOrder.getD_numberOfArmies());
+    }
 }

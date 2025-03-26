@@ -1,69 +1,79 @@
-package com.Game.model.order; 
-@Test
-void testExecute_BombSuccess() {
-	Player attacker = new Player("Attacker");
-	Player defender = new Player("Defender");
+package com.Game.model.order;
 
-	Territory target = new Territory("Target", "Continent1", 5);
-	target.setOwner(defender);
-	target.setNumOfArmies(20);
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import org.junit.jupiter.api.Test;
 
-	BombOrder bombOrder = new BombOrder(attacker, target);
-	bombOrder.execute();
+import com.Game.model.Player;
+import com.Game.model.Territory;
 
-	assertEquals(10, target.getNumOfArmies(), "The number of armies in the target territory should be halved.");
-}
+public class BombOrderTest {
 
-@Test
-void testExecute_BombPreventedByDiplomacy() {
-	Player attacker = new Player("Attacker");
-	Player defender = new Player("Defender");
+    @Test
+    void testExecute_BombSuccess() {
+        Player attacker = new Player("Attacker");
+        Player defender = new Player("Defender");
 
-	Territory target = new Territory("Target", "Continent1", 5);
-	target.setOwner(defender);
-	target.setNumOfArmies(20);
+        Territory target = new Territory("Target", "Continent1", 5);
+        target.setOwner(defender);
+        target.setNumOfArmies(20);
 
-	attacker.getNegociatedPlayersPerTurn().add(defender);
+        BombOrder bombOrder = new BombOrder(attacker, target);
+        bombOrder.execute();
 
-	BombOrder bombOrder = new BombOrder(attacker, target);
-	bombOrder.execute();
+        assertEquals(10, target.getNumOfArmies(), "The number of armies in the target territory should be halved.");
+    }
 
-	assertEquals(20, target.getNumOfArmies(), "The number of armies in the target territory should remain unchanged due to diplomacy.");
-}
+    @Test
+    void testExecute_BombPreventedByDiplomacy() {
+        Player attacker = new Player("Attacker");
+        Player defender = new Player("Defender");
 
-@Test
-void testConstructorWithParameters() {
-	Player attacker = new Player("Attacker");
-	Territory target = new Territory("Target", "Continent1", 5);
+        Territory target = new Territory("Target", "Continent1", 5);
+        target.setOwner(defender);
+        target.setNumOfArmies(20);
 
-	BombOrder bombOrder = new BombOrder(attacker, target);
+        attacker.getNegociatedPlayersPerTurn().add(defender);
 
-	assertEquals(attacker, bombOrder.getIssuer(), "The issuer should match the provided player.");
-	assertEquals(target, bombOrder.getTerritoryTo(), "The target territory should match the provided territory.");
-}
+        BombOrder bombOrder = new BombOrder(attacker, target);
+        bombOrder.execute();
 
-@Test
-void testCopyConstructor() {
-	Player attacker = new Player("Attacker");
-	Territory target = new Territory("Target", "Continent1", 5);
+        assertEquals(20, target.getNumOfArmies(), "The number of armies in the target territory should remain unchanged due to diplomacy.");
+    }
 
-	BombOrder original = new BombOrder(attacker, target);
-	BombOrder copy = new BombOrder(original);
+    @Test
+    void testConstructorWithParameters() {
+        Player attacker = new Player("Attacker");
+        Territory target = new Territory("Target", "Continent1", 5);
 
-	assertEquals(original.getIssuer(), copy.getIssuer(), "The issuer should match the original order.");
-	assertEquals(original.getTerritoryTo(), copy.getTerritoryTo(), "The target territory should match the original order.");
-}
+        BombOrder bombOrder = new BombOrder(attacker, target);
 
-@Test
-void testSetAndGetTerritoryTo() {
-	Territory target1 = new Territory("Target1", "Continent1", 5);
-	Territory target2 = new Territory("Target2", "Continent2", 10);
+        assertEquals(attacker, bombOrder.getIssuer(), "The issuer should match the provided player.");
+        assertEquals(target, bombOrder.getTerritoryTo(), "The target territory should match the provided territory.");
+    }
 
-	BombOrder bombOrder = new BombOrder();
-	bombOrder.setTerritoryTo(target1);
+    @Test
+    void testCopyConstructor() {
+        Player attacker = new Player("Attacker");
+        Territory target = new Territory("Target", "Continent1", 5);
 
-	assertEquals(target1, bombOrder.getTerritoryTo(), "The target territory should match the set value.");
+        BombOrder original = new BombOrder(attacker, target);
+        BombOrder copy = new BombOrder(original);
 
-	bombOrder.setTerritoryTo(target2);
-	assertEquals(target2, bombOrder.getTerritoryTo(), "The target territory should match the updated value.");
+        assertEquals(original.getIssuer(), copy.getIssuer(), "The issuer should match the original order.");
+        assertEquals(original.getTerritoryTo(), copy.getTerritoryTo(), "The target territory should match the original order.");
+    }
+
+    @Test
+    void testSetAndGetTerritoryTo() {
+        Territory target1 = new Territory("Target1", "Continent1", 5);
+        Territory target2 = new Territory("Target2", "Continent2", 10);
+
+        BombOrder bombOrder = new BombOrder();
+        bombOrder.setTerritoryTo(target1);
+
+        assertEquals(target1, bombOrder.getTerritoryTo(), "The target territory should match the set value.");
+
+        bombOrder.setTerritoryTo(target2);
+        assertEquals(target2, bombOrder.getTerritoryTo(), "The target territory should match the updated value.");
+    }
 }

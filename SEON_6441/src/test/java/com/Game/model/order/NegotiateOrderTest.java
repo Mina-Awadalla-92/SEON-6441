@@ -1,49 +1,59 @@
-package com.Game.model.order; 
-@Test
-void testConstructorWithParameters() {
-	Player issuer = new Player("Issuer");
-	Player target = new Player("Target");
+package com.Game.model.order;
 
-	NegotiateOrder negotiateOrder = new NegotiateOrder(issuer, target);
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
-	assertEquals(issuer, negotiateOrder.getIssuer(), "The issuer should match the provided player.");
-	assertEquals(target, negotiateOrder.getPlayerTo(), "The target player should match the provided player.");
-}
+import com.Game.model.Player;
 
-@Test
-void testCopyConstructor() {
-	Player issuer = new Player("Issuer");
-	Player target = new Player("Target");
+public class NegotiateOrderTest {
 
-	NegotiateOrder original = new NegotiateOrder(issuer, target);
-	NegotiateOrder copy = new NegotiateOrder(original);
+    @Test
+    void testConstructorWithParameters() {
+        Player issuer = new Player("Issuer");
+        Player target = new Player("Target");
 
-	assertEquals(original.getIssuer(), copy.getIssuer(), "The issuer should match the original order.");
-	assertEquals(original.getPlayerTo(), copy.getPlayerTo(), "The target player should match the original order.");
-}
+        NegotiateOrder negotiateOrder = new NegotiateOrder(issuer, target);
 
-@Test
-void testSetAndGetPlayerTo() {
-	Player target1 = new Player("Target1");
-	Player target2 = new Player("Target2");
+        assertEquals(issuer, negotiateOrder.getIssuer(), "The issuer should match the provided player.");
+        assertEquals(target, negotiateOrder.getPlayerTo(), "The target player should match the provided player.");
+    }
 
-	NegotiateOrder negotiateOrder = new NegotiateOrder();
-	negotiateOrder.setPlayerTo(target1);
+    @Test
+    void testCopyConstructor() {
+        Player issuer = new Player("Issuer");
+        Player target = new Player("Target");
 
-	assertEquals(target1, negotiateOrder.getPlayerTo(), "The target player should match the set value.");
+        NegotiateOrder original = new NegotiateOrder(issuer, target);
+        NegotiateOrder copy = new NegotiateOrder(original);
 
-	negotiateOrder.setPlayerTo(target2);
-	assertEquals(target2, negotiateOrder.getPlayerTo(), "The target player should match the updated value.");
-}
+        assertEquals(original.getIssuer(), copy.getIssuer(), "The issuer should match the original order.");
+        assertEquals(original.getPlayerTo(), copy.getPlayerTo(), "The target player should match the original order.");
+    }
 
-@Test
-void testExecute() {
-	Player issuer = new Player("Issuer");
-	Player target = new Player("Target");
+    @Test
+    void testSetAndGetPlayerTo() {
+        Player target1 = new Player("Target1");
+        Player target2 = new Player("Target2");
 
-	NegotiateOrder negotiateOrder = new NegotiateOrder(issuer, target);
-	negotiateOrder.execute();
+        NegotiateOrder negotiateOrder = new NegotiateOrder();
+        negotiateOrder.setPlayerTo(target1);
 
-	assertTrue(issuer.getNegociatedPlayersPerTurn().contains(target), "The target player should be in the issuer's negotiated players list.");
-	assertTrue(target.getNegociatedPlayersPerTurn().contains(issuer), "The issuer should be in the target player's negotiated players list.");
+        assertEquals(target1, negotiateOrder.getPlayerTo(), "The target player should match the set value.");
+
+        negotiateOrder.setPlayerTo(target2);
+        assertEquals(target2, negotiateOrder.getPlayerTo(), "The target player should match the updated value.");
+    }
+
+    @Test
+    void testExecute() {
+        Player issuer = new Player("Issuer");
+        Player target = new Player("Target");
+
+        NegotiateOrder negotiateOrder = new NegotiateOrder(issuer, target);
+        negotiateOrder.execute();
+
+        assertTrue(issuer.getNegociatedPlayersPerTurn().contains(target), "The target player should be in the issuer's negotiated players list.");
+        assertTrue(target.getNegociatedPlayersPerTurn().contains(issuer), "The issuer should be in the target player's negotiated players list.");
+    }
 }
