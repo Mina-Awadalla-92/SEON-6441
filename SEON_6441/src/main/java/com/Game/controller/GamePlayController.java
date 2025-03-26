@@ -10,6 +10,8 @@ import com.Game.model.order.Order;
 import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
 import com.Game.model.CardType;
+
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
@@ -44,10 +46,18 @@ public class GamePlayController {
     private List<Player> d_players;
 
     /**
-     * An instance of {@link Random} used to generate random values throughout the class.
-     * This ensures that the same Random object is reused, improving performance and consistency.
+     * A cryptographically secure pseudo-random number generator (CSPRNG) used for generating random values.
+     * <p>
+     * This instance of {@link SecureRandom} is designed for use in security-sensitive applications where
+     * strong randomness is required, such as for generating secure tokens, cryptographic keys, or salt values.
+     * It ensures that the generated random numbers are difficult to predict, even if an attacker knows part of the state.
+     * </p>
+     * <p>
+     * Note: This {@link SecureRandom} instance should only be used for secure applications. For non-cryptographic
+     * purposes, consider using {@link java.util.Random}.
+     * </p>
      */
-    private Random d_random = new Random();
+    private SecureRandom d_random = new SecureRandom();
 
     /**
      * Constructor initializing the controller with necessary references.
