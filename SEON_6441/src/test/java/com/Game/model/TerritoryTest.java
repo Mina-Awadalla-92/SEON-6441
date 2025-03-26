@@ -47,3 +47,59 @@ class TerritoryTest {
         assertTrue(enemyNeighbors.contains(neighbor2), "Neighbor2 should be an enemy neighbor.");
     }
 }
+@Test
+void testConstructor() {
+    Territory territory = new Territory("Territory1", "Continent1", 5);
+    assertEquals("Territory1", territory.getName());
+    assertEquals("Continent1", territory.getContinent());
+    assertEquals(5, territory.getBonus());
+    assertEquals(0, territory.getNumOfArmies());
+    assertNull(territory.getOwner());
+    assertTrue(territory.getNeighborList().isEmpty());
+}
+
+@Test
+void testSetAndGetNumOfArmies() {
+    territory.setNumOfArmies(10);
+    assertEquals(10, territory.getNumOfArmies());
+}
+
+@Test
+void testSetAndGetOwner() {
+    territory.setOwner(player1);
+    assertEquals(player1, territory.getOwner());
+}
+
+@Test
+void testAddAndHasNeighbor() {
+    territory.addNeighbor(neighbor1);
+    assertTrue(territory.hasNeighbor(neighbor1));
+    assertFalse(territory.hasNeighbor(neighbor2));
+}
+
+@Test
+void testGetNeighborList() {
+    territory.addNeighbor(neighbor1);
+    territory.addNeighbor(neighbor2);
+    List<Territory> neighbors = territory.getNeighborList();
+    assertEquals(2, neighbors.size());
+    assertTrue(neighbors.contains(neighbor1));
+    assertTrue(neighbors.contains(neighbor2));
+}
+
+@Test
+void testEquals() {
+    Territory sameTerritory = new Territory("Territory1", "Continent1", 5);
+    Territory differentTerritory = new Territory("Territory2", "Continent1", 5);
+    assertTrue(territory.equals(sameTerritory));
+    assertFalse(territory.equals(differentTerritory));
+}
+
+@Test
+void testToString() {
+    territory.addNeighbor(neighbor1);
+    String result = territory.toString();
+    assertTrue(result.contains("Territory Name: Territory1"));
+    assertTrue(result.contains("Continent: Continent1"));
+    assertTrue(result.contains("Neighbors: Neighbor1"));
+}

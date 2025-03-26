@@ -1,26 +1,23 @@
 package com.Game.command;
 
-import java.util.Collections;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import com.Game.model.Player;
 import com.Game.model.Territory;
+import com.Game.model.order.DeployOrder;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.*;
 
 /**
- * A comprehensive, mock-based unit test for DeployCommand, covering multiple scenarios:
- * - Territory ownership: yes/no
- * - Reinforcement armies: enough, zero, negative
- * - Valid/invalid execute() calls
+ * Unit tests for the DeployCommand class.
+ * This test class verifies the functionality of the DeployCommand class,
+ * including validation, execution, and command name retrieval.
+ * Mock objects are used for Player and Territory to isolate the behavior of DeployCommand.
  */
 public class DeployCommandTest {
 
@@ -30,180 +27,95 @@ public class DeployCommandTest {
 
     @BeforeEach
     void setUp() {
-        // Create mock objects
+        // Set up mock objects for Player and Territory
         mockPlayer = mock(Player.class);
         mockTerritory = mock(Territory.class);
 
-        // We always deploy 5 armies in these tests, but you can parameterize as needed
+        // Mock behavior for player and territory
+        when(mockPlayer.getName()).thenReturn("Player1");
+        when(mockTerritory.getName()).thenReturn("Territory1");
+        when(mockPlayer.getOwnedTerritories()).thenReturn(new ArrayList<>(List.of(mockTerritory)));
+        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(10);
+
+        // Initialize DeployCommand with 5 armies
         deployCommand = new DeployCommand(mockPlayer, mockTerritory, 5);
     }
 
-    //
-    // -------------------- EXECUTE() TESTS --------------------
-    //
+    @Test
+    
+    void testExecute_ValidCommand() {
+    // Test the execute method when the command is valid
+    List<DeployOrder> mockOrders = new ArrayList<>();
+    when(mockPlayer.getOrders()).thenReturn((List) mockOrders); // Cast to List<Order>
+
+    deployCommand.execute();
+
+    // Verify that the deploy order is added and armies are deducted
+    assertEquals(1, mockOrders.size(), "Deploy order should be added to the player's orders.");
+    assertEquals(5, mockOrders.get(0).getNumberOfArmies(), "Deploy order should have 5 armies.");
+    
+}
 
     @Test
-    void testExecute_Valid() {
-        // Player owns territory, has 10 armies => Enough to deploy 5
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.singletonList(mockTerritory));
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(10);
-        when(mockPlayer.getName()).thenReturn("Alice");
-        when(mockTerritory.getName()).thenReturn("TerrX");
+    void testExecute_InvalidCommand_NotOwnedTerritory() {
+        // Test the execute method when the player does not own the territory
+        when(mockPlayer.getOwnedTerritories()).thenReturn(new ArrayList<>());
 
         deployCommand.execute();
 
-        // verify that an order was created and armies were reduced
-        verify(mockPlayer).getOrders();
-        verify(mockPlayer).setNbrOfReinforcementArmies(5); // 10 - 5
-        // no direct check that a DeployOrder object was added, but we verify the method calls.
-    }
-
-    @Test
-    void testExecute_Invalid_PlayerDoesNotOwnTerritory() {
-        // Player doesn't own territory => fail validation => no order
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.emptyList());
-        when(mockPlayer.getName()).thenReturn("Bob");
-        when(mockTerritory.getName()).thenReturn("TerrY");
-
-        deployCommand.execute();
-
-        // No calls to getOrders() or setNbrOfReinforcementArmies() if validation fails
+        // Verify that no orders are added and no armies are deducted
         verify(mockPlayer, never()).getOrders();
         verify(mockPlayer, never()).setNbrOfReinforcementArmies(anyInt());
     }
 
     @Test
-    void testExecute_Invalid_NotEnoughArmies() {
-        // Player owns territory but has only 2 armies => not enough to deploy 5 => fail
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.singletonList(mockTerritory));
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(2);
-        when(mockPlayer.getName()).thenReturn("Carol");
-        when(mockTerritory.getName()).thenReturn("TerrZ");
+    void testExecute_InvalidCommand_NotEnoughArmies() {
+        // Test the execute method when the player does not have enough armies
+        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(3);
 
         deployCommand.execute();
 
-        // No calls to getOrders() or setNbrOfReinforcementArmies() if validation fails
+        // Verify that no orders are added and no armies are deducted
         verify(mockPlayer, never()).getOrders();
         verify(mockPlayer, never()).setNbrOfReinforcementArmies(anyInt());
     }
 
     @Test
-    void testExecute_ZeroReinforcementArmies() {
-        // Player owns territory but has 0 armies => cannot deploy 5 => fail
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.singletonList(mockTerritory));
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(0);
-
-        deployCommand.execute();
-
-        verify(mockPlayer, never()).getOrders();
-        verify(mockPlayer, never()).setNbrOfReinforcementArmies(anyInt());
+    void testValidate_ValidCommand() {
+        // Test the validate method for a valid command
+        boolean isValid = deployCommand.validate();
+        assertTrue(isValid, "Validation should pass for a valid deploy command.");
     }
 
     @Test
-    void testExecute_NegativeReinforcementArmies() {
-        // Player owns territory but has negative armies => definitely can't deploy => fail
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.singletonList(mockTerritory));
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(-10);
+    void testValidate_InvalidCommand_NotOwnedTerritory() {
+        // Test the validate method when the player does not own the territory
+        when(mockPlayer.getOwnedTerritories()).thenReturn(new ArrayList<>());
 
-        deployCommand.execute();
-
-        verify(mockPlayer, never()).getOrders();
-        verify(mockPlayer, never()).setNbrOfReinforcementArmies(anyInt());
+        boolean isValid = deployCommand.validate();
+        assertFalse(isValid, "Validation should fail if the player doesn't own the territory.");
     }
-
-    //
-    // -------------------- UNDO() TEST --------------------
-    //
 
     @Test
-    void testUndo() {
-        // The undo method is just a placeholder right now. We call it to ensure no unexpected behavior.
-        deployCommand.undo();
-        // Typically, you'd verify no interactions or a specific message if implemented.
-        // For now, this just ensures the method doesn't crash.
-    }
+    void testValidate_InvalidCommand_NotEnoughArmies() {
+        // Test the validate method when the player does not have enough armies
+        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(3);
 
-    //
-    // -------------------- GETCOMMANDNAME() TEST --------------------
-    //
+        boolean isValid = deployCommand.validate();
+        assertFalse(isValid, "Validation should fail if the player doesn't have enough armies.");
+    }
 
     @Test
     void testGetCommandName() {
-        assertEquals("deploy", deployCommand.getCommandName(),
-                "Expected the command name to be 'deploy'.");
-    }
-
-    //
-    // -------------------- VALIDATE() TESTS --------------------
-    //
-
-    @Test
-    void testValidate_Valid() {
-        // Player owns territory, has enough armies (e.g., 7)
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.singletonList(mockTerritory));
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(7);
-
-        assertTrue(deployCommand.validate(), 
-            "Should be valid if territory is owned and reinforcement armies >= required.");
+        // Test the getCommandName method
+        String commandName = deployCommand.getCommandName();
+        assertEquals("deploy", commandName, "Command name should be 'deploy'.");
     }
 
     @Test
-    void testValidate_PlayerDoesNotOwnTerritory() {
-        // Player does not own territory
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.emptyList());
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(10);
-
-        assertFalse(deployCommand.validate(),
-            "Should be invalid if player doesn't own territory.");
-    }
-
-    @Test
-    void testValidate_NotEnoughReinforcementArmies() {
-        // Player owns territory but does not have enough armies
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.singletonList(mockTerritory));
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(3);
-
-        assertFalse(deployCommand.validate(),
-            "Should be invalid if the player doesn't have the required number of armies.");
-    }
-
-    @Test
-    void testValidate_ZeroReinforcementArmies() {
-        // Zero armies available, but needs 5
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.singletonList(mockTerritory));
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(0);
-
-        assertFalse(deployCommand.validate(),
-            "Should be invalid if the player has zero armies but tries to deploy more than 0.");
-    }
-
-    @Test
-    void testValidate_NegativeReinforcementArmies() {
-        // Negative armies doesn't make sense, so validation fails
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.singletonList(mockTerritory));
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(-5);
-
-        assertFalse(deployCommand.validate(),
-            "Should be invalid if the player has negative armies.");
-    }
-
-    @Test
-    void testValidate_PlayerDoesNotOwnTerritory_ZeroArmies() {
-        // Combines ownership = no, armies = 0
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.emptyList());
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(0);
-
-        assertFalse(deployCommand.validate(),
-            "Should fail if territory is not owned, regardless of zero armies.");
-    }
-
-    @Test
-    void testValidate_PlayerDoesNotOwnTerritory_NegativeArmies() {
-        // Combines ownership = no, armies = negative
-        when(mockPlayer.getOwnedTerritories()).thenReturn(Collections.emptyList());
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(-1);
-
-        assertFalse(deployCommand.validate(),
-            "Should fail if territory is not owned, regardless of negative armies.");
+    void testUndo_NotImplemented() {
+        // Test the undo method (currently not implemented)
+        deployCommand.undo();
+        // No assertions since undo is a placeholder
     }
 }

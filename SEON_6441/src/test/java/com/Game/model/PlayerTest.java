@@ -143,3 +143,94 @@ public class PlayerTest {
         assertTrue(str.contains("15"), "toString() should contain the number of reinforcement armies.");
     }
 }
+@Test
+void testAddCard() {
+    Player player = new Player("Alice");
+    player.addCard(CardType.BOMB);
+    player.addCard(CardType.AIRLIFT);
+    player.addCard(CardType.BOMB);
+
+    HashMap<CardType, Integer> cards = player.getCards();
+    assertEquals(2, cards.get(CardType.BOMB));
+    assertEquals(1, cards.get(CardType.AIRLIFT));
+    assertEquals(2, cards.size());
+}
+
+@Test
+void testRemoveCard_Success() {
+    Player player = new Player("Bob");
+    player.addCard(CardType.BOMB);
+    player.addCard(CardType.BOMB);
+
+    boolean removed = player.removeCard(CardType.BOMB);
+    assertTrue(removed);
+    assertEquals(1, player.getCards().get(CardType.BOMB));
+}
+
+@Test
+void testRemoveCard_Failure() {
+    Player player = new Player("Charlie");
+    player.addCard(CardType.AIRLIFT);
+
+    boolean removed = player.removeCard(CardType.BOMB);
+    assertFalse(removed);
+    assertEquals(1, player.getCards().size());
+}
+
+@Test
+void testGetFormattedCards() {
+    Player player = new Player("Dave");
+    player.addCard(CardType.BOMB);
+    player.addCard(CardType.AIRLIFT);
+    player.addCard(CardType.BOMB);
+
+    String formattedCards = player.getFormattedCards();
+    assertTrue(formattedCards.contains("BOMB: 2"));
+    assertTrue(formattedCards.contains("AIRLIFT: 1"));
+}
+
+@Test
+void testIncrementConqueredTerritoriesPerTurn() {
+    Player player = new Player("Eve");
+    player.incrementConqueredTerritoriesPerTurn();
+    player.incrementConqueredTerritoriesPerTurn();
+
+    assertEquals(2, player.getConqueredTerritoriesPerTurn());
+}
+
+@Test
+void testResetConqueredTerritoriesPerTurn() {
+    Player player = new Player("Frank");
+    player.incrementConqueredTerritoriesPerTurn();
+    player.incrementConqueredTerritoriesPerTurn();
+    player.resetConqueredTerritoriesPerTurn();
+
+    assertEquals(0, player.getConqueredTerritoriesPerTurn());
+}
+
+@Test
+void testSetAndResetNegotiatedPlayers() {
+    Player player1 = new Player("Grace");
+    Player player2 = new Player("Henry");
+    Player player3 = new Player("Ivy");
+
+    List<Player> negotiatedPlayers = new ArrayList<>();
+    negotiatedPlayers.add(player2);
+    negotiatedPlayers.add(player3);
+
+    player1.setNegociatedPlayersPerTurn(negotiatedPlayers);
+    assertEquals(2, player1.getNegociatedPlayersPerTurn().size());
+
+    player1.resetNegociatedPlayersPerTurn();
+    assertTrue(player1.getNegociatedPlayersPerTurn().isEmpty());
+}
+
+@Test
+void testSetAndGetHasConqueredThisTurn() {
+    Player player = new Player("Jack");
+    player.setHasConqueredThisTurn(true);
+    assertTrue(player.getHasConqueredThisTurn());
+
+    player.setHasConqueredThisTurn(false);
+    assertFalse(player.getHasConqueredThisTurn());
+}

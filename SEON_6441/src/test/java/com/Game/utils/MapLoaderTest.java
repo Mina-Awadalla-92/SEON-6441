@@ -17,24 +17,125 @@ import org.junit.jupiter.api.Test;
 
 import com.Game.model.Map;
 
-/**
- * Example JUnit tests for MapLoader.
- * 
- * Note: For thorough testing of read(...) and isValid(...), you need actual map files.
- * Below, we either create a minimal temporary file or rely on a test resource file 
- * in "src/test/resources/LoadingMaps/" if your project allows.
- */
-public class MapLoaderTest {
+@Test
+void testSetLoadedMap() {
+    Map map = new Map();
+    mapLoader.setLoadedMap(map);
 
-    private MapLoader mapLoader;
+    assertEquals(map, mapLoader.getLoadedMap(), "The loaded map should match the map set using setLoadedMap.");
+}
 
-    @BeforeEach
-    void setUp() {
-        mapLoader = new MapLoader();
+@Test
+void testRead_InvalidMapFile() throws IOException {
+    // Create a temporary file with invalid content
+    File tempFile = File.createTempFile("invalidMap", ".map");
+    tempFile.deleteOnExit();
+
+    try (FileWriter fw = new FileWriter(tempFile)) {
+        fw.write("Invalid content that doesn't match map format");
     }
 
-    @Test
-    void testDefaultConstructor() {
+    mapLoader.read(tempFile.getAbsolutePath());
+
+    // After reading an invalid file, the loaded map should remain null
+    assertNull(mapLoader.getLoadedMap(), "Loaded map should remain null after reading an invalid file.");
+}
+
+@Test
+void testIsValid_MissingSections() throws IOException {
+    // Create a temporary file missing one or more required sections
+    String incompleteMapContent = 
+          "[continents]\n"
+        + "Asia 5\n\n"
+        + "[countries]\n"
+        + "1 Japan 1\n\n";
+        // Missing [borders] section
+
+    File tempFile = File.createTempFile("incompleteMap", ".map");
+    tempFile.deleteOnExit();
+
+    try (FileWriter fw = new FileWriter(tempFile)) {
+        fw.write(incompleteMapContent);
+    }
+
+    boolean valid = mapLoader.isValid(tempFile.getAbsolutePath());
+    assertFalse(valid, "A map file missing required sections should be considered invalid.");
+}
+
+@Test
+void testValidateMap_ValidMap() throws IOException {
+    // Create a valid map file
+    String validMapContent = 
+          "[continents]\n"
+        + "Asia 5\n\n"
+        + "[countries]\n"
+        + "1 Japan 1\n\n"
+        + "[borders]\n"
+        + "1\n";
+
+    File tempFile = File.createTempFile("validMap", ".map");
+    tempFile.deleteOnExit();
+
+    try (FileWriter fw = new FileWriter(tempFile)) {
+        fw.write(validMapContent);
+    }
+
+    mapLoader.read(tempFile.getAbsolutePath());
+    boolean result = mapLoader.validateMap(false);
+
+    assertTrue(result, "A valid map should pass validation.");
+}
+
+@Test
+void testRead_FileWithExtraSections() throws IOException {
+    // Create a map file with extra sections
+    String mapWithExtraSections = 
+          "[continents]\n"
+        + "Asia 5\n\n"
+        + "[countries]\n"
+        + "1 Japan 1\n\n"
+        + "[borders]\n"
+        + "1\n"
+        + "[extraSection]\n"
+        + "Extra data\n";
+
+    File tempFile = File.createTempFile("extraSectionsMap", ".map");
+    tempFile.deleteOnExit();
+
+    try (FileWriter fw = new FileWriter(tempFile)) {
+        fw.write(mapWithExtraSections);
+    }
+
+    mapLoader.read(tempFile.getAbsolutePath());
+
+    assertNotNull(mapLoader.getLoadedMap(), "Loaded map should not be null even with extra sections.");
+    assertFalse(mapLoader.getLoadedMap().getTerritoryList().isEmpty(), "Loaded map should contain territories.");
+}
+
+@Test
+void testIsMapExist_ResourceFile() {
+    // Assuming a valid map file exists in the resources folder
+    String resourceFileName = "LoadingMaps/sample.map";
+
+    BufferedReader reader = mapLoader.isMapExist(resourceFileName);
+    assertNotNull(reader, "Expected a non-null reader for an existing resource file.");
+
+    try {
+        reader.close();
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+
+@Test
+void testValidateMap_InvalidBorders() throws IOException {
+    // Create a map file with invalid borders
+    String invalidBordersMapContent = 
+          "[continents]\n"
+        + "Asia 5\n\n"
+        + "[countries]\n"
+        + "1 Japan 1\n\n"
+        + "[borders]\n"
         // By default, d_loadedMap is null
         assertNull(mapLoader.getLoadedMap(), 
                    "Initially, loadedMap should be null (per constructor).");
