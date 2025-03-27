@@ -3,6 +3,7 @@ package com.Game.view;
 import com.Game.model.Map;
 import com.Game.model.Player;
 import com.Game.model.Territory;
+import com.Game.observer.GameLogger;
 import com.Game.model.CardType;
 
 import java.util.List;
@@ -128,6 +129,19 @@ public class GameView {
             }
         }
         System.out.println("-------------------------------------------------");
+        
+     // Add logging of map state
+        GameLogger logger = GameLogger.getInstance();
+        if (logger != null) {
+            StringBuilder logSB = new StringBuilder("Current map state:\n");
+            for (Player player : p_players) {
+                logSB.append("Player ").append(player.getName())
+                    .append(" owns ").append(player.getOwnedTerritories().size())
+                    .append(" territories with ").append(player.getNbrOfReinforcementArmies())
+                    .append(" reinforcement armies.\n");
+            }
+            logger.logAction(logSB.toString());
+        }
     }
     
     /**
@@ -190,7 +204,7 @@ public class GameView {
     }
     
     /**
-     * Displays a player's territories.
+     * Displays a player's territories and card information.
      *
      * @param p_territories The list of territories owned by the player.
      * @param p_player The player whose territories are being displayed.
@@ -202,24 +216,32 @@ public class GameView {
             Territory l_territory = p_territories.get(i);
             System.out.println((i+1) + ". " + l_territory.getName() + " (" + l_territory.getNumOfArmies() + " armies)");
             List<Territory> neighbors = l_territory.getNeighborList();
-            System.out.print("		- Neighbors: ");
+            System.out.print("      - Neighbors: ");
             for (Territory l_neighbor : neighbors) {
-            	if(p_player.getOwnedTerritories().contains(l_neighbor)) {
-            		System.out.print(l_neighbor.getName() + "(Owned) || ");
-            	}
-            	else {
-            		if(l_neighbor.getOwner() != null) {
-            			System.out.print(l_neighbor.getName() + " (Enemy: "+ l_neighbor.getOwner().getName() +") || ");
-            		}
-            		else {
-            			System.out.print(l_neighbor.getName() + " (Neutral) || ");
-            		}
-            		
-            	}
-            	
+                if(p_player.getOwnedTerritories().contains(l_neighbor)) {
+                    System.out.print(l_neighbor.getName() + "(Owned) || ");
+                }
+                else {
+                    if(l_neighbor.getOwner() != null) {
+                        System.out.print(l_neighbor.getName() + " (Enemy: "+ l_neighbor.getOwner().getName() +") || ");
+                    }
+                    else {
+                        System.out.print(l_neighbor.getName() + " (Neutral) || ");
+                    }
+                }
             }
             System.out.println();
         }
+        
+        // Display player's cards
+        System.out.println("\nYour cards:");
+        String cards = p_player.getFormattedCards();
+        if (cards.isEmpty()) {
+            System.out.println("  None");
+        } else {
+            System.out.println("  " + cards);
+        }
+        System.out.println();
     }
     
     /**

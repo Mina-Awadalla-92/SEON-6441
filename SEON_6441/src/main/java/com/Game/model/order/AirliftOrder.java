@@ -4,6 +4,7 @@ import com.Game.model.*;
 /**
  * Abstract class representing an airlift order in the game.
  * An airlift order involves moving armies from one territory to another via airlift.
+ * In the Command pattern, this is a part of the concrete Command hierarchy.
  */
 public abstract class AirliftOrder extends Order {
     /**
@@ -59,6 +60,7 @@ public abstract class AirliftOrder extends Order {
     /**
      * Executes the airlift order.
      * The specific implementation of the execution is defined by subclasses.
+     * In the Command pattern, this abstract method will be implemented by concrete commands.
      */
     public abstract void execute();
 

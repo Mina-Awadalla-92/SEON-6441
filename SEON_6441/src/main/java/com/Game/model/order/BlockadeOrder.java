@@ -6,6 +6,7 @@ import com.Game.model.Player;
  * Represents a blockade order in the game.
  * When executed, the specified territory is turned into a neutral territory, its owner is removed, 
  * and the number of armies is tripled.
+ * In the Command pattern, this is a concrete Command implementation.
  */
 public class BlockadeOrder extends Order {
 	
@@ -35,29 +36,43 @@ public class BlockadeOrder extends Order {
 	/**
 	 * Copy constructor for BlockadeOrder.
 	 * 
-	 * @param bombOrder The BlockadeOrder to copy.
+	 * @param blockadeOrder The BlockadeOrder to copy.
 	 */
-	public BlockadeOrder(BlockadeOrder bombOrder) {
-		super(bombOrder.getIssuer());
-		this.d_territoryTo = bombOrder.getTerritoryTo();
+	public BlockadeOrder(BlockadeOrder blockadeOrder) {
+		super(blockadeOrder.getIssuer());
+		this.d_territoryTo = blockadeOrder.getTerritoryTo();
 	}
 	
 	/**
 	 * Executes the blockade order.
 	 * The method removes the territory from its current owner, sets the territory's owner to null,
 	 * triples the number of armies in the territory, and prints the details of the operation.
+	 * In the Command pattern, this is the concrete implementation of the execute() method.
 	 */
 	@Override
 	public void execute() {
 		System.out.println();
-		System.out.println("Number of armies in " + d_territoryTo.getName() + ": " + d_territoryTo.getNumOfArmies());
+		int l_initialArmies = d_territoryTo.getNumOfArmies();
+		System.out.println("Number of armies in " + d_territoryTo.getName() + ": " + l_initialArmies);
 		System.out.println("Using BLOCKADE on " + d_territoryTo.getName() + ". Will become a neutral territory!");
+		
+		Player l_originalOwner = this.getIssuer();
+		String l_originalOwnerName = l_originalOwner.getName();
+		
 		this.getIssuer().removeTerritory(d_territoryTo);
 		d_territoryTo.setOwner(null);
 		d_territoryTo.setNumOfArmies(d_territoryTo.getNumOfArmies() * 3);
+		int l_finalArmies = d_territoryTo.getNumOfArmies();
 		
-		System.out.println("Number of armies in " + d_territoryTo.getName() + ": " + d_territoryTo.getNumOfArmies());
+		System.out.println("Number of armies in " + d_territoryTo.getName() + ": " + l_finalArmies);
 		System.out.println();
+		
+		String l_logMessage = "Blockade Order Executed: Player " + l_originalOwnerName + 
+							  " blockaded " + d_territoryTo.getName() + 
+							  ". Territory is now neutral with " + l_finalArmies + 
+							  " armies (tripled from " + l_initialArmies + ").";
+							  
+		logOrderExecution(l_logMessage);
 	}
 	
 	/**

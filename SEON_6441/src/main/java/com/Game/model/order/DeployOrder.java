@@ -6,6 +6,7 @@ import com.Game.model.Territory;
 /**
  * Represents a deploy order where a player deploys armies to a target territory.
  * Deploy orders are created during the reinforcement phase and executed during the execution phase.
+ * In the Command pattern, this is a concrete Command implementation.
  */
 public class DeployOrder extends Order {
     
@@ -89,13 +90,19 @@ public class DeployOrder extends Order {
     /**
      * Executes the deploy order, adding the specified number of armies to the target territory.
      * This method will be called during the order execution phase.
+     * In the Command pattern, this is the concrete implementation of the execute() method.
      */
     @Override
     public void execute() {
         int l_currentNumberOfArmies = this.d_targetTerritory.getNumOfArmies();
         this.d_targetTerritory.setNumOfArmies(l_currentNumberOfArmies + this.d_numberOfArmies);
         
-        System.out.println("Order Executed: " + this.d_targetTerritory.getName() + " has now " 
-                           + this.d_targetTerritory.getNumOfArmies() + " armies.");
+        String l_logMessage = "Deploy Order Executed: Player " + this.d_issuer.getName() + 
+                              " deployed " + this.d_numberOfArmies + " armies to " + 
+                              this.d_targetTerritory.getName() + ". New total: " + 
+                              this.d_targetTerritory.getNumOfArmies() + " armies.";
+                              
+        System.out.println(l_logMessage);
+        logOrderExecution(l_logMessage);
     }
 }
