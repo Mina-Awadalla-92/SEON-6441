@@ -4,6 +4,7 @@ import com.Game.model.*;
 /**
  * Abstract class representing an advance order in the game.
  * An advance order involves moving armies from one territory to another.
+ * In the Command pattern, this is part of the concrete Command hierarchy.
  */
 public abstract class AdvanceOrder extends Order {
     /**
@@ -59,6 +60,7 @@ public abstract class AdvanceOrder extends Order {
     /**
      * Executes the advance order.
      * The specific implementation is defined by subclasses.
+     * In the Command pattern, this abstract method will be implemented by concrete commands.
      */
     public abstract void execute();
 

@@ -1,6 +1,7 @@
 package com.Game.controller;
 
 import com.Game.Phases.IssueOrderPhase;
+import com.Game.Phases.OrderExecutionPhase;
 import com.Game.Phases.Phase;
 import com.Game.Phases.PhaseType;
 import com.Game.model.Map;
@@ -10,17 +11,21 @@ import com.Game.model.order.Order;
 import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
 import com.Game.model.CardType;
-
-import java.security.SecureRandom;
+import com.Game.observer.GameLogger;
+import java.util.Random;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
 import com.Game.controller.GameController;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Controller class responsible for handling gameplay operations.
  * This class processes user commands related to the main game phase, including issuing orders,
  * executing orders, and managing the game turn cycle.
+ * In the Command pattern, GamePlayController (as part of the GameEngine) acts as the Client.
  */
 public class GamePlayController {
 
@@ -43,6 +48,16 @@ public class GamePlayController {
      * The list of players in the game.
      */
     private List<Player> d_players;
+    
+    /**
+     * Game logger for logging game events.
+     */
+    private GameLogger d_gameLogger;
+    
+    /**
+     * Flag to track if orders have been executed this turn.
+     */
+    private boolean d_ordersExecutedThisTurn = false;
 
     /**
      * A cryptographically secure pseudo-random number generator (CSPRNG) used for generating random values.
@@ -56,8 +71,8 @@ public class GamePlayController {
      * purposes, consider using {@link java.util.Random}.
      * </p>
      */
-    private SecureRandom d_random = new SecureRandom();
-
+    private Random d_random = new Random();
+    
     /**
      * Constructor initializing the controller with necessary references.
      * 
@@ -69,7 +84,21 @@ public class GamePlayController {
         this.d_gameController = p_gameController;
         this.d_gameMap = p_gameMap;
         this.d_players = p_players;
+        
+        // Get or create the logger instance
+        this.d_gameLogger = GameLogger.getInstance();
+        if (this.d_gameLogger == null) {
+            // If not initialized yet, create a new instance
+            String l_logFilePath = "logs/warzone_game_fallback.log";
+            File logsDir = new File("logs");
+            if (!logsDir.exists()) {
+                logsDir.mkdir();
+            }
+            this.d_gameLogger = GameLogger.getInstance(l_logFilePath, false);
+        }
+
     }
+    
     
     /**
      * Updates the game map reference.
@@ -92,7 +121,7 @@ public class GamePlayController {
     /**
      * Represents the current phase of the game.
      */
-    public Phase d_currentPhase =  new IssueOrderPhase();;
+    public Phase d_currentPhase = new IssueOrderPhase();
 
     /**
      * Handles a command in the main game phase.
@@ -104,18 +133,35 @@ public class GamePlayController {
         switch (p_command) {
             case "showmap":
                 d_gameController.getView().displayMap(d_gameMap, d_players);
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Map displayed during gameplay");
+                }
                 break;
             case "issueorder":
+                if (d_ordersExecutedThisTurn) {
+                    d_gameController.getView().displayError("Orders have already been executed this turn. Please use 'endturn' to proceed to the next turn.");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Error: Attempted to issue orders after execution phase");
+                    }
+                    return;
+                }
+                d_gameController.setPhase(PhaseType.ISSUE_ORDER);
                 handleIssueOrder();
                 break;
             case "executeorders":
+                d_gameController.setPhase(PhaseType.ORDER_EXECUTION);
                 handleExecuteOrders();
+                d_ordersExecutedThisTurn = true; // Set the flag after executing orders
                 break;
             case "endturn":
                 handleEndTurn();
+                d_ordersExecutedThisTurn = false; // Reset the flag for the new turn
                 break;
             default:
                 d_gameController.getView().displayError("Unknown command or invalid for current phase: " + p_command);
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Error: Unknown command '" + p_command + "' in main game phase");
+                }
         }
     }
     
@@ -126,10 +172,12 @@ public class GamePlayController {
     public void handleReinforcement() {
         if (!d_gameController.isGameStarted()) {
             d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
+            d_gameLogger.logAction("Error: Attempted to start reinforcement phase before game started");
             return;
         }
         
         d_gameController.getView().displayReinforcementPhase();
+        d_gameLogger.logPhaseChange("REINFORCEMENT");
         
         // Calculate reinforcements for each player
         for (Player l_player : d_players) {
@@ -138,6 +186,7 @@ public class GamePlayController {
             
             l_player.setNbrOfReinforcementArmies(l_reinforcements);
             d_gameController.getView().displayReinforcementAllocation(l_player.getName(), l_reinforcements);
+            d_gameLogger.logAction("Player " + l_player.getName() + " received " + l_reinforcements + " reinforcement armies");
         }
         
         d_gameController.getView().displayReinforcementComplete();
@@ -146,43 +195,45 @@ public class GamePlayController {
     /**
      * Handles the issue order phase of the game.
      * Allows each player to issue deploy orders.
+     * In the Command pattern, this is where Players (Invokers) create Order objects (Commands).
      */
     private void handleIssueOrder() {
         if (!d_gameController.isGameStarted()) {
             d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
+            d_gameLogger.logAction("Error: Attempted to start issue order phase before game started");
             return;
         }
         
         d_gameController.getView().displayIssueOrdersPhase();
+        d_gameLogger.logPhaseChange("ISSUE ORDER");
 
         d_currentPhase = d_currentPhase.setPhase(PhaseType.ISSUE_ORDER);
         d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null, d_gameMap);
 
-
-        
         d_gameController.getView().displayIssueOrdersComplete();
+        d_gameLogger.logAction("All players have issued their orders");
     }
     
     /**
      * Handles the execute orders phase of the game.
      * Executes all orders in round-robin fashion.
+     * In the Command pattern, this is where the GameEngine (Client) gets Orders from Players and executes them.
      */
     private void handleExecuteOrders() {
         if (!d_gameController.isGameStarted()) {
             d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
+            d_gameLogger.logAction("Error: Attempted to start execute orders phase before game started");
             return;
         }
         
         d_gameController.getView().displayExecuteOrdersPhase();
-
+        d_gameLogger.logPhaseChange("ORDER EXECUTION");
 
         d_currentPhase = d_currentPhase.setPhase(PhaseType.ORDER_EXECUTION);
-        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null,d_gameMap);
-
-
-        
+        d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null, d_gameMap);
         
         d_gameController.getView().displayExecuteOrdersComplete();
+        d_gameLogger.logAction("All orders have been executed");
     }
     
     /**
@@ -192,6 +243,9 @@ public class GamePlayController {
     private void handleEndTurn() {
         if (!d_gameController.isGameStarted()) {
             d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Error: Attempted to end turn before game started");
+            }
             return;
         }
         
@@ -200,43 +254,54 @@ public class GamePlayController {
         
         if (l_winner != null) {
             d_gameController.getView().displayWinner(l_winner.getName());
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Game ended. Player " + l_winner.getName() + " is the winner!");
+            }
             
             d_gameController.setGameStarted(false);
             d_gameController.setCurrentPhase(GameController.MAP_EDITING_PHASE);
         } else {
             // Start a new turn with reinforcement phase
             d_gameController.getView().displayEndTurn();
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Turn ended. Starting new turn.");
+            }
+            
+            // Award cards to players who conquered territories
+            System.out.println("\nCards awarding:\n");
+            for (Player l_player : d_players) {
+                if (l_player.getHasConqueredThisTurn()) {
+                    CardType[] allCardTypes = CardType.values();
+                    
+                    // Pick a random index
+                    int l_randomIndex = d_random.nextInt(allCardTypes.length);
+                    
+                    // Get the random card
+                    CardType randomCard = allCardTypes[l_randomIndex];
+                    
+                    // Add the card to the player's hand
+                    l_player.addCard(randomCard);
+                    
+                    System.out.println("Player "+ l_player.getName() + " was awarded " + randomCard.name());
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Player " + l_player.getName() + " was awarded a " + randomCard.name() + " card for conquering territory");
+                    }
+                }
+            }
+            System.out.println();
+            
+            // Reset player status for the new turn
+            for (Player l_player : d_players) {
+                l_player.setHasConqueredThisTurn(false);
+                l_player.setNegociatedPlayersPerTurn(new ArrayList<>());
+            }
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Player conquest and diplomacy statuses reset for new turn");
+            }
+            
+            // Start reinforcement phase
             handleReinforcement();
         }
-        
-        System.out.println("\nCards awarding:\n");
-        for (Player l_player : d_players) {
-        	if (l_player.getHasConqueredThisTurn()) {
-        		CardType[] allCardTypes = CardType.values();
-        		
-        	    // Pick a random index
-                int l_randomIndex = d_random.nextInt(allCardTypes.length);
-
-        	    // Get the random card
-        	    CardType randomCard = allCardTypes[l_randomIndex];
-
-        	    // Add the card to the player's hand (or card collection)
-        	    
-        		l_player.addCard(randomCard);
-        			
-        	    
-        	    System.out.println("Player "+ l_player.getName() + " was awarded " + randomCard.name());
-        	}
-        }
-        System.out.println();
-        
-        //clean up
-        for (Player l_player : d_players) {
-        	l_player.setHasConqueredThisTurn(false);
-        	l_player.setNegociatedPlayersPerTurn(new ArrayList<>());
-        }
-        
-        
     }
     
     /**
@@ -277,18 +342,28 @@ public class GamePlayController {
      * @return true if assignment was successful, false otherwise
      */
     public boolean handleAssignCountries() {
-        if (d_players.size() < 2) {
-            d_gameController.getView().displayError("Need at least 2 players to start the game.");
-            return false;
-        }
-        
-        // Get all territories from the map
-        List<Territory> l_territories = d_gameMap.getTerritoryList();
-        
-        if (l_territories.isEmpty()) {
-            d_gameController.getView().displayError("No territories in the map. Cannot assign countries.");
-            return false;
-        }
+    	
+    	
+    	 if (d_players.size() < 2) {
+    	        d_gameController.getView().displayError("Need at least 2 players to start the game.");
+    	        // Add null check before logging
+    	        if (d_gameLogger != null) {
+    	            d_gameLogger.logAction("Error: Cannot assign countries. Need at least 2 players.");
+    	        }
+    	        return false;
+    	    }
+    	    
+    	    // Get all territories from the map
+    	    List<Territory> l_territories = d_gameMap.getTerritoryList();
+    	    
+    	    if (l_territories.isEmpty()) {
+    	        d_gameController.getView().displayError("No territories in the map. Cannot assign countries.");
+    	        // Add null check before logging
+    	        if (d_gameLogger != null) {
+    	            d_gameLogger.logAction("Error: Cannot assign countries. No territories in the map.");
+    	        }
+    	        return false;
+    	    }
 
         // Shuffle territories for random assignment
         for (int i = l_territories.size() - 1; i > 0; i--) {
@@ -314,6 +389,8 @@ public class GamePlayController {
             
             // Set initial armies (e.g., 1 per territory)
             l_territory.setNumOfArmies(1);
+            
+            d_gameLogger.logAction("Territory " + l_territory.getName() + " assigned to player " + l_player.getName());
         }
         
         d_gameController.getView().displayMessage("Countries assigned to players:");
@@ -323,6 +400,12 @@ public class GamePlayController {
         }
         
         d_gameController.getView().displayMessage("Ready to start the game. Use 'startgame' command to begin.");
+        d_gameLogger.logAction("Countries successfully assigned to players");
+        
+        // Add null check before logging
+        if (d_gameLogger != null) {
+            d_gameLogger.logAction("Countries successfully assigned to players");
+        }
         return true;
     }
     
@@ -334,6 +417,7 @@ public class GamePlayController {
     public boolean startMainGame() {
         if (d_players.size() < 2) {
             d_gameController.getView().displayError("Need at least 2 players to start the game.");
+            d_gameLogger.logAction("Error: Cannot start game. Need at least 2 players.");
             return false;
         }
         
@@ -342,6 +426,8 @@ public class GamePlayController {
         d_gameController.setCurrentPhase(GameController.MAIN_GAME_PHASE);
         
         d_gameController.getView().displayMessage("Game started! Beginning reinforcement phase.");
+        d_gameLogger.logAction("Main game started");
+        
         // Start with reinforcement phase
         handleReinforcement();
         return true;

@@ -6,6 +6,7 @@ import com.Game.model.Territory;
 /**
  * Represents an airlift move order, which moves armies from one territory to another using airlift mechanics.
  * If the target territory is neutral, it is conquered by the issuing player.
+ * In the Command pattern, this is a concrete Command implementation.
  */
 public class AirliftMove extends AirliftOrder {
     
@@ -43,22 +44,48 @@ public class AirliftMove extends AirliftOrder {
      * Executes the airlift move order.
      * Moves the specified number of armies from the source territory to the target territory.
      * If the target territory is neutral (has no owner), it is conquered by the issuing player.
+     * In the Command pattern, this is the concrete implementation of the execute() method.
      */
     @Override
     public void execute() {
         //getD_territoryFrom().setNumOfArmies(getD_territoryFrom().getNumOfArmies() - getD_numberOfArmies());
-        getD_territoryTo().setNumOfArmies(getD_territoryTo().getNumOfArmies() + getD_numberOfArmies());
+        String l_logMessage;
+        boolean l_conquered = false;
+        
         if(getD_territoryTo().getOwner() == null) { // if its a neutral territory
+            l_conquered = true;
             this.d_issuer.addTerritory(d_territoryTo);
             d_territoryTo.setOwner(d_issuer);
+            
+            l_logMessage = "Player " + this.d_issuer.getName() + 
+                          " conquered the neutral territory " + getD_territoryTo().getName() + 
+                          " using AIRLIFT with " + this.d_numberOfArmies + " armies.";
+            
             System.out.println(this.d_issuer.getName() + " conquered the neutral territory " 
                 + getD_territoryTo().getName() + " using AIRLIFT and now has " 
-                + getD_territoryTo().getNumOfArmies());
-        }
-        else {
+                + getD_territoryTo().getNumOfArmies() + " armies.");
+        } else {
+            l_logMessage = "Player " + this.d_issuer.getName() + 
+                          " airlifted " + this.d_numberOfArmies + " armies from " + 
+                          getD_territoryFrom().getName() + " to " + getD_territoryTo().getName() + ".";
+            
             System.out.println(this.d_numberOfArmies + " armie(s) were moved from " 
                 + getD_territoryFrom().getName() + " to " + getD_territoryTo().getName());
         }
         
+        // Update the territory's army count
+        getD_territoryTo().setNumOfArmies(getD_territoryTo().getNumOfArmies() + getD_numberOfArmies());
+        
+        // Add additional status info to the log
+        l_logMessage += " " + getD_territoryTo().getName() + " now has " + 
+                       getD_territoryTo().getNumOfArmies() + " armies.";
+        
+        logOrderExecution(l_logMessage);
+        
+        // If a territory was conquered, update the player's conquest status
+        if (l_conquered) {
+            this.d_issuer.setHasConqueredThisTurn(true);
+            logOrderExecution("Player " + this.d_issuer.getName() + " has conquered at least one territory this turn.");
+        }
     }
 }

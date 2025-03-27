@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import com.Game.model.order.DeployOrder;
 import com.Game.model.order.Order;
+import com.Game.observer.GameLogger;
 import com.Game.model.order.AdvanceMove;
 import com.Game.model.order.AdvanceAttack;
 import com.Game.model.order.BombOrder;
@@ -184,39 +185,86 @@ public class Player {
      * @return {@code true} if the advance command is valid, {@code false} otherwise.
      */
     private boolean validateAdvance(String[] p_parts, Map p_map) {
+        GameLogger logger = GameLogger.getInstance();
+        
         if (p_parts.length != 4) {
+            System.err.println("Invalid format for advance command. Expected: advance [fromTerritory] [toTerritory] [armies]");
+            if (logger != null) {
+                logger.logAction("Error: Invalid advance command format from player " + this.d_name);
+            }
             return false;
         }
+        
         Territory l_territoryFrom = findTerritoryByName(p_parts[1]);
         Territory l_territoryTo = p_map.getTerritoryByName(p_parts[2]);
-        if (l_territoryFrom == null || l_territoryTo == null) {
-            System.err.println("Territorie(s) not found!");
+        
+        if (l_territoryFrom == null) {
+            System.err.println("Source territory not found or not owned by you: " + p_parts[1]);
+            if (logger != null) {
+                logger.logAction("Error: Source territory not found for advance command from player " + this.d_name);
+            }
             return false;
         }
+        
+        if (l_territoryTo == null) {
+            System.err.println("Target territory not found: " + p_parts[2]);
+            if (logger != null) {
+                logger.logAction("Error: Target territory not found for advance command from player " + this.d_name);
+            }
+            return false;
+        }
+        
         if (l_territoryFrom.getName().equals(l_territoryTo.getName())) {
-            System.err.println("Can't advance in your own territory!");
+            System.err.println("Source and target territories cannot be the same");
+            if (logger != null) {
+                logger.logAction("Error: Same source and target territory in advance command from player " + this.d_name);
+            }
             return false;
         }
+        
         int l_numberOfArmies;
         try {
             l_numberOfArmies = Integer.parseInt(p_parts[3]);
+            if (l_numberOfArmies <= 0) {
+                System.err.println("Number of armies must be positive");
+                if (logger != null) {
+                    logger.logAction("Error: Non-positive army count in advance command from player " + this.d_name);
+                }
+                return false;
+            }
         } catch (NumberFormatException e) {
-            System.err.println("Invalid number of armies!");
+            System.err.println("Invalid number of armies: " + p_parts[3]);
+            if (logger != null) {
+                logger.logAction("Error: Invalid number format in advance command from player " + this.d_name);
+            }
             return false;
         }
+        
         if (!l_territoryFrom.getOwner().getName().equals(this.getName())) {
-            System.err.println(l_territoryFrom + " does not belong to " + this.getName());
+            System.err.println("You do not own the source territory: " + l_territoryFrom.getName());
+            if (logger != null) {
+                logger.logAction("Error: Player " + this.d_name + " attempted to advance from unowned territory");
+            }
             return false;
         }
+        
         if (!l_territoryFrom.hasNeighbor(l_territoryTo)) {
             System.err.println(l_territoryFrom.getName() + " is not adjacent to " + l_territoryTo.getName());
+            if (logger != null) {
+                logger.logAction("Error: Non-adjacent territories in advance command from player " + this.d_name);
+            }
             return false;
         }
-        if (l_territoryFrom.getNumOfArmies() - l_numberOfArmies < 0) {
-            System.err.println("Not enough armies on " + l_territoryFrom.getName() + ". Only " 
-                               + l_territoryFrom.getNumOfArmies() + " available!");
+        
+        if (l_territoryFrom.getNumOfArmies() < l_numberOfArmies) {
+            System.err.println("Not enough armies on " + l_territoryFrom.getName() + 
+                              ". Only " + l_territoryFrom.getNumOfArmies() + " available.");
+            if (logger != null) {
+                logger.logAction("Error: Insufficient armies for advance command from player " + this.d_name);
+            }
             return false;
         }
+        
         return true;
     }
 
@@ -382,13 +430,11 @@ public class Player {
         }
         return true;
     }
-
+    
     /**
      * Issues an order based on the provided command.
-     * <p>
-     * This method parses the command, validates it using the appropriate validation method, and
-     * creates the corresponding order if the command is valid.
-     * </p>
+     * The Player acts as the Invoker in the Command pattern, creating concrete
+     * Command objects (Orders) and adding them to its list of orders.
      *
      * @param p_command The command string containing the order type and its parameters.
      * @param p_map The map containing the territories.
@@ -400,70 +446,83 @@ public class Player {
         if (l_parts.length < 2 || l_parts.length > 4) {
             return false;
         }
+        
         String l_orderType = l_parts[0].toLowerCase();
+        Order l_order = null;
+        
+        // Create the appropriate order object based on the command type
         if (l_orderType.equals("deploy")) {
             if (!validateDeploy(l_parts)) {
                 return false;
             }
+            
             String l_targetTerritoryName = l_parts[1];
             int l_numberOfArmies = Integer.parseInt(l_parts[2]);
             Territory l_targetTerritory = findTerritoryByName(l_targetTerritoryName);
-            DeployOrder l_deployOrder = new DeployOrder(this, l_targetTerritory, l_numberOfArmies);
-            d_orders.add(l_deployOrder);
+            
+            // Create the Deploy Order
+            l_order = new DeployOrder(this, l_targetTerritory, l_numberOfArmies);
             this.d_nbrOfReinforcementArmies -= l_numberOfArmies;
-            return true;
-        } else if (l_orderType.equals("advance")) {
+        } 
+        else if (l_orderType.equals("advance")) {
             if (!validateAdvance(l_parts, p_map)) {
                 return false;
             }
+            
             Territory l_territoryFrom = findTerritoryByName(l_parts[1]);
             Territory l_territoryTo = p_map.getTerritoryByName(l_parts[2]);
             int l_numberOfArmies = Integer.parseInt(l_parts[3]);
+            
+            // Deduct armies from source territory
             l_territoryFrom.setNumOfArmies(l_territoryFrom.getNumOfArmies() - l_numberOfArmies);
+            
+            // Create the appropriate Advance Order (Move or Attack)
             if (l_territoryTo.getOwner() == null || l_territoryTo.getOwner().getName().equals(this.getName())) {
-                AdvanceMove advanceMove = new AdvanceMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
-                d_orders.add(advanceMove);
+                l_order = new AdvanceMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
             } else {
-                AdvanceAttack advanceAttack = new AdvanceAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
-                d_orders.add(advanceAttack);
+                l_order = new AdvanceAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
             }
-            return true;
-        } else if (l_orderType.equalsIgnoreCase("bomb")) {
+        }
+        else if (l_orderType.equalsIgnoreCase("bomb")) {
             if (!validateBomb(l_parts, p_map)) {
                 return false;
             }
+            
             Territory l_territoryTo = p_map.getTerritoryByName(l_parts[1]);
-            BombOrder bombOrder = new BombOrder(this, l_territoryTo);
-            d_orders.add(bombOrder);
-            return true;
-        } else if (l_orderType.equalsIgnoreCase("blockade")) {
+            l_order = new BombOrder(this, l_territoryTo);
+        }
+        else if (l_orderType.equalsIgnoreCase("blockade")) {
             if (!validateBlockade(l_parts)) {
                 return false;
             }
+            
             Territory l_territoryTo = findTerritoryByName(l_parts[1]);
-            BlockadeOrder blockadeOrder = new BlockadeOrder(this, l_territoryTo);
-            d_orders.add(blockadeOrder);
-            return true;
-        } else if (l_orderType.equalsIgnoreCase("airlift")) {
+            l_order = new BlockadeOrder(this, l_territoryTo);
+        }
+        else if (l_orderType.equalsIgnoreCase("airlift")) {
             if (!validateAirlift(l_parts, p_map)) {
                 return false;
             }
+            
             Territory l_territoryFrom = findTerritoryByName(l_parts[1]);
             Territory l_territoryTo = p_map.getTerritoryByName(l_parts[2]);
             int l_numberOfArmies = Integer.parseInt(l_parts[3]);
+            
+            // Deduct armies from source territory
             l_territoryFrom.setNumOfArmies(l_territoryFrom.getNumOfArmies() - l_numberOfArmies);
+            
+            // Create the appropriate Airlift Order (Move or Attack)
             if (l_territoryTo.getOwner() == null || l_territoryTo.getOwner().getName().equals(this.getName())) {
-                AirliftMove airliftMove = new AirliftMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
-                d_orders.add(airliftMove);
+                l_order = new AirliftMove(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
             } else {
-                AirliftAttack airliftAttack = new AirliftAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
-                d_orders.add(airliftAttack);
+                l_order = new AirliftAttack(this, l_territoryFrom, l_territoryTo, l_numberOfArmies);
             }
-            return true;
-        } else if (l_orderType.equalsIgnoreCase("negotiate")) {
+        }
+        else if (l_orderType.equalsIgnoreCase("negotiate")) {
             if (!validateNegociate(l_parts, p_players)) {
                 return false;
             }
+            
             Player l_playerToNegotiateWith = null;
             for (Player l_player : p_players) {
                 if (l_player.getName().equals(l_parts[1])) {
@@ -471,13 +530,25 @@ public class Player {
                     break;
                 }
             }
-            NegotiateOrder negotiateOrder = new NegotiateOrder(this, l_playerToNegotiateWith);
-            negotiateOrder.execute();
+            
+            l_order = new NegotiateOrder(this, l_playerToNegotiateWith);
+            // Execute the negotiate order immediately
+            l_order.execute();
             return true;
-        } else {
+        }
+        else {
             return false;
         }
+        
+        // Add the created order to the player's order list (except negotiate which executed immediately)
+        if (l_order != null) {
+            d_orders.add(l_order);
+            return true;
+        }
+        
+        return false;
     }
+
 
     /**
      * Prompts the user to issue an order.
@@ -538,6 +609,9 @@ public class Player {
     public Order nextOrder() {
         return d_orders.isEmpty() ? null : d_orders.remove(0);
     }
+    
+    
+    
 
     /**
      * Gets the number of reinforcement armies available for the player.
@@ -647,6 +721,12 @@ public class Player {
     public void addCard(CardType p_cardType) {
         int count = d_cards.getOrDefault(p_cardType, 0);
         d_cards.put(p_cardType, count + 1);
+        
+        // Log card addition
+        GameLogger logger = GameLogger.getInstance();
+        if (logger != null) {
+            logger.logAction("Player " + this.d_name + " received a " + p_cardType.name() + " card");
+        }
     }
 
     /**
@@ -665,20 +745,27 @@ public class Player {
             } else {
                 d_cards.remove(p_cardType);
             }
+            
+            // Log card removal
+            GameLogger logger = GameLogger.getInstance();
+            if (logger != null) {
+                logger.logAction("Player " + this.d_name + " used a " + p_cardType.name() + " card");
+            }
             return true;
         }
         return false;
     }
 
     /**
-     * Retrieves the player's current collection of cards.
+     * Checks if the player has a card of the specified type.
      *
-     * @return A {@link HashMap} containing card types as keys and their respective counts as values.
+     * @param p_cardType The type of card to check.
+     * @return {@code true} if the player has the card, {@code false} otherwise.
      */
-    public HashMap<CardType, Integer> getCards() {
-        return d_cards;
+    public boolean hasCard(CardType p_cardType) {
+        return d_cards.containsKey(p_cardType);
     }
-    
+
     /**
      * Returns a formatted string of the player's cards.
      * Example output: "BOMB: 1, AIRLIFT: 2"
@@ -696,6 +783,16 @@ public class Player {
         }
         return sb.toString();
     }
+
+    /**
+     * Retrieves the player's current collection of cards.
+     *
+     * @return A {@link HashMap} containing card types as keys and their respective counts as values.
+     */
+    public HashMap<CardType, Integer> getCards() {
+        return d_cards;
+    }
+    
     
     ///////////////////////////// Conquered Territories Management /////////////////////////////
 

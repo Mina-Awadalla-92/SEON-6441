@@ -6,6 +6,11 @@ package com.Game.Phases;
  */
 public enum PhaseType {
     /**
+     * The Map Editor phase where the map is created and edited.
+     */
+    MAP_EDITOR,
+    
+    /**
      * The Startup phase where the game initializes and players are set up.
      */
     STARTUP,
