@@ -90,11 +90,26 @@ public class MapEditorController {
                 break;
             case "gameplayer":
                 // First validate the map
-                boolean isMapValid = d_mapLoader.validateMap();
+                boolean isMapValid = false;
+                
+                // Execute validation logic directly rather than relying on command execution
+                if (d_mapLoader != null && d_gameMap != null) {
+                    System.out.println("Automatically validating map before transitioning to startup phase...");
+                    
+                    // First check if the map format is valid
+                    String mapFilePath = d_gameController.getMapFilePath();
+                    if (mapFilePath != null && d_mapLoader.isValid(mapFilePath)) {
+                        // Then validate the map connectivity and other rules
+                        isMapValid = d_mapLoader.validateMap();
+                    }
+                }
+                
                 if (!isMapValid) {
-                    d_gameController.getView().displayError("Map is invalid. Please validate and fix the map before proceeding to the startup phase.");
-                    if (d_gameLogger != null) {
-                        d_gameLogger.logAction("Error: Tried to transition to startup phase with invalid map");
+                    d_gameController.getView().displayError("Map validation failed. Please validate and fix the map before proceeding to the startup phase.");
+                    // Log the error if logger is available
+                    GameLogger logger = GameLogger.getInstance();
+                    if (logger != null) {
+                        logger.logAction("Error: Tried to transition to startup phase with invalid map");
                     }
                     return l_isMapLoaded;
                 }
