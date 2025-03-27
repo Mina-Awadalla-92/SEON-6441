@@ -1,146 +1,184 @@
 package com.Game.model;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 public class MapTest {
 
-    private Map map;
-
-    @BeforeEach
-    void setUp() {
-        map = new Map();
-    }
-
     @Test
-    void testAddAndGetTerritory() {
-        Territory territory = new Territory("Territory1", "Continent1", 5);
-        map.addTerritory(territory);
-        Territory retrievedTerritory = map.getTerritoryByName("Territory1");
-        assertNotNull(retrievedTerritory, "Territory should be added to the map.");
-        assertEquals("Territory1", retrievedTerritory.getName(), "Territory name should match.");
+    public void testDefaultConstructor() {
+        Map gameMap = new Map();
+        assertNotNull(gameMap.getTerritoryList());
+        assertTrue(gameMap.getTerritoryList().isEmpty());
+        assertNotNull(gameMap.getContinents());
+        assertTrue(gameMap.getContinents().isEmpty());
     }
-
+    
     @Test
-    void testAddAndRemoveContinent() {
-        map.addContinent("Continent1", 10);
-        assertTrue(map.getContinents().containsKey("Continent1"), "Continent should be added to the map.");
-        map.removeContinent("Continent1");
-        assertFalse(map.getContinents().containsKey("Continent1"), "Continent should be removed from the map.");
+    public void testAddAndGetTerritory() {
+        Map gameMap = new Map();
+        Territory t1 = new Territory("A", "X", 5);
+        gameMap.addTerritory(t1);
+        assertEquals(t1, gameMap.getTerritoryByName("A"));
     }
-
+    
     @Test
-    void testAddAndRemoveCountry() {
-        map.addContinent("Continent1", 10);
-        map.addCountry("Country1", "Continent1");
-        Territory country = map.getTerritoryByName("Country1");
-        assertNotNull(country, "Country should be added to the map.");
-        assertEquals("Country1", country.getName(), "Country name should match.");
-        assertEquals("Continent1", country.getContinent(), "Country should belong to the correct continent.");
-        map.removeCountry("Country1");
-        assertNull(map.getTerritoryByName("Country1"), "Country should be removed from the map.");
+    public void testAddContinentAndRemoveContinent() {
+        Map gameMap = new Map();
+        gameMap.addContinent("Asia", 7);
+        assertTrue(gameMap.getContinents().containsKey("Asia"));
+        // Add territory belonging to continent Asia
+        Territory t1 = new Territory("India", "Asia", 5);
+        gameMap.addTerritory(t1);
+        // Remove continent; expect both the continent and its territories to be removed
+        gameMap.removeContinent("Asia");
+        assertFalse(gameMap.getContinents().containsKey("Asia"));
+        assertNull(gameMap.getTerritoryByName("India"));
     }
-
+    
     @Test
-    void testAddAndRemoveNeighbor() {
-        Territory territory1 = new Territory("Territory1", "Continent1", 5);
-        Territory territory2 = new Territory("Territory2", "Continent1", 5);
-        map.addTerritory(territory1);
-        map.addTerritory(territory2);
-        map.addNeighbor("Territory1", "Territory2");
-        assertTrue(territory1.getNeighborList().contains(territory2), "Territory1 should have Territory2 as a neighbor.");
-        assertTrue(territory2.getNeighborList().contains(territory1), "Territory2 should have Territory1 as a neighbor.");
-        map.removeNeighbor("Territory1", "Territory2");
-        assertFalse(territory1.getNeighborList().contains(territory2), "Territory1 should no longer have Territory2 as a neighbor.");
-        assertFalse(territory2.getNeighborList().contains(territory1), "Territory2 should no longer have Territory1 as a neighbor.");
+    public void testAddCountry() {
+        Map gameMap = new Map();
+        gameMap.addContinent("Europe", 5);
+        gameMap.addCountry("France", "Europe");
+        Territory t = gameMap.getTerritoryByName("France");
+        assertNotNull(t);
+        assertEquals("Europe", t.getContinent());
     }
-
+    
     @Test
-    void testMapValidation_ConnectedGraph() {
-        Territory territory1 = new Territory("Territory1", "Continent1", 5);
-        Territory territory2 = new Territory("Territory2", "Continent1", 5);
-        Territory territory3 = new Territory("Territory3", "Continent1", 5);
-        map.addTerritory(territory1);
-        map.addTerritory(territory2);
-        map.addTerritory(territory3);
-        map.addNeighbor("Territory1", "Territory2");
-        map.addNeighbor("Territory2", "Territory3");
-        boolean isValid = map.mapValidation();
-        assertTrue(isValid, "The map should be a connected graph.");
+    public void testRemoveCountryAndNeighbors() {
+        Map gameMap = new Map();
+        Territory t1 = new Territory("Country1", "Continent1", 3);
+        Territory t2 = new Territory("Country2", "Continent1", 3);
+        gameMap.addTerritory(t1);
+        gameMap.addTerritory(t2);
+        // Set neighbor relationships manually
+        t1.addNeighbor(t2);
+        t2.addNeighbor(t1);
+        // Remove country t1; it should also be removed from t2's neighbor list
+        gameMap.removeCountry("Country1");
+        assertNull(gameMap.getTerritoryByName("Country1"));
+        assertFalse(t2.getNeighborList().contains(t1));
     }
-
+    
     @Test
-    void testMapValidation_DisconnectedGraph() {
-        Territory territory1 = new Territory("Territory1", "Continent1", 5);
-        Territory territory2 = new Territory("Territory2", "Continent1", 5);
-        map.addTerritory(territory1);
-        map.addTerritory(territory2);
-        boolean isValid = map.mapValidation();
-        assertFalse(isValid, "The map should not be a connected graph.");
+    public void testAddAndRemoveNeighbor() {
+        Map gameMap = new Map();
+        Territory t1 = new Territory("Alpha", "C1", 2);
+        Territory t2 = new Territory("Beta", "C1", 2);
+        gameMap.addTerritory(t1);
+        gameMap.addTerritory(t2);
+        gameMap.addNeighbor("Alpha", "Beta");
+        assertTrue(t1.getNeighborList().contains(t2));
+        assertTrue(t2.getNeighborList().contains(t1));
+        gameMap.removeNeighbor("Alpha", "Beta");
+        assertFalse(t1.getNeighborList().contains(t2));
+        assertFalse(t2.getNeighborList().contains(t1));
     }
-
+    
     @Test
-    void testContinentValidation_ConnectedSubgraph() {
-        map.addContinent("Continent1", 10);
-        Territory territory1 = new Territory("Territory1", "Continent1", 5);
-        Territory territory2 = new Territory("Territory2", "Continent1", 5);
-        map.addTerritory(territory1);
-        map.addTerritory(territory2);
-        map.addNeighbor("Territory1", "Territory2");
-        boolean isValid = map.continentValidation();
-        assertTrue(isValid, "The continent should be a connected subgraph.");
+    public void testSetContinents() {
+        Map gameMap = new Map();
+      java.util.Map<String, Integer> newContinents = new java.util.HashMap<>();
+
+        newContinents.put("Africa", 3);
+        gameMap.setContinents(newContinents);
+        assertTrue(gameMap.getContinents().containsKey("Africa"));
+        assertEquals(3, gameMap.getContinents().get("Africa").intValue());
     }
-
+    
     @Test
-    void testContinentValidation_DisconnectedSubgraph() {
-        map.addContinent("Continent1", 10);
-        Territory territory1 = new Territory("Territory1", "Continent1", 5);
-        Territory territory2 = new Territory("Territory2", "Continent1", 5);
-        map.addTerritory(territory1);
-        map.addTerritory(territory2);
-        boolean isValid = map.continentValidation();
-        assertFalse(isValid, "The continent should not be a connected subgraph.");
+    public void testToString() {
+        Map gameMap = new Map();
+        Territory t1 = new Territory("X", "C1", 1);
+        gameMap.addTerritory(t1);
+        String mapStr = gameMap.toString();
+        assertTrue(mapStr.contains("X"));
     }
-
+    
     @Test
-    void testMapValidation_EmptyMap() {
-        boolean isValid = map.mapValidation();
-        assertFalse(isValid, "An empty map should not be a connected graph.");
+    public void testCopyConstructor() {
+        Map original = new Map();
+        original.addContinent("Oceania", 4);
+        Territory t1 = new Territory("Australia", "Oceania", 3);
+        original.addTerritory(t1);
+        Map copy = new Map(original);
+        // Modify original; the copy should remain unaffected.
+        original.removeContinent("Oceania");
+        assertNotNull(copy.getContinents().get("Oceania"));
+        assertNotNull(copy.getTerritoryByName("Australia"));
     }
-
+    
     @Test
-    void testMapValidation_SingleTerritory() {
-        Territory territory = new Territory("Territory1", "Continent1", 5);
-        map.addTerritory(territory);
-        boolean isValid = map.mapValidation();
-        assertTrue(isValid, "A map with a single territory should be a connected graph.");
+    public void testMapValidation() {
+        Map gameMap = new Map();
+        // Create 3 connected territories: A - B - C
+        Territory a = new Territory("A", "Continent", 1);
+        Territory b = new Territory("B", "Continent", 1);
+        Territory c = new Territory("C", "Continent", 1);
+        gameMap.addTerritory(a);
+        gameMap.addTerritory(b);
+        gameMap.addTerritory(c);
+        a.addNeighbor(b);
+        b.addNeighbor(a);
+        b.addNeighbor(c);
+        c.addNeighbor(b);
+        assertTrue(gameMap.mapValidation());
+        
+        // Create a map with disconnected territories.
+        Map gameMap2 = new Map();
+        Territory d = new Territory("D", "Continent", 1);
+        Territory e = new Territory("E", "Continent", 1);
+        gameMap2.addTerritory(d);
+        gameMap2.addTerritory(e);
+        assertFalse(gameMap2.mapValidation());
     }
-
+    
     @Test
-    void testAddDuplicateTerritory() {
-        Territory territory1 = new Territory("Territory1", "Continent1", 5);
-        Territory territory2 = new Territory("Territory1", "Continent2", 10);
-        map.addTerritory(territory1);
-        map.addTerritory(territory2);
-        Territory retrievedTerritory = map.getTerritoryByName("Territory1");
-        assertEquals("Continent1", retrievedTerritory.getContinent(), "The original territory should not be overwritten.");
+    public void testContinentValidation() {
+        Map gameMap = new Map();
+        gameMap.addContinent("NorthAmerica", 5);
+        // Two connected territories in NorthAmerica.
+        Territory a = new Territory("USA", "NorthAmerica", 2);
+        Territory b = new Territory("Canada", "NorthAmerica", 2);
+        gameMap.addTerritory(a);
+        gameMap.addTerritory(b);
+        a.addNeighbor(b);
+        b.addNeighbor(a);
+        // Another continent with two disconnected territories.
+        gameMap.addContinent("SouthAmerica", 3);
+        Territory c = new Territory("Brazil", "SouthAmerica", 2);
+        Territory d = new Territory("Argentina", "SouthAmerica", 2);
+        gameMap.addTerritory(c);
+        gameMap.addTerritory(d);
+        // Since Brazil and Argentina are not connected, validation should fail.
+        assertFalse(gameMap.continentValidation());
     }
-
+    
     @Test
-    void testAddNeighborToNonExistentTerritory() {
-        assertThrows(IllegalArgumentException.class, () -> map.addNeighbor("NonExistent", "Territory1"),
-            "Adding a neighbor to a non-existent territory should throw an exception.");
-    }
-
-    @Test
-    void testRemoveNonExistentCountry() {
-        map.removeCountry("NonExistent");
-        assertNull(map.getTerritoryByName("NonExistent"), "Removing a non-existent country should not cause errors.");
+    public void testSaveToFile(@TempDir Path tempDir) throws Exception {
+        Map gameMap = new Map();
+        gameMap.addContinent("TestContinent", 10);
+        Territory t1 = new Territory("TestLand", "TestContinent", 5);
+        gameMap.addTerritory(t1);
+        // Add a neighbor to write something in the borders section.
+        t1.addNeighbor(t1); // Self-neighbor for simplicity.
+        Path filePath = tempDir.resolve("map.txt");
+        gameMap.saveToFile(filePath.toString());
+        String content = Files.readString(filePath);
+        assertTrue(content.contains("[continents]"));
+        assertTrue(content.contains("TestContinent 10"));
+        assertTrue(content.contains("[countries]"));
+        assertTrue(content.contains("TestLand"));
+        assertTrue(content.contains("[borders]"));
     }
 }

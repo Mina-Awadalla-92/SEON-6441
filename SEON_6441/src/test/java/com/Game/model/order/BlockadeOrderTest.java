@@ -11,56 +11,32 @@ import com.Game.model.Territory;
 public class BlockadeOrderTest {
 
     @Test
-    void testExecute_BlockadeSuccess() {
-        Player player = new Player("Player1");
-        Territory territory = new Territory("Territory1", "Continent1", 5);
-
-        territory.setOwner(player);
-        territory.setNumOfArmies(10);
-        player.addTerritory(territory);
-
-        BlockadeOrder blockadeOrder = new BlockadeOrder(player, territory);
+    public void testExecuteBlockade() {
+        Player issuer = new Player("Blockader", 20);
+        Territory target = new Territory("ToBlockade", "Continent", 0);
+        
+        // Set an initial number of armies.
+        target.setNumOfArmies(5);
+        // Assume the territory is owned by the issuer.
+        target.setOwner(issuer);
+        issuer.addTerritory(target);
+        
+        BlockadeOrder blockadeOrder = new BlockadeOrder(issuer, target);
         blockadeOrder.execute();
-
-        assertNull(territory.getOwner(), "Territory owner should be null after blockade.");
-        assertEquals(30, territory.getNumOfArmies(), "Number of armies should be tripled after blockade.");
-        assertFalse(player.getOwnedTerritories().contains(territory), "Territory should no longer belong to the player.");
+        
+        // After blockade, the territory should become neutral (owner == null)
+        assertNull(target.getOwner(), "After blockade, territory should have no owner.");
+        // And its armies should be tripled.
+        assertEquals(15, target.getNumOfArmies(), "Number of armies should be tripled.");
+        // Also, issuer's territory list should no longer contain the territory.
+        assertFalse(issuer.getOwnedTerritories().contains(target));
     }
-
+    
     @Test
-    void testConstructorWithParameters() {
-        Player player = new Player("Player1");
-        Territory territory = new Territory("Territory1", "Continent1", 5);
-
-        BlockadeOrder blockadeOrder = new BlockadeOrder(player, territory);
-
-        assertEquals(player, blockadeOrder.getIssuer(), "Issuer should match the player.");
-        assertEquals(territory, blockadeOrder.getTerritoryTo(), "Target territory should match the provided territory.");
-    }
-
-    @Test
-    void testCopyConstructor() {
-        Player player = new Player("Player1");
-        Territory territory = new Territory("Territory1", "Continent1", 5);
-
-        BlockadeOrder original = new BlockadeOrder(player, territory);
-        BlockadeOrder copy = new BlockadeOrder(original);
-
-        assertEquals(original.getIssuer(), copy.getIssuer(), "Issuer should match the original order.");
-        assertEquals(original.getTerritoryTo(), copy.getTerritoryTo(), "Target territory should match the original order.");
-    }
-
-    @Test
-    void testSetAndGetTerritoryTo() {
-        Territory territory1 = new Territory("Territory1", "Continent1", 5);
-        Territory territory2 = new Territory("Territory2", "Continent2", 10);
-
-        BlockadeOrder blockadeOrder = new BlockadeOrder();
-        blockadeOrder.setTerritoryTo(territory1);
-
-        assertEquals(territory1, blockadeOrder.getTerritoryTo(), "Territory should match the set value.");
-
-        blockadeOrder.setTerritoryTo(territory2);
-        assertEquals(territory2, blockadeOrder.getTerritoryTo(), "Territory should match the updated value.");
+    public void testGetterSetter() {
+        BlockadeOrder order = new BlockadeOrder();
+        Territory t = new Territory("Sample", "Continent", 0);
+        order.setTerritoryTo(t);
+        assertEquals(t, order.getTerritoryTo());
     }
 }

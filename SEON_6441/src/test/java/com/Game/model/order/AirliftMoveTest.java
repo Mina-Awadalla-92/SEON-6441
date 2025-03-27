@@ -1,85 +1,76 @@
 package com.Game.model.order;
 
-import com.Game.model.Player;
-import com.Game.model.Territory;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.Game.model.Player;
+import com.Game.model.Territory;
 
 public class AirliftMoveTest {
 
     @Test
-    void testExecute_MoveToOwnedTerritory() {
-        Player player = new Player("Player1");
-        Territory source = new Territory("Source", "Continent1", 5);
-        Territory target = new Territory("Target", "Continent1", 5);
-
-        source.setOwner(player);
-        target.setOwner(player);
-
-        source.setNumOfArmies(10);
-        target.setNumOfArmies(5);
-
-        player.addTerritory(source);
-        player.addTerritory(target);
-
-        AirliftMove airliftMove = new AirliftMove(player, source, target, 5);
+    public void testExecuteNeutralTarget() {
+        // Setup: territoryTo is neutral.
+        Player issuer = new Player("AirliftMover", 20);
+        Territory from = new Territory("AirliftSource", "Continent", 0);
+        Territory to = new Territory("NeutralTarget", "Continent", 0);
+        
+        from.setOwner(issuer);
+        from.setNumOfArmies(15);
+        to.setOwner(null);
+        to.setNumOfArmies(3);
+        
+        int moveArmies = 4;
+        AirliftMove airliftMove = new AirliftMove(issuer, from, to, moveArmies);
+        
         airliftMove.execute();
-
-        assertEquals(5, source.getNumOfArmies());
-        assertEquals(10, target.getNumOfArmies());
-        assertEquals(player, target.getOwner());
+        
+        // Verify that territoryTo's armies have increased.
+        assertEquals(3 + moveArmies, to.getNumOfArmies(), "Airlift move should add armies to the neutral territory.");
+        // And since territoryTo was neutral, issuer conquers it.
+        assertEquals(issuer, to.getOwner());
+        assertTrue(issuer.getOwnedTerritories().contains(to));
     }
-
+    
     @Test
-    void testExecute_MoveToNeutralTerritory() {
-        Player player = new Player("Player1");
-        Territory source = new Territory("Source", "Continent1", 5);
-        Territory target = new Territory("Neutral", "Continent1", 5);
-
-        source.setOwner(player);
-        target.setOwner(null);
-
-        source.setNumOfArmies(10);
-        target.setNumOfArmies(0);
-
-        player.addTerritory(source);
-
-        AirliftMove airliftMove = new AirliftMove(player, source, target, 5);
+    public void testExecuteOccupiedTarget() {
+        // Setup: territoryTo already owned by another player.
+        Player issuer = new Player("AirliftMover", 20);
+        Player defender = new Player("Defender", 20);
+        Territory from = new Territory("AirliftSource", "Continent", 0);
+        Territory to = new Territory("OccupiedTarget", "Continent", 0);
+        
+        from.setOwner(issuer);
+        to.setOwner(defender);
+        from.setNumOfArmies(15);
+        to.setNumOfArmies(7);
+        
+        int moveArmies = 4;
+        AirliftMove airliftMove = new AirliftMove(issuer, from, to, moveArmies);
         airliftMove.execute();
-
-        assertEquals(5, source.getNumOfArmies());
-        assertEquals(5, target.getNumOfArmies());
-        assertEquals(player, target.getOwner());
-        assertTrue(player.getOwnedTerritories().contains(target));
+        
+        // Verify that territoryTo's armies increase but ownership remains unchanged.
+        assertEquals(7 + moveArmies, to.getNumOfArmies(), "Occupied territory should have increased armies after airlift move.");
+        assertEquals(defender, to.getOwner());
     }
-
+    
     @Test
-    void testConstructor() {
-        Player player = new Player("Player1");
-        Territory source = new Territory("Source", "Continent1", 5);
-        Territory target = new Territory("Target", "Continent1", 5);
-
-        AirliftMove airliftMove = new AirliftMove(player, source, target, 10);
-
-        assertEquals(player, airliftMove.getIssuer());
-        assertEquals(source, airliftMove.getD_territoryFrom());
-        assertEquals(target, airliftMove.getD_territoryTo());
-        assertEquals(10, airliftMove.getD_numberOfArmies());
-    }
-
-    @Test
-    void testCopyConstructor() {
-        Player player = new Player("Player1");
-        Territory source = new Territory("Source", "Continent1", 5);
-        Territory target = new Territory("Target", "Continent1", 5);
-
-        AirliftMove original = new AirliftMove(player, source, target, 10);
-        AirliftMove copy = new AirliftMove(original);
-
-        assertEquals(original.getIssuer(), copy.getIssuer());
-        assertEquals(original.getD_territoryFrom(), copy.getD_territoryFrom());
-        assertEquals(original.getD_territoryTo(), copy.getD_territoryTo());
-        assertEquals(original.getD_numberOfArmies(), copy.getD_numberOfArmies());
+    public void testCopyConstructor() {
+        Player issuer = new Player("AirliftMover", 20);
+        Territory from = new Territory("AirliftSource", "Continent", 0);
+        Territory to = new Territory("AirliftTarget", "Continent", 0);
+        from.setOwner(issuer);
+        to.setOwner(null);
+        
+        int moveArmies = 4;
+        // Using an AdvanceAttack instance as source for copy constructor.
+        AdvanceAttack baseOrder = new AdvanceAttack(issuer, from, to, moveArmies);
+        AirliftMove airliftMove = new AirliftMove(baseOrder);
+        
+        assertEquals(issuer.getName(), airliftMove.getIssuer().getName());
+        assertEquals("AirliftSource", airliftMove.getD_territoryFrom().getName());
+        assertEquals("AirliftTarget", airliftMove.getD_territoryTo().getName());
+        assertEquals(moveArmies, airliftMove.getD_numberOfArmies());
     }
 }

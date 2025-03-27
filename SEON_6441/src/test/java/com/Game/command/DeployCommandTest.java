@@ -1,121 +1,126 @@
 package com.Game.command;
 
-import com.Game.model.Player;
-import com.Game.model.Territory;
-import com.Game.model.order.DeployOrder;
-import org.junit.jupiter.api.BeforeEach;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.Game.model.Player;
+import com.Game.model.Territory;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.*;
-
-/**
- * Unit tests for the DeployCommand class.
- * This test class verifies the functionality of the DeployCommand class,
- * including validation, execution, and command name retrieval.
- * Mock objects are used for Player and Territory to isolate the behavior of DeployCommand.
- */
-public class DeployCommandTest {
-
-    private Player mockPlayer;
-    private Territory mockTerritory;
-    private DeployCommand deployCommand;
-
-    @BeforeEach
-    void setUp() {
-        // Set up mock objects for Player and Territory
-        mockPlayer = mock(Player.class);
-        mockTerritory = mock(Territory.class);
-
-        // Mock behavior for player and territory
-        when(mockPlayer.getName()).thenReturn("Player1");
-        when(mockTerritory.getName()).thenReturn("Territory1");
-        when(mockPlayer.getOwnedTerritories()).thenReturn(new ArrayList<>(List.of(mockTerritory)));
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(10);
-
-        // Initialize DeployCommand with 5 armies
-        deployCommand = new DeployCommand(mockPlayer, mockTerritory, 5);
+// Minimal stub implementations for testing.
+class StubPlayer extends Player {
+    public StubPlayer(String name, int armies) {
+        super(name, armies);
     }
-
-    @Test
-    
-    void testExecute_ValidCommand() {
-    // Test the execute method when the command is valid
-    List<DeployOrder> mockOrders = new ArrayList<>();
-    when(mockPlayer.getOrders()).thenReturn((List) mockOrders); // Cast to List<Order>
-
-    deployCommand.execute();
-
-    // Verify that the deploy order is added and armies are deducted
-    assertEquals(1, mockOrders.size(), "Deploy order should be added to the player's orders.");
-    assertEquals(5, mockOrders.get(0).getNumberOfArmies(), "Deploy order should have 5 armies.");
-    
+    @Override
+    public void addTerritory(Territory t) {
+        super.addTerritory(t);
+    }
 }
 
-    @Test
-    void testExecute_InvalidCommand_NotOwnedTerritory() {
-        // Test the execute method when the player does not own the territory
-        when(mockPlayer.getOwnedTerritories()).thenReturn(new ArrayList<>());
-
-        deployCommand.execute();
-
-        // Verify that no orders are added and no armies are deducted
-        verify(mockPlayer, never()).getOrders();
-        verify(mockPlayer, never()).setNbrOfReinforcementArmies(anyInt());
+class StubTerritory extends Territory {
+    public StubTerritory(String name, String continent, int bonus) {
+        super(name, continent, bonus);
     }
+}
+
+public class DeployCommandTest {
 
     @Test
-    void testExecute_InvalidCommand_NotEnoughArmies() {
-        // Test the execute method when the player does not have enough armies
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(3);
-
-        deployCommand.execute();
-
-        // Verify that no orders are added and no armies are deducted
-        verify(mockPlayer, never()).getOrders();
-        verify(mockPlayer, never()).setNbrOfReinforcementArmies(anyInt());
+    public void testGetCommandName() {
+        StubPlayer player = new StubPlayer("Alice", 10);
+        StubTerritory territory = new StubTerritory("Wonderland", "Continent", 5);
+        player.addTerritory(territory);
+        DeployCommand command = new DeployCommand(player, territory, 5);
+        assertEquals("deploy", command.getCommandName());
     }
-
+    
     @Test
-    void testValidate_ValidCommand() {
-        // Test the validate method for a valid command
-        boolean isValid = deployCommand.validate();
-        assertTrue(isValid, "Validation should pass for a valid deploy command.");
+    public void testValidateValid() {
+        StubPlayer player = new StubPlayer("Alice", 10);
+        StubTerritory territory = new StubTerritory("Wonderland", "Continent", 5);
+        territory.setOwner(player);
+        player.addTerritory(territory);
+        DeployCommand command = new DeployCommand(player, territory, 5);
+        assertTrue(command.validate());
     }
-
+    
     @Test
-    void testValidate_InvalidCommand_NotOwnedTerritory() {
-        // Test the validate method when the player does not own the territory
-        when(mockPlayer.getOwnedTerritories()).thenReturn(new ArrayList<>());
-
-        boolean isValid = deployCommand.validate();
-        assertFalse(isValid, "Validation should fail if the player doesn't own the territory.");
+    public void testValidateInvalidTerritory() {
+        StubPlayer player = new StubPlayer("Alice", 10);
+        StubTerritory territory = new StubTerritory("Wonderland", "Continent", 5);
+        // Player does not own territory.
+        DeployCommand command = new DeployCommand(player, territory, 5);
+        assertFalse(command.validate());
     }
-
+    
     @Test
-    void testValidate_InvalidCommand_NotEnoughArmies() {
-        // Test the validate method when the player does not have enough armies
-        when(mockPlayer.getNbrOfReinforcementArmies()).thenReturn(3);
-
-        boolean isValid = deployCommand.validate();
-        assertFalse(isValid, "Validation should fail if the player doesn't have enough armies.");
+    public void testValidateInvalidArmies() {
+        StubPlayer player = new StubPlayer("Alice", 3);
+        StubTerritory territory = new StubTerritory("Wonderland", "Continent", 5);
+        territory.setOwner(player);
+        player.addTerritory(territory);
+        DeployCommand command = new DeployCommand(player, territory, 5);
+        assertFalse(command.validate());
     }
-
+    
     @Test
-    void testGetCommandName() {
-        // Test the getCommandName method
-        String commandName = deployCommand.getCommandName();
-        assertEquals("deploy", commandName, "Command name should be 'deploy'.");
+    public void testExecuteValid() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+        
+        StubPlayer player = new StubPlayer("Alice", 10);
+        StubTerritory territory = new StubTerritory("Wonderland", "Continent", 5);
+        territory.setOwner(player);
+        player.addTerritory(territory);
+        DeployCommand command = new DeployCommand(player, territory, 5);
+        
+        command.execute();
+        assertEquals(1, player.getOrders().size());
+        assertEquals(5, player.getNbrOfReinforcementArmies());
+        String output = outContent.toString();
+        assertTrue(output.contains("Alice issued deploy order: 5 armies to Wonderland"));
+        
+        System.setOut(originalOut);
     }
-
+    
     @Test
-    void testUndo_NotImplemented() {
-        // Test the undo method (currently not implemented)
-        deployCommand.undo();
-        // No assertions since undo is a placeholder
+    public void testExecuteInvalid() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+        
+        StubPlayer player = new StubPlayer("Alice", 10);
+        StubTerritory territory = new StubTerritory("Wonderland", "Continent", 5);
+        // Player does not own territory.
+        DeployCommand command = new DeployCommand(player, territory, 5);
+        command.execute();
+        assertEquals(0, player.getOrders().size());
+        assertEquals(10, player.getNbrOfReinforcementArmies());
+        String output = outContent.toString();
+        assertTrue(output.contains("Deploy command failed validation."));
+        
+        System.setOut(originalOut);
+    }
+    
+    @Test
+    public void testUndo() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream originalOut = System.out;
+        System.setOut(new PrintStream(outContent));
+        
+        StubPlayer player = new StubPlayer("Alice", 10);
+        StubTerritory territory = new StubTerritory("Wonderland", "Continent", 5);
+        DeployCommand command = new DeployCommand(player, territory, 5);
+        command.undo();
+        String output = outContent.toString();
+        assertTrue(output.contains("Undo not implemented for deploy command yet."));
+        
+        System.setOut(originalOut);
     }
 }

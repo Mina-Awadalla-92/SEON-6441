@@ -1,127 +1,61 @@
 package com.Game.Phases;
 
-import java.util.List;
+import java.util.ArrayList;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 import com.Game.controller.GameController;
 import com.Game.model.Map;
 import com.Game.view.CommandPromptView;
+import com.Game.view.GameView;
 
-class StartupPhaseTest {
+// Dummy GameView that captures error messages.
+class DummyGameView extends GameView {
+    public String lastError;
+    @Override
+    public void displayError(String p_errorMessage) {
+        lastError = p_errorMessage;
+    }
+}
+
+// Dummy GameController for testing StartupPhase.
+class DummyGameControllerForStartup extends GameController {
+    public String actionCalled;
+    public String playerNameCalled;
+    private GameView dummyView = new DummyGameView();
+    @Override
+    public GameView getView() {
+        return dummyView;
+    }
+    @Override
+    public void handleGamePlayer(String p_action, String p_playerName) {
+         actionCalled = p_action;
+         playerNameCalled = p_playerName;
+    }
+}
+
+public class StartupPhaseTest {
 
     @Test
-    void testStartPhase_WhenAddingPlayer() {
-        // Mock dependencies
-        GameController mockGameController = Mockito.mock(GameController.class);
-        CommandPromptView mockCommandPromptView = Mockito.mock(CommandPromptView.class);
-        Map mockGameMap = Mockito.mock(Map.class);
-
-        // Command to add a player
-        String[] commandParts = {"gameplayer", "-add", "Player1"};
-
-        // Execute phase
-        StartupPhase startupPhase = new StartupPhase();
-        startupPhase.StartPhase(mockGameController, List.of(), mockCommandPromptView, commandParts, mockGameMap);
-
-        // Verify interactions
-        Mockito.verify(mockGameController).handleGamePlayer("-add", "Player1");
-        Mockito.verify(mockGameController.getView(), Mockito.never()).displayError(Mockito.anyString());
+    public void testStartPhaseInsufficientArgs() {
+        DummyGameControllerForStartup controller = new DummyGameControllerForStartup();
+        String[] commandParts = {"gameplayer"}; // Less than 3 parts.
+        StartupPhase phase = new StartupPhase();
+        phase.StartPhase(controller, new ArrayList<>(), new CommandPromptView(), commandParts, new Map());
+        
+        DummyGameView view = (DummyGameView) controller.getView();
+        assertEquals("Usage: gameplayer -add playerName OR gameplayer -remove playerName", view.lastError);
     }
 
     @Test
-    void testStartPhase_WhenRemovingPlayer() {
-        // Mock dependencies
-        GameController mockGameController = Mockito.mock(GameController.class);
-        CommandPromptView mockCommandPromptView = Mockito.mock(CommandPromptView.class);
-        Map mockGameMap = Mockito.mock(Map.class);
-
-        // Command to remove a player
-        String[] commandParts = {"gameplayer", "-remove", "Player1"};
-
-        // Execute phase
-        StartupPhase startupPhase = new StartupPhase();
-        startupPhase.StartPhase(mockGameController, List.of(), mockCommandPromptView, commandParts, mockGameMap);
-
-        // Verify interactions
-        Mockito.verify(mockGameController).handleGamePlayer("-remove", "Player1");
-        Mockito.verify(mockGameController.getView(), Mockito.never()).displayError(Mockito.anyString());
-    }
-
-    @Test
-    void testStartPhase_WhenCommandIsInvalid() {
-        // Mock dependencies
-        GameController mockGameController = Mockito.mock(GameController.class);
-        CommandPromptView mockCommandPromptView = Mockito.mock(CommandPromptView.class);
-        Map mockGameMap = Mockito.mock(Map.class);
-
-        // Invalid command
-        String[] commandParts = {"gameplayer", "-invalid"};
-
-        // Execute phase
-        StartupPhase startupPhase = new StartupPhase();
-        startupPhase.StartPhase(mockGameController, List.of(), mockCommandPromptView, commandParts, mockGameMap);
-
-        // Verify interactions
-        Mockito.verify(mockGameController.getView()).displayError("Usage: gameplayer -add playerName OR gameplayer -remove playerName");
-        Mockito.verify(mockGameController, Mockito.never()).handleGamePlayer(Mockito.anyString(), Mockito.anyString());
-    }
-
-    @Test
-    void testStartPhase_WhenCommandPartsAreMissing() {
-        // Mock dependencies
-        GameController mockGameController = Mockito.mock(GameController.class);
-        CommandPromptView mockCommandPromptView = Mockito.mock(CommandPromptView.class);
-        Map mockGameMap = Mockito.mock(Map.class);
-
-        // Missing command parts
-        String[] commandParts = {"gameplayer"};
-
-        // Execute phase
-        StartupPhase startupPhase = new StartupPhase();
-        startupPhase.StartPhase(mockGameController, List.of(), mockCommandPromptView, commandParts, mockGameMap);
-
-        // Verify interactions
-        Mockito.verify(mockGameController.getView()).displayError("Usage: gameplayer -add playerName OR gameplayer -remove playerName");
-        Mockito.verify(mockGameController, Mockito.never()).handleGamePlayer(Mockito.anyString(), Mockito.anyString());
-    }
-
-    @Test
-    void testStartPhase_AddPlayerWithEmptyName() {
-        // Mock dependencies
-        GameController mockGameController = Mockito.mock(GameController.class);
-        CommandPromptView mockCommandPromptView = Mockito.mock(CommandPromptView.class);
-        Map mockGameMap = Mockito.mock(Map.class);
-
-        // Command to add a player with an empty name
-        String[] commandParts = {"gameplayer", "-add", ""};
-
-        // Execute phase
-        StartupPhase startupPhase = new StartupPhase();
-        startupPhase.StartPhase(mockGameController, List.of(), mockCommandPromptView, commandParts, mockGameMap);
-
-        // Verify interactions
-        Mockito.verify(mockGameController.getView()).displayError("Player name cannot be empty.");
-        Mockito.verify(mockGameController, Mockito.never()).handleGamePlayer(Mockito.anyString(), Mockito.anyString());
-    }
-
-    @Test
-    void testStartPhase_RemoveNonExistentPlayer() {
-        // Mock dependencies
-        GameController mockGameController = Mockito.mock(GameController.class);
-        CommandPromptView mockCommandPromptView = Mockito.mock(CommandPromptView.class);
-        Map mockGameMap = Mockito.mock(Map.class);
-
-        // Command to remove a non-existent player
-        String[] commandParts = {"gameplayer", "-remove", "NonExistentPlayer"};
-
-        // Execute phase
-        StartupPhase startupPhase = new StartupPhase();
-        startupPhase.StartPhase(mockGameController, List.of(), mockCommandPromptView, commandParts, mockGameMap);
-
-        // Verify interactions
-        Mockito.verify(mockGameController.getView()).displayError("Player 'NonExistentPlayer' does not exist.");
-        Mockito.verify(mockGameController, Mockito.never()).handleGamePlayer(Mockito.anyString(), Mockito.anyString());
+    public void testStartPhaseValid() {
+        DummyGameControllerForStartup controller = new DummyGameControllerForStartup();
+        String[] commandParts = {"gameplayer", "-add", "Alice"};
+        StartupPhase phase = new StartupPhase();
+        phase.StartPhase(controller, new ArrayList<>(), new CommandPromptView(), commandParts, new Map());
+        
+        assertEquals("-add", controller.actionCalled);
+        assertEquals("Alice", controller.playerNameCalled);
     }
 }

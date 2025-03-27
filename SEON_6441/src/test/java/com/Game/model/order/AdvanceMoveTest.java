@@ -1,85 +1,81 @@
 package com.Game.model.order;
 
-import com.Game.model.Player;
-import com.Game.model.Territory;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import com.Game.model.Player;
+import com.Game.model.Territory;
 
 public class AdvanceMoveTest {
 
     @Test
-    void testExecute_MoveToOwnedTerritory() {
-        Player player = new Player("Player1");
-        Territory source = new Territory("Source", "Continent1", 5);
-        Territory target = new Territory("Target", "Continent1", 5);
-
-        source.setOwner(player);
-        target.setOwner(player);
-
-        source.setNumOfArmies(10);
-        target.setNumOfArmies(5);
-
-        player.addTerritory(source);
-        player.addTerritory(target);
-
-        AdvanceMove advanceMove = new AdvanceMove(player, source, target, 5);
-        advanceMove.execute();
-
-        assertEquals(5, source.getNumOfArmies());
-        assertEquals(10, target.getNumOfArmies());
-        assertEquals(player, target.getOwner());
+    public void testExecuteNeutralTarget() {
+        // Setup: territoryTo is neutral (owner == null)
+        Player issuer = new Player("Mover", 20);
+        Territory from = new Territory("Source", "Continent", 0);
+        Territory to = new Territory("Neutral", "Continent", 0);
+        
+        // Set initial states
+        from.setOwner(issuer);
+        from.setNumOfArmies(10);
+        to.setOwner(null);
+        to.setNumOfArmies(2);
+        
+        int moveArmies = 3;
+        AdvanceMove moveOrder = new AdvanceMove(issuer, from, to, moveArmies);
+        
+        // Execute order.
+        moveOrder.execute();
+        
+        // Expect that territoryTo’s armies increased by moveArmies
+        assertEquals(2 + moveArmies, to.getNumOfArmies(), "Neutral territory should receive additional armies.");
+        // And since the territory was neutral, issuer should now conquer it.
+        assertEquals(issuer, to.getOwner());
+        // Optionally, check that the issuer's territory list has been updated.
+        // (Assuming addTerritory() adds it.)
+        assertTrue(issuer.getOwnedTerritories().contains(to), "Issuer should have conquered the neutral territory.");
     }
-
+    
     @Test
-    void testExecute_MoveToNeutralTerritory() {
-        Player player = new Player("Player1");
-        Territory source = new Territory("Source", "Continent1", 5);
-        Territory target = new Territory("Neutral", "Continent1", 5);
-
-        source.setOwner(player);
-        target.setOwner(null);
-
-        source.setNumOfArmies(10);
-        target.setNumOfArmies(0);
-
-        player.addTerritory(source);
-
-        AdvanceMove advanceMove = new AdvanceMove(player, source, target, 5);
-        advanceMove.execute();
-
-        assertEquals(5, source.getNumOfArmies());
-        assertEquals(5, target.getNumOfArmies());
-        assertEquals(player, target.getOwner());
-        assertTrue(player.getOwnedTerritories().contains(target));
+    public void testExecuteNonNeutralTarget() {
+        // Setup: territoryTo already has an owner.
+        Player issuer = new Player("Mover", 20);
+        Player defender = new Player("Defender", 20);
+        Territory from = new Territory("Source", "Continent", 0);
+        Territory to = new Territory("Occupied", "Continent", 0);
+        
+        from.setOwner(issuer);
+        to.setOwner(defender);
+        from.setNumOfArmies(10);
+        to.setNumOfArmies(5);
+        
+        int moveArmies = 4;
+        AdvanceMove moveOrder = new AdvanceMove(issuer, from, to, moveArmies);
+        
+        // Execute order.
+        moveOrder.execute();
+        
+        // Expect that territoryTo’s armies increased by moveArmies,
+        // but ownership remains unchanged.
+        assertEquals(5 + moveArmies, to.getNumOfArmies(), "Occupied territory should receive additional armies.");
+        assertEquals(defender, to.getOwner());
     }
-
+    
     @Test
-    void testConstructor() {
-        Player player = new Player("Player1");
-        Territory source = new Territory("Source", "Continent1", 5);
-        Territory target = new Territory("Target", "Continent1", 5);
-
-        AdvanceMove advanceMove = new AdvanceMove(player, source, target, 10);
-
-        assertEquals(player, advanceMove.getIssuer());
-        assertEquals(source, advanceMove.getD_territoryFrom());
-        assertEquals(target, advanceMove.getD_territoryTo());
-        assertEquals(10, advanceMove.getD_numberOfArmies());
-    }
-
-    @Test
-    void testCopyConstructor() {
-        Player player = new Player("Player1");
-        Territory source = new Territory("Source", "Continent1", 5);
-        Territory target = new Territory("Target", "Continent1", 5);
-
-        AdvanceMove original = new AdvanceMove(player, source, target, 10);
-        AdvanceMove copy = new AdvanceMove(original);
-
-        assertEquals(original.getIssuer(), copy.getIssuer());
-        assertEquals(original.getD_territoryFrom(), copy.getD_territoryFrom());
-        assertEquals(original.getD_territoryTo(), copy.getD_territoryTo());
-        assertEquals(original.getD_numberOfArmies(), copy.getD_numberOfArmies());
+    public void testCopyConstructor() {
+        Player issuer = new Player("Mover", 20);
+        Territory from = new Territory("Source", "Continent", 0);
+        Territory to = new Territory("Target", "Continent", 0);
+        from.setOwner(issuer);
+        to.setOwner(null);
+        int moveArmies = 4;
+        AdvanceAttack baseOrder = new AdvanceAttack(issuer, from, to, moveArmies);
+        AdvanceMove copyOrder = new AdvanceMove(baseOrder);
+        
+        assertEquals(issuer.getName(), copyOrder.getIssuer().getName());
+        assertEquals("Source", copyOrder.getD_territoryFrom().getName());
+        assertEquals("Target", copyOrder.getD_territoryTo().getName());
+        assertEquals(moveArmies, copyOrder.getD_numberOfArmies());
     }
 }
