@@ -6,6 +6,7 @@ import com.Game.model.Territory;
 import com.Game.utils.MapLoader;
 import com.Game.view.GameView;
 import com.Game.controller.GameController;
+import com.Game.Phases.PhaseType;
 
 import java.io.BufferedReader;
 
@@ -82,10 +83,10 @@ public class MapEditorController {
                 handleLoadMap(p_commandParts);
                 break;
             case "gameplayer":
-                // Transition to startup phase
+                // Just switch the phase and return - don't process the command here
                 d_gameController.setCurrentPhase(GameController.STARTUP_PHASE);
-                d_gameController.setStartupPhase(d_gameController, p_commandParts);
-                break;
+                d_gameController.setPhase(PhaseType.STARTUP);
+                return l_isMapLoaded; // Return immediately after phase change
             default:
                 d_gameController.getView().displayError("Unknown command: " + p_command);
         }

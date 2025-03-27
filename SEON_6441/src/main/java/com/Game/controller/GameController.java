@@ -1,6 +1,8 @@
 package com.Game.controller;
 
 import com.Game.Phases.IssueOrderPhase;
+import com.Game.Phases.MapEditorPhase;
+import com.Game.Phases.OrderExecutionPhase;
 import com.Game.Phases.Phase;
 import com.Game.Phases.PhaseType;
 import com.Game.Phases.StartupPhase;
@@ -19,10 +21,12 @@ import java.util.Date;
 import java.util.List;
 import java.io.File;
 
+
 /**
  * Main controller class that coordinates the game flow.
  * This class manages the game state, delegates to specialized controllers,
  * and handles transitions between different game phases.
+ * In the State pattern, this class serves as the Context.
  */
 public class GameController {
     
@@ -110,12 +114,16 @@ public class GameController {
      * Game logger for logging game events.
      */
     private GameLogger d_gameLogger;
+    /**
+     * The current phase state in the State pattern.
+     */
+    private Phase d_currentState;
 
     /**
      * Default constructor that initializes the game controller.
      */
     public GameController() {
-        this.d_gameMap = new Map();
+    	this.d_gameMap = new Map();
         this.d_mapLoader = new MapLoader();
         this.d_players = new ArrayList<>();
         this.d_neutralPlayer = new Player("Neutral");
@@ -127,8 +135,8 @@ public class GameController {
         this.d_commandPromptView = new CommandPromptView();
         this.d_mapEditorController = new MapEditorController(this, d_gameMap, d_mapLoader);
         this.d_gamePlayController = new GamePlayController(this, d_gameMap, d_players);
-        d_startupPhase = new StartupPhase();
         
+        // Create logs directory if it doesn't exist
         File logsDir = new File("logs");
         if (!logsDir.exists()) {
             logsDir.mkdir();
@@ -139,18 +147,85 @@ public class GameController {
         String l_timestamp = l_dateFormat.format(new Date());
         String l_logFilePath = "logs/warzone_game_" + l_timestamp + ".log";
         this.d_gameLogger = GameLogger.getInstance(l_logFilePath, false);
+        
+     // Initialize with the MapEditor state
+        this.d_currentState = new MapEditorPhase();
+    }
+   
+    /**
+     * Sets the current phase of the game.
+     * This implements the context role in the State pattern.
+     * 
+     * @param p_phaseType The phase type to set
+     */
+     // Add a debug flag to track phase changes
+    private boolean isProcessingPhaseChange = false;
+
+    public void setPhase(PhaseType p_phaseType) {
+        if (isProcessingPhaseChange) {
+            System.out.println("WARNING: Nested phase change detected. Skipping to prevent duplication.");
+            return; // Prevent recursive phase changes
+        }
+        
+        isProcessingPhaseChange = true; // Set flag to indicate we're processing a phase change
+        
+        try {
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Changing phase to: " + p_phaseType);
+            }
+            
+            switch (p_phaseType) {
+                case MAP_EDITOR:
+                    this.d_currentState = new MapEditorPhase();
+                    d_currentPhase = MAP_EDITING_PHASE;
+                    break;
+                case STARTUP:
+                    this.d_currentState = new StartupPhase();
+                    d_currentPhase = STARTUP_PHASE;
+                    break;
+                case ISSUE_ORDER:
+                    this.d_currentState = new IssueOrderPhase();
+                    d_currentPhase = MAIN_GAME_PHASE;
+                    break;
+                case ORDER_EXECUTION:
+                    this.d_currentState = new OrderExecutionPhase();
+                    d_currentPhase = MAIN_GAME_PHASE;
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid Phase Type: " + p_phaseType);
+            }
+            
+            System.out.println("Game phase changed to: " + p_phaseType);
+        } finally {
+            isProcessingPhaseChange = false; // Reset flag when done
+        }
+    }
+    
+    /**
+     * Gets the current phase state.
+     * 
+     * @return The current phase state
+     */
+    public Phase getCurrentState() {
+        return d_currentState;
     }
     
     /**
      * Starts the game and processes user commands.
      * Provides a command prompt that's available throughout the game.
+     * This method has been updated to use the State pattern.
      */
     public void startGame() {
-        d_startupPhase.setPhase(PhaseType.STARTUP);
-        d_gameLogger.logAction("Game started");
+        // Initialize with MapEditor phase
+        setPhase(PhaseType.MAP_EDITOR);
+        
+        if (d_gameLogger != null) {
+            d_gameLogger.logAction("Game started");
+        }
 
         d_view.displayWelcomeMessage();
         boolean l_isMapLoaded = false;
+        
         while (true) {
             String l_input;
             String[] l_commandParts;
@@ -163,22 +238,41 @@ public class GameController {
                 if (l_commandParts.length == 0) continue;
 
                 String l_command = l_commandParts[0];
-                d_gameLogger.logAction("Command entered: " + l_input);
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Command entered: " + l_input);
+                }
 
                 if (l_command.equals("exit")) {
                     d_view.displayMessage("Exiting the program.");
-                    d_gameLogger.logAction("Program exited");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Program exited");
+                    }
                     d_commandPromptView.closeScanner();
                     System.exit(0);
                 }
 
+                // Validate command for current phase
+                if (!getCurrentState().validateCommand(l_command)) {
+                    d_view.displayError("Command '" + l_command + "' is not valid in the current phase.");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Invalid command '" + l_command + "' for current phase");
+                    }
+                    continue;
+                }
+
                 if (!l_isMapLoaded && !l_command.equals("editmap") && !l_command.equals("loadmap")) {
                     d_view.displayError("You must load/edit a map first using the 'editmap' or 'loadmap' command.");
-                    d_gameLogger.logAction("Error: Attempt to use command without loading a map first");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Error: Attempt to use command without loading a map first");
+                    }
                 } else {
                     l_isMapLoaded = d_mapEditorController.handleCommand(l_commandParts, l_command, l_isMapLoaded);
+                    
+                    // Let the current state handle any phase-specific logic
+                    getCurrentState().StartPhase(this, d_players, d_commandPromptView, l_commandParts, d_gameMap);
                 }
-            } else if (d_currentPhase == STARTUP_PHASE) {
+            } // In the STARTUP_PHASE section of the loop in startGame method
+            else if (d_currentPhase == STARTUP_PHASE) {
                 d_view.displayStartupMenu();
                 l_input = d_commandPromptView.getCommand();
                 l_commandParts = l_input.split("\\s+");
@@ -186,16 +280,32 @@ public class GameController {
                 if (l_commandParts.length == 0) continue;
 
                 String l_command = l_commandParts[0];
-                d_gameLogger.logAction("Command entered: " + l_input);
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Command entered: " + l_input);
+                }
 
                 if (l_command.equals("exit")) {
                     d_view.displayMessage("Exiting the program.");
-                    d_gameLogger.logAction("Program exited");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Program exited");
+                    }
                     d_commandPromptView.closeScanner();
                     System.exit(0);
                 }
 
+                // Validate command for current phase
+                if (!getCurrentState().validateCommand(l_command)) {
+                    d_view.displayError("Command '" + l_command + "' is not valid in the current phase.");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Invalid command '" + l_command + "' for current phase");
+                    }
+                    continue;
+                }
+
                 handleStartupCommand(l_commandParts, l_command);
+                
+                // Skip the phase's StartPhase method which might be causing the duplication
+                // getCurrentState().StartPhase(this, d_players, d_commandPromptView, l_commandParts, d_gameMap);
             } else if (d_currentPhase == MAIN_GAME_PHASE) {
                 d_view.displayMainGameMenu();
                 l_input = d_commandPromptView.getCommand();
@@ -204,14 +314,27 @@ public class GameController {
                 if (l_commandParts.length == 0) continue;
 
                 String l_command = l_commandParts[0];
-                d_gameLogger.logAction("Command entered: " + l_input);
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Command entered: " + l_input);
+                }
 
                 if (l_command.equals("exit")) {
                     d_view.displayMessage("Exiting the program.");
-                    d_gameLogger.logAction("Program exited");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Program exited");
+                    }
                     d_commandPromptView.closeScanner();
                     System.exit(0);
                 }
+
+                // SKIP VALIDATION TEMPORARILY
+                // if (!getCurrentState().validateCommand(l_command)) {
+                //    d_view.displayError("Command '" + l_command + "' is not valid in the current phase.");
+                //    if (d_gameLogger != null) {
+                //        d_gameLogger.logAction("Invalid command '" + l_command + "' for current phase");
+                //    }
+                //    continue;
+                // }
 
                 d_gamePlayController.handleCommand(l_commandParts, l_command);
             }
@@ -283,10 +406,10 @@ public class GameController {
      */
     public void handleGamePlayer(String p_action, String p_playerName) {
         if (p_action.equals("-add")) {
-            // Check if player already exists
+            // Check if player already exists - case-insensitive to be robust
             boolean l_playerExists = false;
             for (Player l_player : d_players) {
-                if (l_player.getName().equals(p_playerName)) {
+                if (l_player.getName().equalsIgnoreCase(p_playerName)) {
                     l_playerExists = true;
                     break;
                 }
@@ -295,18 +418,26 @@ public class GameController {
             if (!l_playerExists) {
                 d_players.add(new Player(p_playerName));
                 d_view.displayMessage("Player added: " + p_playerName);
-                d_gameLogger.logAction("Player added: " + p_playerName);
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Player added: " + p_playerName);
+                }
             } else {
                 d_view.displayError("Player already exists: " + p_playerName);
-                d_gameLogger.logAction("Error: Player already exists: " + p_playerName);
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Error: Player already exists: " + p_playerName);
+                }
             }
         } else if (p_action.equals("-remove")) {
             d_players.removeIf(player -> player.getName().equals(p_playerName));
             d_view.displayMessage("Player removed: " + p_playerName);
-            d_gameLogger.logAction("Player removed: " + p_playerName);
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Player removed: " + p_playerName);
+            }
         } else {
             d_view.displayError("Invalid action for gameplayer.");
-            d_gameLogger.logAction("Error: Invalid action for gameplayer: " + p_action);
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Error: Invalid action for gameplayer: " + p_action);
+            }
         }
     }
     
@@ -420,17 +551,18 @@ public class GameController {
         this.d_currentPhase = p_currentPhase;
     }
 
-    /**
-     * Sets the game phase to the startup phase.
-     *
-     * @param p_gameController the game controller managing the game state
-     * @param p_commandParts   the command parts passed as input
-     */
-    public void setStartupPhase(GameController p_gameController, String[] p_commandParts)
-    {
-        d_startupPhase.setPhase(PhaseType.STARTUP);
-        d_startupPhase.StartPhase(p_gameController, null, null, p_commandParts, d_gameMap);
-    }
+//    /**
+//     * Sets the game phase to the startup phase and handles the command.
+//     *
+//     * @param p_gameController the game controller managing the game state
+//     * @param p_commandParts   the command parts passed as input
+//     */
+//    public void setStartupPhase(GameController p_gameController, String[] p_commandParts) {
+//        // Don't set the phase again here
+//        // Just handle the command parts
+//        Phase currentState = getCurrentState();
+//        currentState.StartPhase(p_gameController, d_players, d_commandPromptView, p_commandParts, d_gameMap);
+//    }
     
     /**
      * Gets the game logger instance.

@@ -1,6 +1,7 @@
 package com.Game.controller;
 
 import com.Game.Phases.IssueOrderPhase;
+import com.Game.Phases.OrderExecutionPhase;
 import com.Game.Phases.Phase;
 import com.Game.Phases.PhaseType;
 import com.Game.model.Map;
@@ -125,15 +126,22 @@ public class GamePlayController {
      * @param p_command The main command (first word)
      */
     public void handleCommand(String[] p_commandParts, String p_command) {
+        // Skip phase validation for now
         switch (p_command) {
             case "showmap":
                 d_gameController.getView().displayMap(d_gameMap, d_players);
-                d_gameLogger.logAction("Map displayed during gameplay");
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Map displayed during gameplay");
+                }
                 break;
             case "issueorder":
+                // Force phase change to issue order
+                d_gameController.setPhase(PhaseType.ISSUE_ORDER);
                 handleIssueOrder();
                 break;
             case "executeorders":
+                // Force phase change to order execution
+                d_gameController.setPhase(PhaseType.ORDER_EXECUTION);
                 handleExecuteOrders();
                 break;
             case "endturn":
@@ -141,7 +149,9 @@ public class GamePlayController {
                 break;
             default:
                 d_gameController.getView().displayError("Unknown command or invalid for current phase: " + p_command);
-                d_gameLogger.logAction("Error: Unknown command '" + p_command + "' in main game phase");
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Error: Unknown command '" + p_command + "' in main game phase");
+                }
         }
     }
     
@@ -223,7 +233,9 @@ public class GamePlayController {
     private void handleEndTurn() {
         if (!d_gameController.isGameStarted()) {
             d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
-            d_gameLogger.logAction("Error: Attempted to end turn before game started");
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Error: Attempted to end turn before game started");
+            }
             return;
         }
         
@@ -232,43 +244,54 @@ public class GamePlayController {
         
         if (l_winner != null) {
             d_gameController.getView().displayWinner(l_winner.getName());
-            d_gameLogger.logAction("Game ended. Player " + l_winner.getName() + " is the winner!");
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Game ended. Player " + l_winner.getName() + " is the winner!");
+            }
             
             d_gameController.setGameStarted(false);
             d_gameController.setCurrentPhase(GameController.MAP_EDITING_PHASE);
         } else {
             // Start a new turn with reinforcement phase
             d_gameController.getView().displayEndTurn();
-            d_gameLogger.logAction("Turn ended. Starting new turn.");
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Turn ended. Starting new turn.");
+            }
+            
+            // Award cards to players who conquered territories
+            System.out.println("\nCards awarding:\n");
+            for (Player l_player : d_players) {
+                if (l_player.getHasConqueredThisTurn()) {
+                    CardType[] allCardTypes = CardType.values();
+                    
+                    // Pick a random index
+                    int l_randomIndex = d_random.nextInt(allCardTypes.length);
+                    
+                    // Get the random card
+                    CardType randomCard = allCardTypes[l_randomIndex];
+                    
+                    // Add the card to the player's hand
+                    l_player.addCard(randomCard);
+                    
+                    System.out.println("Player "+ l_player.getName() + " was awarded " + randomCard.name());
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Player " + l_player.getName() + " was awarded a " + randomCard.name() + " card for conquering territory");
+                    }
+                }
+            }
+            System.out.println();
+            
+            // Reset player status for the new turn
+            for (Player l_player : d_players) {
+                l_player.setHasConqueredThisTurn(false);
+                l_player.setNegociatedPlayersPerTurn(new ArrayList<>());
+            }
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Player conquest and diplomacy statuses reset for new turn");
+            }
+            
+            // Start reinforcement phase
             handleReinforcement();
         }
-        
-        System.out.println("\nCards awarding:\n");
-        for (Player l_player : d_players) {
-            if (l_player.getHasConqueredThisTurn()) {
-                CardType[] allCardTypes = CardType.values();
-                
-                // Pick a random index
-                int l_randomIndex = d_random.nextInt(allCardTypes.length);
-
-                // Get the random card
-                CardType randomCard = allCardTypes[l_randomIndex];
-
-                // Add the card to the player's hand
-                l_player.addCard(randomCard);
-                
-                System.out.println("Player "+ l_player.getName() + " was awarded " + randomCard.name());
-                d_gameLogger.logAction("Player " + l_player.getName() + " was awarded a " + randomCard.name() + " card");
-            }
-        }
-        System.out.println();
-        
-        //clean up
-        for (Player l_player : d_players) {
-            l_player.setHasConqueredThisTurn(false);
-            l_player.setNegociatedPlayersPerTurn(new ArrayList<>());
-        }
-        d_gameLogger.logAction("Player conquest and diplomacy statuses reset for new turn");
     }
     
     /**

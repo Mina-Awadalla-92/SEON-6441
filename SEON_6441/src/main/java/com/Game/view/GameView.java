@@ -190,7 +190,7 @@ public class GameView {
     }
     
     /**
-     * Displays a player's territories.
+     * Displays a player's territories and card information.
      *
      * @param p_territories The list of territories owned by the player.
      * @param p_player The player whose territories are being displayed.
@@ -202,24 +202,32 @@ public class GameView {
             Territory l_territory = p_territories.get(i);
             System.out.println((i+1) + ". " + l_territory.getName() + " (" + l_territory.getNumOfArmies() + " armies)");
             List<Territory> neighbors = l_territory.getNeighborList();
-            System.out.print("		- Neighbors: ");
+            System.out.print("      - Neighbors: ");
             for (Territory l_neighbor : neighbors) {
-            	if(p_player.getOwnedTerritories().contains(l_neighbor)) {
-            		System.out.print(l_neighbor.getName() + "(Owned) || ");
-            	}
-            	else {
-            		if(l_neighbor.getOwner() != null) {
-            			System.out.print(l_neighbor.getName() + " (Enemy: "+ l_neighbor.getOwner().getName() +") || ");
-            		}
-            		else {
-            			System.out.print(l_neighbor.getName() + " (Neutral) || ");
-            		}
-            		
-            	}
-            	
+                if(p_player.getOwnedTerritories().contains(l_neighbor)) {
+                    System.out.print(l_neighbor.getName() + "(Owned) || ");
+                }
+                else {
+                    if(l_neighbor.getOwner() != null) {
+                        System.out.print(l_neighbor.getName() + " (Enemy: "+ l_neighbor.getOwner().getName() +") || ");
+                    }
+                    else {
+                        System.out.print(l_neighbor.getName() + " (Neutral) || ");
+                    }
+                }
             }
             System.out.println();
         }
+        
+        // Display player's cards
+        System.out.println("\nYour cards:");
+        String cards = p_player.getFormattedCards();
+        if (cards.isEmpty()) {
+            System.out.println("  None");
+        } else {
+            System.out.println("  " + cards);
+        }
+        System.out.println();
     }
     
     /**
