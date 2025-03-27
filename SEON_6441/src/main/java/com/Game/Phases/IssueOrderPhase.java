@@ -17,6 +17,11 @@ import java.util.Set;
  * In the State pattern, this is a concrete state.
  */
 public class IssueOrderPhase extends Phase {
+	
+	/**
+	 * Reference to the game logger.
+	 */
+	private GameLogger d_gameLogger = GameLogger.getInstance();
 
     /**
      * Set of commands valid in the Issue Order phase.
@@ -41,45 +46,60 @@ public class IssueOrderPhase extends Phase {
         }
 
         for (Player l_player : p_players) {
-            if (l_player.getNbrOfReinforcementArmies() > 0) {
-                p_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
-                p_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories(), l_player, p_gameMap);
-                
-                while (l_player.getNbrOfReinforcementArmies() > 0) {
-                    String l_orderCommand = p_commandPromptView.getPlayerOrder(
-                        l_player.getName(), l_player.getNbrOfReinforcementArmies());
-                    
-                    if (l_orderCommand.equalsIgnoreCase("FINISH")) {
+            boolean l_playerDone = false;
+            
+            p_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
+            p_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories(), l_player, p_gameMap);
+            
+            while (!l_playerDone) {
+                // Check if player has reinforcement armies
+                if (l_player.getNbrOfReinforcementArmies() <= 0) {
+                    // If no reinforcement armies, ask if they want to issue more orders or finish
+                    System.out.println("You have used all your reinforcement armies. Do you want to issue other types of orders?");
+                    String l_response = p_commandPromptView.getString("Enter 'yes' to continue or 'no' to finish");
+                    if (!l_response.equalsIgnoreCase("yes")) {
+                        l_playerDone = true;
                         if (d_gameLogger != null) {
                             d_gameLogger.logAction("Player " + l_player.getName() + " finished issuing orders");
                         }
-                        break;  // Player is done issuing orders
-                    }
-                    
-                    // Validate command is appropriate for this phase
-                    String[] l_commandParts = l_orderCommand.split("\\s+");
-                    if (l_commandParts.length > 0 && !validateCommand(l_commandParts[0])) {
-                        p_gameController.getView().displayError(
-                            "Invalid command for issue order phase: " + l_commandParts[0]);
-                        if (d_gameLogger != null) {
-                            d_gameLogger.logAction("Player " + l_player.getName() + " attempted invalid command: " + l_commandParts[0]);
-                        }
                         continue;
                     }
-                    
-                    // Issue the order
-                    boolean l_success = l_player.issueOrder(l_orderCommand, p_gameMap, p_players);
-                    
-                    if (!l_success) { 
-                        p_gameController.getView().displayError(
-                            "Failed to create order. Please check your command format.");
-                        if (d_gameLogger != null) {
-                            d_gameLogger.logAction("Player " + l_player.getName() + " failed to issue order: " + l_orderCommand);
-                        }
-                    } else {
-                        if (d_gameLogger != null) {
-                            d_gameLogger.logAction("Player " + l_player.getName() + " issued order: " + l_orderCommand);
-                        }
+                }
+                
+                String l_orderCommand = p_commandPromptView.getPlayerOrder(
+                    l_player.getName(), l_player.getNbrOfReinforcementArmies());
+                
+                if (l_orderCommand.equalsIgnoreCase("FINISH")) {
+                    l_playerDone = true;
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Player " + l_player.getName() + " finished issuing orders");
+                    }
+                    continue;
+                }
+                
+                // Validate command is appropriate for this phase
+                String[] l_commandParts = l_orderCommand.split("\\s+");
+                if (l_commandParts.length > 0 && !validateCommand(l_commandParts[0])) {
+                    p_gameController.getView().displayError(
+                        "Invalid command for issue order phase: " + l_commandParts[0]);
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Player " + l_player.getName() + " attempted invalid command: " + l_commandParts[0]);
+                    }
+                    continue;
+                }
+                
+                // Issue the order
+                boolean l_success = l_player.issueOrder(l_orderCommand, p_gameMap, p_players);
+                
+                if (!l_success) { 
+                    p_gameController.getView().displayError(
+                        "Failed to create order. Please check your command format.");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Player " + l_player.getName() + " failed to issue order: " + l_orderCommand);
+                    }
+                } else {
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Player " + l_player.getName() + " issued order: " + l_orderCommand);
                     }
                 }
             }

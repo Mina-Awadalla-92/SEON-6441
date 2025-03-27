@@ -7,6 +7,7 @@ import com.Game.utils.MapLoader;
 import com.Game.view.GameView;
 import com.Game.controller.GameController;
 import com.Game.Phases.PhaseType;
+import com.Game.observer.GameLogger;
 
 import java.io.BufferedReader;
 
@@ -20,6 +21,11 @@ public class MapEditorController {
      * Reference to the main game controller.
      */
     private GameController d_gameController;
+    
+    /**
+     * Reference to the game logger.
+     */
+    private GameLogger d_gameLogger = GameLogger.getInstance();
     
     /**
      * The game map being edited.
@@ -83,10 +89,30 @@ public class MapEditorController {
                 handleLoadMap(p_commandParts);
                 break;
             case "gameplayer":
-                // Just switch the phase and return - don't process the command here
+                // First validate the map
+                boolean isMapValid = d_mapLoader.validateMap();
+                if (!isMapValid) {
+                    d_gameController.getView().displayError("Map is invalid. Please validate and fix the map before proceeding to the startup phase.");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Error: Tried to transition to startup phase with invalid map");
+                    }
+                    return l_isMapLoaded;
+                }
+                
+                // If map is valid, transition to startup phase
+                d_gameController.getView().displayMessage("Map validated successfully. Transitioning to startup phase.");
                 d_gameController.setCurrentPhase(GameController.STARTUP_PHASE);
                 d_gameController.setPhase(PhaseType.STARTUP);
-                return l_isMapLoaded; // Return immediately after phase change
+                
+                // Handle the gameplayer command
+                if (p_commandParts.length >= 3) {
+                    String l_action = p_commandParts[1];
+                    String l_playerName = p_commandParts[2];
+                    d_gameController.handleGamePlayer(l_action, l_playerName);
+                } else {
+                    d_gameController.getView().displayError("Usage: gameplayer -add playerName OR gameplayer -remove playerName");
+                }
+                break;
             default:
                 d_gameController.getView().displayError("Unknown command: " + p_command);
         }
