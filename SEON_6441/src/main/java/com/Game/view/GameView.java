@@ -3,6 +3,7 @@ package com.Game.view;
 import com.Game.model.Map;
 import com.Game.model.Player;
 import com.Game.model.Territory;
+import com.Game.observer.GameLogger;
 import com.Game.model.CardType;
 
 import java.util.List;
@@ -128,6 +129,19 @@ public class GameView {
             }
         }
         System.out.println("-------------------------------------------------");
+        
+     // Add logging of map state
+        GameLogger logger = GameLogger.getInstance();
+        if (logger != null) {
+            StringBuilder logSB = new StringBuilder("Current map state:\n");
+            for (Player player : p_players) {
+                logSB.append("Player ").append(player.getName())
+                    .append(" owns ").append(player.getOwnedTerritories().size())
+                    .append(" territories with ").append(player.getNbrOfReinforcementArmies())
+                    .append(" reinforcement armies.\n");
+            }
+            logger.logAction(logSB.toString());
+        }
     }
     
     /**

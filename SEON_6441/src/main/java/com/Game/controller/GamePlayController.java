@@ -12,8 +12,7 @@ import com.Game.view.GameView;
 import com.Game.view.CommandPromptView;
 import com.Game.model.CardType;
 import com.Game.observer.GameLogger;
-
-import java.security.SecureRandom;
+import java.util.Random;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
@@ -54,6 +53,11 @@ public class GamePlayController {
      * Game logger for logging game events.
      */
     private GameLogger d_gameLogger;
+    
+    /**
+     * Flag to track if orders have been executed this turn.
+     */
+    private boolean d_ordersExecutedThisTurn = false;
 
     /**
      * A cryptographically secure pseudo-random number generator (CSPRNG) used for generating random values.
@@ -67,7 +71,7 @@ public class GamePlayController {
      * purposes, consider using {@link java.util.Random}.
      * </p>
      */
-    private SecureRandom d_random = new SecureRandom();
+    private Random d_random = new Random();
     
     /**
      * Constructor initializing the controller with necessary references.
@@ -126,7 +130,6 @@ public class GamePlayController {
      * @param p_command The main command (first word)
      */
     public void handleCommand(String[] p_commandParts, String p_command) {
-        // Skip phase validation for now
         switch (p_command) {
             case "showmap":
                 d_gameController.getView().displayMap(d_gameMap, d_players);
@@ -135,17 +138,24 @@ public class GamePlayController {
                 }
                 break;
             case "issueorder":
-                // Force phase change to issue order
+                if (d_ordersExecutedThisTurn) {
+                    d_gameController.getView().displayError("Orders have already been executed this turn. Please use 'endturn' to proceed to the next turn.");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Error: Attempted to issue orders after execution phase");
+                    }
+                    return;
+                }
                 d_gameController.setPhase(PhaseType.ISSUE_ORDER);
                 handleIssueOrder();
                 break;
             case "executeorders":
-                // Force phase change to order execution
                 d_gameController.setPhase(PhaseType.ORDER_EXECUTION);
                 handleExecuteOrders();
+                d_ordersExecutedThisTurn = true; // Set the flag after executing orders
                 break;
             case "endturn":
                 handleEndTurn();
+                d_ordersExecutedThisTurn = false; // Reset the flag for the new turn
                 break;
             default:
                 d_gameController.getView().displayError("Unknown command or invalid for current phase: " + p_command);

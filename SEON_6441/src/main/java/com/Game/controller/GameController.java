@@ -364,11 +364,23 @@ public class GameController {
                 }
                 break;
             case "assigncountries":
-                if (d_gamePlayController.handleAssignCountries()) {
-                    d_countriesAssigned = true;
-                    d_gameLogger.logAction("Countries assigned to players");
+                // Add map validation before assigning countries
+                if (d_mapLoader.validateMap()) {
+                    if (d_gamePlayController.handleAssignCountries()) {
+                        d_countriesAssigned = true;
+                        if (d_gameLogger != null) {
+                            d_gameLogger.logAction("Countries assigned to players");
+                        }
+                    } else {
+                        if (d_gameLogger != null) {
+                            d_gameLogger.logAction("Failed to assign countries");
+                        }
+                    }
                 } else {
-                    d_gameLogger.logAction("Failed to assign countries");
+                    d_view.displayError("Map validation failed. Please validate the map before assigning countries.");
+                    if (d_gameLogger != null) {
+                        d_gameLogger.logAction("Error: Map validation failed before assigning countries");
+                    }
                 }
                 break;
             case "startgame":
