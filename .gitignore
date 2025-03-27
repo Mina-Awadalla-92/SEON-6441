@@ -2,3 +2,7 @@
 src/.DS_Store
 src/main/.DS_Store
 .DS_Store
+*.html
+/SEON_6441/target
+/SEON_6441/target/apidocs
+*.jar
