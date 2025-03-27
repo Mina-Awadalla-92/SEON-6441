@@ -2,6 +2,7 @@ com.Game.model
 com.Game.model.order
 com.Game.view
 com.Game.controller
+com.Game.observer
 com.Game.command
 com.Game.utils
 com.Game
