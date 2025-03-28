@@ -8,6 +8,13 @@ import java.io.FileReader;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
+
+
+/**
+ * Unit tests for FileLogObserverTest.
+ * 
+ * 
+ */
 public class FileLogObserverTest {
 
     private FileLogObserver fileLogObserver;
@@ -29,7 +36,11 @@ public class FileLogObserverTest {
         // Simulate the constructor and the first update that writes to the file
         fileLogObserver.update("Log started");
     }
-
+    
+    /**
+     * Test successful execution of initialization:
+     * 
+     */
     @Test
     public void testObserverInitialization() {
         // Verify that the log header is written during initialization
