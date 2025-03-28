@@ -1,11 +1,8 @@
-package com.UnitTests.model;
+package com.Game.model;
 
-import com.Game.model.Map;
-import com.Game.model.Territory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -283,5 +280,5 @@ public class MapTest {
 
         assertFalse(d_map.continentValidation(), "The continent Asia should be disconnected.");
     }
-	
+
 }

@@ -4,7 +4,6 @@ import com.Game.controller.GameController;
 import com.Game.model.Player;
 import com.Game.view.CommandPromptView;
 import com.Game.model.Map;
-import com.Game.observer.GameLogger;
 
 import java.util.List;
 import java.util.Arrays;

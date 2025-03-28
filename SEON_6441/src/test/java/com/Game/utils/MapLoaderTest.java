@@ -1,6 +1,5 @@
-package com.UnitTests.utils;
+package com.Game.utils;
 
-import com.Game.utils.MapLoader;
 import com.Game.model.Territory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
