@@ -45,8 +45,8 @@ public class GameControllerTest {
         d_gameMap.addNeighbor("TestCountry1", "TestCountry2");
         
         // Set up mock map loader
-        when(mockMapLoader.getLoadedMap()).thenReturn(d_gameMap);
-        when(mockMapLoader.validateMap()).thenReturn(true);
+//        when(mockMapLoader.getLoadedMap()).thenReturn(d_gameMap);
+//        when(mockMapLoader.validateMap()).thenReturn(true);
         
         // Create players
         d_players = new ArrayList<>();
@@ -190,20 +190,24 @@ public class GameControllerTest {
      */
     @Test
     public void testStartMainGame() {
-        // Create a controller with mock game controller
-        GameController mockController = mock(GameController.class);
-        GamePlayController gamePlayController = new GamePlayController(mockController, d_gameMap, d_players);
-        
+        // Use a real GameController
+        GameController realController = new GameController();
+        realController.setGameMap(d_gameMap);
+        realController.setPlayers(d_players);
+
+        GamePlayController gamePlayController = new GamePlayController(realController, d_gameMap, d_players);
+
         // Execute the method
         boolean result = gamePlayController.startMainGame();
-        
+
         // Verify the result
         assertTrue("startMainGame should succeed with valid setup", result);
-        
-        // Verify that the controller methods were called
-        verify(mockController).setGameStarted(true);
-        verify(mockController).setCurrentPhase(GameController.MAIN_GAME_PHASE);
+
+        // Verify that the real controller state has changed
+        assertTrue(realController.isGameStarted());
+        assertEquals(GameController.MAIN_GAME_PHASE, realController.getCurrentPhase());
     }
+
     
     /**
      * Tests handleReinforcement, handling both valid and invalid cases.

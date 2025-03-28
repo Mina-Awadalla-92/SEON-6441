@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Test class for the territory ownership and map functionality.
  */
-public class TerritoryOwnershipTest {
+public class TerritoryTest {
     
     private Player d_player1;
     private Player d_player2;
