@@ -1,8 +1,13 @@
 package com.Game.utils;
 
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
+
 import com.Game.model.Territory;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Unit tests for the {@link MapLoader} class.
  * These tests ensure that the map loading functionality behaves as expected under different scenarios.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class MapLoaderTest {
 
     /**
@@ -25,8 +31,8 @@ public class MapLoaderTest {
      * Sets up the test environment by initializing a new instance of {@link MapLoader}.
      * This method is called before each test.
      */
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         d_mapLoader = new MapLoader();
     }
 
@@ -35,7 +41,7 @@ public class MapLoaderTest {
      * It ensures that the loaded map is initialized as null.
      */
     @Test
-    void testConstructor() {
+    public void testConstructor() {
         assertNull(d_mapLoader.getLoadedMap(), "Default constructor should initialize loadedMap as null");
     }
 
@@ -44,7 +50,7 @@ public class MapLoaderTest {
      * It verifies that the copied MapLoader is a different instance and that the map is properly copied.
      */
     @Test
-    void testCopyConstructor() {
+    public void testCopyConstructor() {
         MapLoader original = new MapLoader();
         original.read("LoadingMaps/canada.map"); // Simulate reading a valid map
 
@@ -59,7 +65,7 @@ public class MapLoaderTest {
      * @throws IOException if an error occurs while reading the map file
      */
     @Test
-    void testReadValidFile() throws IOException {
+    public void testReadValidFile() throws IOException {
 
         String filePath = "LoadingMaps/canada.map";
         d_mapLoader.read(filePath);
@@ -74,15 +80,15 @@ public class MapLoaderTest {
         // Example check for a specific territory
         Territory newBrunswick = territories.stream().filter(t -> t.getName().equals("New_Brunswick")).findFirst().orElse(null);
         assertNotNull(newBrunswick, "New_Brunswick should be found in the territories");
-        assertEquals("Atlantic_Provinces", newBrunswick.getContinent(), "New_Brunswick should belong to Atlantic_Provinces");
+        Assert.assertEquals("New_Brunswick should belong to Atlantic_Provinces", "Atlantic_Provinces", newBrunswick.getContinent());
 
         // Check for borders
-        assertTrue(newBrunswick.getNeighborList().size() > 0, "New_Brunswick should have neighbors");
+        Assert.assertTrue("New_Brunswick should have neighbors", newBrunswick.getNeighborList().size() > 0);
 
         // Check the existence of another territory and its border
         Territory princeEdwardIsland = territories.stream().filter(t -> t.getName().equals("Prince_Edward_Island")).findFirst().orElse(null);
         assertNotNull(princeEdwardIsland, "Prince_Edward_Island should be found in the territories");
-        assertTrue(princeEdwardIsland.getNeighborList().size() > 0, "Prince_Edward_Island should have neighbors");
+        Assert.assertTrue("Prince_Edward_Island should have neighbors", princeEdwardIsland.getNeighborList().size() > 0);
     }
 
     /**
@@ -90,7 +96,7 @@ public class MapLoaderTest {
      * It verifies that the map remains null when an invalid file is read.
      */
     @Test
-    void testReadInvalidFile() {
+    public void testReadInvalidFile() {
         d_mapLoader.read("non_existent_file.map");
         assertNull(d_mapLoader.getLoadedMap(), "Loading an invalid file should keep loadedMap as null");
     }
@@ -101,7 +107,7 @@ public class MapLoaderTest {
      * @throws IOException if an error occurs while reading the map file
      */
     @Test
-    void testIsValidWithValidMap() throws IOException {
+    public void testIsValidWithValidMap() throws IOException {
 
         InputStream inputStream = getClass().getClassLoader().getResourceAsStream("LoadingMaps/canada.map");
 

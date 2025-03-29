@@ -72,7 +72,7 @@ public class GamePlayController {
      * </p>
      */
     private Random d_random = new Random();
-    
+
     /**
      * Constructor initializing the controller with necessary references.
      * 

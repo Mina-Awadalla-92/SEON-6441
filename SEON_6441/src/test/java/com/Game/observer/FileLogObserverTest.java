@@ -1,26 +1,33 @@
 package com.Game.observer;
 
-import org.junit.jupiter.api.*;
-import org.mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import static org.mockito.Mockito.*;
-
-
 
 /**
  * Unit tests for FileLogObserverTest.
  * 
  * 
  */
+@RunWith(MockitoJUnitRunner.class)
 public class FileLogObserverTest {
 
     private FileLogObserver fileLogObserver;
     private final String testLogFilePath = "test_log.txt";
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
 
         // Initialize mocks
@@ -82,7 +89,7 @@ public class FileLogObserverTest {
         fileLogObserver.setLogFilePath(newLogFilePath);
 
         // Verify that the file path is updated correctly
-        Assertions.assertEquals(newLogFilePath, fileLogObserver.getLogFilePath());
+        Assert.assertEquals(newLogFilePath, fileLogObserver.getLogFilePath());
     }
 
     @Test
@@ -93,7 +100,7 @@ public class FileLogObserverTest {
         assertTrue(fileLogObserver.isAppendToFile());
     }
 
-    @AfterEach
+    @After
     public void tearDown() {
         // Any necessary cleanup after each test
     }

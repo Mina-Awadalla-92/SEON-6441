@@ -1,25 +1,31 @@
 package com.Game.Phases;
 
+import static org.junit.Assert.*;
+
 import com.Game.controller.GameController;
-import com.Game.view.CommandPromptView;
-import com.Game.model.Map;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import com.Game.model.Map;
+import com.Game.view.CommandPromptView;
+
 import java.util.Collections;
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the MapEditorPhase class.
  */
-class MapEditorPhaseTest {
+@RunWith(MockitoJUnitRunner.class)
+public class MapEditorPhaseTest {
     private MapEditorPhase phase;
     private GameController gameControllerMock;
     private CommandPromptView commandPromptViewMock;
     private Map gameMapMock;
 
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         phase = new MapEditorPhase();
         gameControllerMock = Mockito.mock(GameController.class);
         commandPromptViewMock = Mockito.mock(CommandPromptView.class);
@@ -27,25 +33,25 @@ class MapEditorPhaseTest {
     }
 
     @Test
-    void testGetNextPhase() {
+    public void testGetNextPhase() {
         assertEquals(PhaseType.STARTUP, phase.getNextPhase());
     }
 
     @Test
-    void testValidateCommand_Valid() {
+    public void testValidateCommand_Valid() {
         assertTrue(phase.validateCommand("editcontinent"));
         assertTrue(phase.validateCommand("loadmap"));
         assertTrue(phase.validateCommand("gameplayer"));
     }
 
     @Test
-    void testValidateCommand_Invalid() {
+    public void testValidateCommand_Invalid() {
         assertFalse(phase.validateCommand("invalidcommand"));
         assertFalse(phase.validateCommand("deploy"));
     }
 
     @Test
-    void testStartPhase_GamePlayerCommand_TransitionsToStartupPhase() {
+    public void testStartPhase_GamePlayerCommand_TransitionsToStartupPhase() {
         String[] commandParts = {"gameplayer"};
         phase.StartPhase(gameControllerMock, Collections.emptyList(), commandPromptViewMock, commandParts, gameMapMock);
 

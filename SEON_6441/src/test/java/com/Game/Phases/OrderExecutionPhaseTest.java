@@ -1,20 +1,26 @@
 package com.Game.Phases;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
+
 import com.Game.controller.GameController;
-import com.Game.model.Player;
 import com.Game.model.order.Order;
-import com.Game.view.CommandPromptView;
-import com.Game.model.Map;
 import com.Game.observer.GameLogger;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
+import static org.mockito.Mockito.*;
+
+import com.Game.model.Map;
+import com.Game.model.Player;
 import com.Game.view.GameView;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.Game.view.CommandPromptView;
+
 import java.util.Arrays;
 import java.util.List;
 
-class OrderExecutionPhaseTest {
+@RunWith(MockitoJUnitRunner.class)
+public class OrderExecutionPhaseTest {
     private OrderExecutionPhase orderExecutionPhase;
     private GameController gameControllerMock;
     private CommandPromptView commandPromptViewMock;
@@ -25,8 +31,8 @@ class OrderExecutionPhaseTest {
     private Order orderMock2;
     private GameLogger gameLoggerMock;
 
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         orderExecutionPhase = new OrderExecutionPhase();
         gameControllerMock = mock(GameController.class);
         commandPromptViewMock = mock(CommandPromptView.class);
@@ -46,7 +52,7 @@ class OrderExecutionPhaseTest {
     }
 
     @Test
-    void testStartPhase_ExecutesOrdersInRoundRobin() {
+    public void testStartPhase_ExecutesOrdersInRoundRobin() {
         List<Player> players = Arrays.asList(playerMock1, playerMock2);
         orderExecutionPhase.StartPhase(gameControllerMock, players, commandPromptViewMock, new String[]{}, gameMapMock);
 
@@ -56,7 +62,7 @@ class OrderExecutionPhaseTest {
     }
 
     @Test
-    void testStartPhase_NoOrders_DoNothing() {
+    public void testStartPhase_NoOrders_DoNothing() {
         when(playerMock1.nextOrder()).thenReturn(null);
         when(playerMock2.nextOrder()).thenReturn(null);
 
@@ -68,18 +74,18 @@ class OrderExecutionPhaseTest {
     }
 
     @Test
-    void testGetNextPhase_ReturnsIssueOrderPhase() {
+    public void testGetNextPhase_ReturnsIssueOrderPhase() {
         assertEquals(PhaseType.ISSUE_ORDER, orderExecutionPhase.getNextPhase());
     }
 
     @Test
-    void testValidateCommand_ValidCommands() {
+    public void testValidateCommand_ValidCommands() {
         assertTrue(orderExecutionPhase.validateCommand("showmap"));
         assertTrue(orderExecutionPhase.validateCommand("endturn"));
     }
 
     @Test
-    void testValidateCommand_InvalidCommand() {
+    public void testValidateCommand_InvalidCommand() {
         assertFalse(orderExecutionPhase.validateCommand("deploy"));
         assertFalse(orderExecutionPhase.validateCommand("attack"));
     }

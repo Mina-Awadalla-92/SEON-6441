@@ -8,7 +8,6 @@ import org.junit.runners.Suite;
     FileLogObserverTest.class,
     GameLoggerTest.class,
     LogEntryBufferTest.class,
-
     // ... add other order test classes here
 })
 public class ObserverTestSuite {

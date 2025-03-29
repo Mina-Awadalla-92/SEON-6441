@@ -1,14 +1,18 @@
 package com.Game.controller;
 
-import static org.mockito.Mockito.*;
-import com.Game.model.Map;
 import com.Game.observer.GameLogger;
 import com.Game.utils.MapLoader;
-import com.Game.view.GameView;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.*;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import static org.mockito.Mockito.*;
 
+import com.Game.model.Map;
+import com.Game.view.GameView;
+
+@RunWith(MockitoJUnitRunner.class)
 public class MapEditorControllerTest {
 
     @Mock

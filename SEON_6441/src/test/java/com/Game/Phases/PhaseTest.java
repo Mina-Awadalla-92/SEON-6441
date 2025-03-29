@@ -1,19 +1,24 @@
 package com.Game.Phases;
 
+import static org.junit.Assert.*;
+
 import com.Game.observer.GameLogger;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
+
 import java.lang.reflect.Field;
-import static org.junit.jupiter.api.Assertions.*;
+
 import static org.mockito.Mockito.*;
 
-class PhaseTest {
-
+@RunWith(MockitoJUnitRunner.class)
+public class PhaseTest {
     private Phase phase;
     private GameLogger gameLoggerMock;
 
-    @BeforeEach
-    void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         // Create a mock instance of GameLogger
         gameLoggerMock = mock(GameLogger.class);
 
@@ -27,7 +32,7 @@ class PhaseTest {
     }
 
     @Test
-    void testSetPhase_ValidPhases() {
+    public void testSetPhase_ValidPhases() {
         Phase newPhase = phase.setPhase(PhaseType.ORDER_EXECUTION);
         assertTrue(newPhase instanceof OrderExecutionPhase);
 
@@ -39,14 +44,14 @@ class PhaseTest {
     }
 
     @Test
-    void testSetPhase_NullPhase() {
+    public void testSetPhase_NullPhase() {
         assertThrows(NullPointerException.class, () -> {
             phase.setPhase(null);
         });
     }
 
     @Test
-    void testSetPhase_LogsPhaseChange() {
+    public void testSetPhase_LogsPhaseChange() {
         phase.setPhase(PhaseType.ORDER_EXECUTION);
         verify(gameLoggerMock, times(1)).logPhaseChange("ORDER_EXECUTION");
     }

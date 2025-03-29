@@ -1,21 +1,26 @@
 package com.Game.utils;
 
 import static org.junit.Assert.*;
+
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import static org.mockito.Mockito.*;
 
 import com.Game.model.Map;
-import com.Game.model.Territory;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Test class for the MapLoader and map validation functionality.
  */
+
+@RunWith(MockitoJUnitRunner.class)
 public class MapValidationTest {
     
     private MapLoader d_mapLoader;
@@ -202,7 +207,7 @@ public class MapValidationTest {
     /**
      * Cleans up test files after tests.
      */
-    @org.junit.After
+    @After
     public void tearDown() {
         // Delete test files
         new File(d_validMapFilePath).delete();
