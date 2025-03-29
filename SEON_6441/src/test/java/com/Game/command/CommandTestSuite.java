@@ -9,7 +9,6 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
     DeployCommandTest.class,
-    
     // ... add other test classes in com.Game.command
 })
 public class CommandTestSuite {

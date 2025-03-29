@@ -1,25 +1,43 @@
 package com.Game.Phases;
 
+import static org.junit.Assert.*;
+
 import com.Game.controller.GameController;
-import com.Game.model.Map;
-import com.Game.model.Player;
 import com.Game.observer.GameLogger;
-import com.Game.view.CommandPromptView;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import static org.mockito.Mockito.*;
 
+import com.Game.model.Map;
+import com.Game.model.Player;
+import com.Game.view.CommandPromptView;
+
+@RunWith(MockitoJUnitRunner.class)
 public class IssueOrderPhaseTest {
+
+    @Mock
     private IssueOrderPhase issueOrderPhase;
+
+    @Mock
     private GameController gameControllerMock;
+
+    @Mock
     private CommandPromptView commandPromptViewMock;
+
+    @Mock
     private Map gameMapMock;
+
+    @Mock
     private Player playerMock;
+
+    @Mock
     private GameLogger gameLoggerMock;
 
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         gameControllerMock = mock(GameController.class);
         commandPromptViewMock = mock(CommandPromptView.class);
         gameMapMock = mock(Map.class);
@@ -30,12 +48,12 @@ public class IssueOrderPhaseTest {
     }
 
     @Test
-    void testGetNextPhase() {
+    public void testGetNextPhase() {
         assertEquals(PhaseType.ORDER_EXECUTION, issueOrderPhase.getNextPhase());
     }
 
     @Test
-    void testValidateCommand_ValidCommands() {
+    public void testValidateCommand_ValidCommands() {
         String[] validCommands = {"showmap", "deploy", "advance", "bomb", "blockade", "airlift", "negotiate"};
         for (String command : validCommands) {
             assertTrue(issueOrderPhase.validateCommand(command));
@@ -43,7 +61,7 @@ public class IssueOrderPhaseTest {
     }
 
     @Test
-    void testValidateCommand_InvalidCommands() {
+    public void testValidateCommand_InvalidCommands() {
         String[] invalidCommands = {"invalid", "attack", "move", "xyz"};
         for (String command : invalidCommands) {
             assertFalse(issueOrderPhase.validateCommand(command));

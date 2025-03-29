@@ -1,15 +1,21 @@
 package com.Game.observer;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
+
 import java.lang.reflect.Field;
 
-class GameLoggerTest {
+import static org.mockito.Mockito.*;
+
+@RunWith(MockitoJUnitRunner.class)
+public class GameLoggerTest {
 
     @Mock
     private LogEntryBuffer mockLogEntryBuffer;
@@ -19,8 +25,8 @@ class GameLoggerTest {
 
     private GameLogger gameLogger;
 
-    @BeforeEach
-    void setUp() throws Exception {
+    @Before
+    public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 
         // Reset the singleton instance before each test
@@ -33,8 +39,8 @@ class GameLoggerTest {
         injectMockedDependencies(gameLogger);
     }
 
-    @AfterEach
-    void tearDown() {
+    @After
+    public void tearDown() {
         // Reset the singleton instance after each test to ensure isolation
         resetSingleton();
     }
@@ -65,7 +71,7 @@ class GameLoggerTest {
     }
 
     @Test
-    void testLogAction() {
+    public void testLogAction() {
         String logEntry = "Player1 attacked Player2";
 
         // When logAction is called, it should forward the action to the LogEntryBuffer
@@ -75,7 +81,7 @@ class GameLoggerTest {
     }
 
     @Test
-    void testLogPhaseChange() {
+    public void testLogPhaseChange() {
         String phaseName = "Combat";
 
         // When logPhaseChange is called, it should forward the phase change to the LogEntryBuffer
@@ -85,7 +91,7 @@ class GameLoggerTest {
     }
 
     @Test
-    void testGetLogBuffer() {
+    public void testGetLogBuffer() {
         // When getLogBuffer is called, it should return the log buffer content from LogEntryBuffer
         when(mockLogEntryBuffer.getLogBuffer()).thenReturn("Mock log buffer content");
 
@@ -95,7 +101,7 @@ class GameLoggerTest {
     }
 
     @Test
-    void testClearLogBuffer() {
+    public void testClearLogBuffer() {
         // When clearLogBuffer is called, it should invoke clearLogBuffer on the LogEntryBuffer
         gameLogger.clearLogBuffer();
 
@@ -103,7 +109,7 @@ class GameLoggerTest {
     }
 
     @Test
-    void testGetLogFilePath() {
+    public void testGetLogFilePath() {
         String logFilePath = "log.txt";
         when(mockFileLogObserver.getLogFilePath()).thenReturn(logFilePath);
 
@@ -111,7 +117,7 @@ class GameLoggerTest {
     }
 
     @Test
-    void testSetLogFilePath() {
+    public void testSetLogFilePath() {
         String newLogFilePath = "new_log.txt";
 
         // When setLogFilePath is called, it should update the file path in FileLogObserver

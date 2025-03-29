@@ -1,24 +1,38 @@
 package com.Game.command;
 
-import com.Game.model.Player;
-import com.Game.model.Territory;
+import static org.junit.Assert.*;
+
 import com.Game.model.order.DeployOrder;
 import com.Game.model.order.Order;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
+import static org.mockito.Mockito.*;
+
+import com.Game.model.Player;
+import com.Game.model.Territory;
+
 import java.util.ArrayList;
 import java.util.List;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
-class DeployCommandTest {
+/**
+ * Test class for the Deploy Command f the game.
+ */
+@RunWith(MockitoJUnitRunner.class)
+public class DeployCommandTest {
 
+    @Mock
     private Player player;
+
+    @Mock
     private Territory territory;
+
     private DeployCommand deployCommand;
 
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         // Mock dependencies
         player = mock(Player.class);
         territory = mock(Territory.class);
@@ -26,7 +40,7 @@ class DeployCommandTest {
     }
 
     @Test
-    void testValidate_whenPlayerOwnsTerritoryAndHasEnoughArmies() {
+    public void testValidate_whenPlayerOwnsTerritoryAndHasEnoughArmies() {
         // Arrange
         when(player.getOwnedTerritories()).thenReturn(List.of(territory));
         when(player.getNbrOfReinforcementArmies()).thenReturn(10);
@@ -39,11 +53,10 @@ class DeployCommandTest {
     }
 
     @Test
-    void testValidate_whenPlayerDoesNotOwnTerritory() {
+    public void testValidate_whenPlayerDoesNotOwnTerritory() {
         // Arrange
         Territory otherTerritory = mock(Territory.class);
         when(player.getOwnedTerritories()).thenReturn(List.of(otherTerritory));
-        when(player.getNbrOfReinforcementArmies()).thenReturn(10);
 
         // Act
         boolean isValid = deployCommand.validate();
@@ -53,7 +66,7 @@ class DeployCommandTest {
     }
 
     @Test
-    void testValidate_whenPlayerDoesNotHaveEnoughArmies() {
+    public void testValidate_whenPlayerDoesNotHaveEnoughArmies() {
         // Arrange
         when(player.getOwnedTerritories()).thenReturn(List.of(territory));
         when(player.getNbrOfReinforcementArmies()).thenReturn(3);
@@ -66,7 +79,7 @@ class DeployCommandTest {
     }
 
     @Test
-    void testExecute_whenValid() {
+    public void testExecute_whenValid() {
         // Arrange
         List<Order> mockOrders = new ArrayList<>();  // Use List<Order> instead of List<DeployOrder>
         when(player.getOwnedTerritories()).thenReturn(List.of(territory));
@@ -84,7 +97,7 @@ class DeployCommandTest {
     }
 
     @Test
-    void testExecute_whenInvalid() {
+    public void testExecute_whenInvalid() {
         // Arrange
         when(player.getOwnedTerritories()).thenReturn(List.of(territory));
         when(player.getNbrOfReinforcementArmies()).thenReturn(3);
@@ -98,7 +111,7 @@ class DeployCommandTest {
     }
 
     @Test
-    void testGetCommandName() {
+    public void testGetCommandName() {
         // Act
         String commandName = deployCommand.getCommandName();
 
@@ -107,7 +120,7 @@ class DeployCommandTest {
     }
 
     @Test
-    void testUndo() {
+    public void testUndo() {
         // Act
         deployCommand.undo();
 

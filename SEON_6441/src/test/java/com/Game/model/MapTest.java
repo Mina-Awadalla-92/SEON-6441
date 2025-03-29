@@ -1,22 +1,51 @@
 package com.Game.model;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.junit.Assert.*;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import com.Game.model.Map;
+import com.Game.model.Player;
+import com.Game.model.Territory;
+import com.Game.utils.MapLoader;
+import com.Game.view.GameView;
+import com.Game.view.CommandPromptView;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+//import org.junit.jupiter.api.AfterEach;
+//import org.junit.jupiter.api.BeforeEach;
+//import org.junit.jupiter.api.Test;
+//import org.junit.runner.RunWith;
+//import org.mockito.junit.MockitoJUnitRunner;
+//
+//import java.io.File;
+//import java.io.IOException;
+//import java.nio.file.Files;
+//import java.nio.file.Paths;
+//import java.util.HashMap;
+//import java.util.List;
+//
+//import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.Assert.*;
 
 /**
  * Unit tests for the {@link Map} class.
  * This class tests the functionality of adding, removing, and interacting with territories,
  * continents, and neighbors, as well as saving the map to a file.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class MapTest {
 
     /**
@@ -33,16 +62,16 @@ public class MapTest {
      * Sets up the test environment before each test case.
      * Initializes the {@link Map} object.
      */
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         d_map = new Map();
     }
 
     /**
      * Cleans up after each test case by deleting the test file if it exists.
      */
-    @AfterEach
-    void tearDown() {
+    @After
+    public void tearDown() {
         File file = new File(TESTFILEPATH);
         if (file.exists()) {
             file.delete();
@@ -54,7 +83,7 @@ public class MapTest {
      * and verifying that it is added correctly to the map.
      */
     @Test
-    void testAddTerritory() {
+    public void testAddTerritory() {
         Territory territory = new Territory("Territory1", "Continent1", 5);
         d_map.addTerritory(territory);
         assertEquals(1, d_map.getTerritoryList().size());
@@ -66,7 +95,7 @@ public class MapTest {
      * can be retrieved by name and ensuring that non-existing territories return null.
      */
     @Test
-    void testGetTerritoryByName() {
+    public void testGetTerritoryByName() {
         Territory territory = new Territory("Territory1", "Continent1", 5);
         d_map.addTerritory(territory);
         assertNotNull(d_map.getTerritoryByName("Territory1"));
@@ -78,7 +107,7 @@ public class MapTest {
      * verifying that the corresponding country is added correctly.
      */
     @Test
-    void testAddContinent() {
+    public void testAddContinent() {
         d_map.addContinent("Continent1", 5);
         d_map.addCountry("Country1", "Continent1");
         assertEquals(1, d_map.getTerritoryList().size());
@@ -89,7 +118,7 @@ public class MapTest {
      * and verifying that the territories in that continent are also removed.
      */
     @Test
-    void testRemoveContinent() {
+    public void testRemoveContinent() {
         d_map.addContinent("Continent1", 5);
         d_map.addCountry("Country1", "Continent1");
         d_map.removeContinent("Continent1");
@@ -101,7 +130,7 @@ public class MapTest {
      * between two territories and verifying that the neighbors are correctly added.
      */
     @Test
-    void testAddNeighbor() {
+    public void testAddNeighbor() {
         Territory t1 = new Territory("Territory1", "Continent1", 5);
         Territory t2 = new Territory("Territory2", "Continent1", 5);
         d_map.addTerritory(t1);
@@ -116,7 +145,7 @@ public class MapTest {
      * between two territories and verifying that the relationship is correctly removed.
      */
     @Test
-    void testRemoveNeighbor() {
+    public void testRemoveNeighbor() {
         Territory t1 = new Territory("Territory1", "Continent1", 5);
         Territory t2 = new Territory("Territory2", "Continent1", 5);
         d_map.addTerritory(t1);
@@ -132,7 +161,7 @@ public class MapTest {
      * and verifying that the country is added to the map under the correct continent.
      */
     @Test
-    void testAddCountry() {
+    public void testAddCountry() {
         d_map.addContinent("NorthAmerica", 5);
         d_map.addCountry("Canada", "NorthAmerica");
 
@@ -147,7 +176,7 @@ public class MapTest {
      * Ensures that the country is not added to the map.
      */
     @Test
-    void testAddCountryToNonExistentContinent() {
+    public void testAddCountryToNonExistentContinent() {
         d_map.addCountry("Canada", "NonExistent");
         assertEquals(0, d_map.getTerritoryList().size());
     }
@@ -157,7 +186,7 @@ public class MapTest {
      * and verifying that it is removed correctly.
      */
     @Test
-    void testRemoveCountry() {
+    public void testRemoveCountry() {
         d_map.addContinent("NorthAmerica", 5);
         d_map.addCountry("Canada", "NorthAmerica");
         d_map.addCountry("USA", "NorthAmerica");
@@ -174,7 +203,7 @@ public class MapTest {
      * and verifying that countries are added correctly under those continents.
      */
     @Test
-    void testSetContinents() {
+    public void testSetContinents() {
         // Add some continents
         java.util.Map<String, Integer> newContinents = new HashMap<>();
         newContinents.put("Europe", 3);
@@ -204,7 +233,7 @@ public class MapTest {
      * @throws IOException if an I/O error occurs during file writing or reading.
      */
     @Test
-    void testSaveToFile() throws IOException {
+    public void testSaveToFile() throws IOException {
         d_map.addContinent("Asia", 5);
         d_map.addCountry("India", "Asia");
         d_map.addCountry("China", "Asia");
@@ -227,47 +256,47 @@ public class MapTest {
      * Tests the {@link Map#mapValidation()} method to ensure the entire map is connected.
      */
     @Test
-    void testMapValidationConnected() {
+    public void testMapValidationConnected() {
         // Ensure the entire map is connected
         d_map.addContinent("Asia", 5);
         d_map.addCountry("India", "Asia");
         d_map.addCountry("China", "Asia");
         d_map.addNeighbor("India", "China");
 
-        assertTrue(d_map.mapValidation(), "The map should be a connected graph.");
+        Assert.assertTrue("The map should be a connected graph.", d_map.mapValidation());
     }
 
     /**
      * Tests the {@link Map#mapValidation()} method to ensure the map is disconnected.
      */
     @Test
-    void testMapValidationDisconnected() {
+    public void testMapValidationDisconnected() {
         // Add territories but no neighbors (disconnected map)
         d_map.addContinent("Asia", 5);
         d_map.addCountry("India", "Asia");
         d_map.addCountry("China", "Asia");
 
-        assertFalse(d_map.mapValidation(), "The map should be disconnected.");
+        Assert.assertFalse("The map should be disconnected.", d_map.mapValidation());
     }
 
     /**
      * Tests the {@link Map#continentValidation()} method to ensure each continent is a connected subgraph.
      */
     @Test
-    void testContinentValidationConnected() {
+    public void testContinentValidationConnected() {
         d_map.addContinent("Asia", 5);
         d_map.addCountry("India", "Asia");
         d_map.addCountry("China", "Asia");
         d_map.addNeighbor("India", "China");
 
-        assertTrue(d_map.continentValidation(), "Each continent should be a connected subgraph.");
+        Assert.assertTrue("Each continent should be a connected subgraph.", d_map.continentValidation());
     }
 
     /**
      * Tests the {@link Map#continentValidation()} method to ensure the continent is disconnected.
      */
     @Test
-    void testContinentValidationDisconnected() {
+    public void testContinentValidationDisconnected() {
         d_map.addContinent("Asia", 5);
         d_map.addCountry("India", "Asia");
         d_map.addCountry("China", "Asia");
@@ -278,7 +307,7 @@ public class MapTest {
         // Remove neighbor between 'China' and 'Pakistan', making 'Asia' disconnected
         d_map.getTerritoryByName("China").getNeighborList().remove(d_map.getTerritoryByName("Pakistan"));
 
-        assertFalse(d_map.continentValidation(), "The continent Asia should be disconnected.");
+        Assert.assertFalse("The continent Asia should be disconnected.", d_map.continentValidation());
     }
 
 }

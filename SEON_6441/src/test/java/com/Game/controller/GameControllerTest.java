@@ -208,7 +208,6 @@ public class GameControllerTest {
         assertEquals(GameController.MAIN_GAME_PHASE, realController.getCurrentPhase());
     }
 
-    
     /**
      * Tests handleReinforcement, handling both valid and invalid cases.
      */

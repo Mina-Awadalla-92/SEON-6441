@@ -1,20 +1,26 @@
 package com.Game.observer;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.*;
 
-class LogEntryBufferTest {
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
+
+import static org.mockito.Mockito.*;
+
+@RunWith(MockitoJUnitRunner.class)
+public class LogEntryBufferTest {
 
     @Mock
     private LogObserver mockLogObserver;
 
     private LogEntryBuffer logEntryBuffer;
 
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
 
         // Initialize the LogEntryBuffer instance
@@ -22,7 +28,7 @@ class LogEntryBufferTest {
     }
 
     @Test
-    void testAddObserver() {
+    public void testAddObserver() {
         // Add the observer
         logEntryBuffer.addObserver(mockLogObserver);
 
@@ -35,7 +41,7 @@ class LogEntryBufferTest {
     }
 
     @Test
-    void testRemoveObserver() {
+    public void testRemoveObserver() {
         // Add the observer and then remove it
         logEntryBuffer.addObserver(mockLogObserver);
         logEntryBuffer.removeObserver(mockLogObserver);
@@ -48,7 +54,7 @@ class LogEntryBufferTest {
     }
 
     @Test
-    void testLogAction() {
+    public void testLogAction() {
         // Add the observer to ensure that it will be notified
         logEntryBuffer.addObserver(mockLogObserver);
 
@@ -66,7 +72,7 @@ class LogEntryBufferTest {
     }
 
     @Test
-    void testLogPhaseChange() {
+    public void testLogPhaseChange() {
         // Add the observer to ensure that it will be notified
         logEntryBuffer.addObserver(mockLogObserver);
 
@@ -84,7 +90,7 @@ class LogEntryBufferTest {
     }
 
     @Test
-    void testGetLogBuffer() {
+    public void testGetLogBuffer() {
         String logEntry = "Player1 attacked Player2";
 
         // Log an action
@@ -95,7 +101,7 @@ class LogEntryBufferTest {
     }
 
     @Test
-    void testClearLogBuffer() {
+    public void testClearLogBuffer() {
         // Add an observer
         logEntryBuffer.addObserver(mockLogObserver);
 
@@ -116,7 +122,7 @@ class LogEntryBufferTest {
     }
 
     @Test
-    void testFormatLogEntry() throws Exception {
+    public void testFormatLogEntry() throws Exception {
         // Access the private method 'formatLogEntry' via reflection
         java.lang.reflect.Method formatMethod = LogEntryBuffer.class.getDeclaredMethod("formatLogEntry", String.class);
         formatMethod.setAccessible(true);

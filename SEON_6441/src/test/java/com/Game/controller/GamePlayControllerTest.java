@@ -1,28 +1,42 @@
 package com.Game.controller;
 
-import com.Game.model.Map;
-import com.Game.model.Player;
-import com.Game.observer.GameLogger;
-import com.Game.view.GameView;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
+
+import com.Game.observer.GameLogger;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import static org.mockito.Mockito.*;
 
+import com.Game.model.Map;
+import com.Game.model.Player;
+import com.Game.view.GameView;
+
+import java.util.Arrays;
+import java.util.List;
+
+@RunWith(MockitoJUnitRunner.class)
 public class GamePlayControllerTest {
 
+    @Mock
     private GameController mockGameController;
+    @Mock
     private Map mockGameMap;
+
+    @Mock
     private List<Player> mockPlayers;
+
+    @Mock
     private GamePlayController gamePlayController;
-    GameLogger gameLoggerMock;
+    @Mock
+    private GameLogger gameLoggerMock;
+
+    @Mock
     private GameView mockGameView;
 
-    @BeforeEach
+    @Before
     public void setUp() {
         mockGameController = mock(GameController.class);
         mockGameMap = mock(Map.class);

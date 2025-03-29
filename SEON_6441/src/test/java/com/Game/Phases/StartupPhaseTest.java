@@ -1,20 +1,25 @@
 package com.Game.Phases;
 
-import static org.mockito.Mockito.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import com.Game.controller.GameController;
+import com.Game.observer.GameLogger;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.MockitoJUnitRunner;
+import static org.mockito.Mockito.*;
+
+import com.Game.model.Map;
 import com.Game.model.Player;
 import com.Game.view.CommandPromptView;
-import com.Game.model.Map;
-import com.Game.observer.GameLogger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.Arrays;
-import org.mockito.*;
 
-class StartupPhaseTest {
+@RunWith(MockitoJUnitRunner.class)
+public class StartupPhaseTest {
 
     @Mock
     private GameController gameControllerMock;
@@ -37,8 +42,8 @@ class StartupPhaseTest {
     private StartupPhase startupPhase;
     private ByteArrayOutputStream outContent;
 
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
         startupPhase = new StartupPhase() {}; // Use an anonymous subclass since StartupPhase is abstract
         // Inject the mock logger into the phase's inherited d_gameLogger
@@ -50,7 +55,7 @@ class StartupPhaseTest {
     }
 
     @Test
-    void testStartPhase_ValidStartGameCommand() {
+    public void testStartPhase_ValidStartGameCommand() {
         // Given: Valid "startgame" command
         String[] commandParts = {"startgame"};
 
@@ -63,7 +68,7 @@ class StartupPhaseTest {
     }
 
     @Test
-    void testStartPhase_ValidGamePlayerCommand_Add() {
+    public void testStartPhase_ValidGamePlayerCommand_Add() {
         // Given: Valid "gameplayer" command to add a player
         String[] commandParts = {"gameplayer", "-add", "player1"};
 
