@@ -68,17 +68,6 @@ public class GamePlayControllerTest {
     }
 
     @Test
-    public void testHandleCommand_ShowMap2() {
-        when(mockGameController.getView()).thenReturn(mockGameView);  // Make sure getView() is mocked
-
-        // Simulate calling the 'showmap' command
-        gamePlayController.handleCommand(new String[]{"showmap"}, "showmap");
-
-        // Verify the expected behavior
-        verify(mockGameView).displayMap(mockGameMap, mockPlayers);
-    }
-
-    @Test
     public void testHandleCommand_IssueOrder() {
         when(mockGameController.getView()).thenReturn(mockGameView);  // Ensure getView() is mocked
 

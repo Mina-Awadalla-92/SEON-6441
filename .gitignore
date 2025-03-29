@@ -6,3 +6,5 @@ src/main/.DS_Store
 /SEON_6441/target
 /SEON_6441/target/apidocs
 *.jar
+SEON_6441/logs/warzone_game_fallback.log
+logs/warzone_game_fallback.log

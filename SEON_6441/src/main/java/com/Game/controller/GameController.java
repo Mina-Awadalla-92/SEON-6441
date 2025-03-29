@@ -161,6 +161,21 @@ public class GameController {
      // Add a debug flag to track phase changes
     private boolean isProcessingPhaseChange = false;
 
+    /**
+     * Sets the current phase of the game to the specified {@link PhaseType}.
+     *
+     * This method manages the game phase transitions, ensuring that phase changes
+     * are not nested (to prevent recursion). It logs the action of changing phases
+     * if a logger is provided, and updates the game state accordingly. The method
+     * handles four predefined phases: {@link PhaseType#MAP_EDITOR},
+     * {@link PhaseType#STARTUP}, {@link PhaseType#ISSUE_ORDER}, and
+     * {@link PhaseType#ORDER_EXECUTION}. If an invalid phase is provided, an
+     * {@link IllegalArgumentException} is thrown.
+     *
+     * @param p_phaseType The {@link PhaseType} representing the new phase to set.
+     *
+     * @throws IllegalArgumentException If the provided {@code p_phaseType} is not valid.
+     */
     public void setPhase(PhaseType p_phaseType) {
         if (isProcessingPhaseChange) {
             System.out.println("WARNING: Nested phase change detected. Skipping to prevent duplication.");
