@@ -98,7 +98,7 @@ public class AggressivePlayer extends Player {
 	            // 2.2: If the target is adjacent, issue an AdvanceAttack order.
 	            if (attackingTerritory.hasNeighbor(targetTerritory)) {
 	                // Example: send half the armies (this is arbitrary; adjust strategy as needed)
-	                int armiesToAttack = attackingTerritory.getNumOfArmies() / 2;
+	                int armiesToAttack = attackingTerritory.getNumOfArmies();
 	                AdvanceAttack advanceAttack = new AdvanceAttack(this, attackingTerritory, targetTerritory, armiesToAttack);
 	                d_orders.add(advanceAttack);
 	                orderIssued = true;
@@ -106,8 +106,8 @@ public class AggressivePlayer extends Player {
 	            // 2.3: Otherwise, if an airlift card is available, issue an AirliftAttack order.
 	            else if (this.hasCard(CardType.AIRLIFT) &&
 	                     validateAirlift(new String[] { "airlift", attackingTerritory.getName(), targetTerritory.getName(),
-	                         String.valueOf(attackingTerritory.getNumOfArmies() / 2) }, p_map)) {
-	                int armiesToAttack = attackingTerritory.getNumOfArmies() / 2;
+	                         String.valueOf(attackingTerritory.getNumOfArmies()) }, p_map)) {
+	                int armiesToAttack = attackingTerritory.getNumOfArmies();
 	                AirliftAttack airliftAttack = new AirliftAttack(this, attackingTerritory, targetTerritory, armiesToAttack);
 	                d_orders.add(airliftAttack);
 	                orderIssued = true;
@@ -121,7 +121,7 @@ public class AggressivePlayer extends Player {
 	
 	@Override
 	public String toString() {
-		return "\nHuman Player: " + this.d_name + "\nNumber of Reinforcement Armies: " + this.d_nbrOfReinforcementArmies;
+		return "\nAggressive Player: " + this.d_name + "\nNumber of Reinforcement Armies: " + this.d_nbrOfReinforcementArmies;
 	}
 }
 

@@ -10,7 +10,12 @@ import org.junit.runners.Suite;
 @Suite.SuiteClasses({
     CardSystemTest.class,
     MapTest.class,
-    TerritoryTest.class
+    TerritoryTest.class,
+    HumanPlayerTest.class,
+    BenevolentPlayerTest.class,
+    AggressivePlayerTest.class,
+    BenevolentPlayerTest.class,
+    RandomPlayerTest.class
     // ... add other test classes in com.Game.command
 })
 public class ModelTestSuite {
