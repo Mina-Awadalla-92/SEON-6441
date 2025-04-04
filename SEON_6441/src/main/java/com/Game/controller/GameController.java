@@ -14,6 +14,10 @@ import com.Game.Phases.PhaseType;
 import com.Game.Phases.StartupPhase;
 import com.Game.model.Map;
 import com.Game.model.Player;
+import com.Game.model.RandomPlayer;
+import com.Game.model.AggressivePlayer;
+import com.Game.model.BenevolentPlayer;
+import com.Game.model.CheaterPlayer;
 import com.Game.model.HumanPlayer;
 import com.Game.observer.GameLogger;
 import com.Game.utils.MapLoader;
@@ -148,6 +152,152 @@ public class GameController {
 
 		// Initialize with the MapEditor state
 		this.d_currentState = new MapEditorPhase();
+	}
+	
+	/**
+	 * Parses and validates the tournament command.
+	 * Tournament command format:
+	 * tournament -M listofmapfiles -P listofplayerstrategies -G numberofgames -D maxnumberofturns
+	 *
+	 * @param p_commandParts The parts of the tournament command
+	 * @return true if tournament was successfully started, false otherwise
+	 */
+	public boolean handleTournamentCommand(String[] p_commandParts) {
+	    // Validate minimum command length
+	    if (p_commandParts.length < 9) {
+	        getView().displayError("Invalid tournament command format. Use: tournament -M listofmapfiles -P listofplayerstrategies -G numberofgames -D maxnumberofturns");
+	        return false;
+	    }
+	    
+	    List<String> mapFiles = new ArrayList<>();
+	    List<String> playerStrategies = new ArrayList<>();
+	    int numberOfGames = 0;
+	    int maxTurns = 0;
+	    
+	    // Parse command parameters
+	    int i = 1;
+	    while (i < p_commandParts.length) {
+	        String param = p_commandParts[i];
+	        i++;
+	        
+	        if ("-M".equals(param)) {
+	            // Parse map files until reaching another parameter or end
+	            while (i < p_commandParts.length && !p_commandParts[i].startsWith("-")) {
+	                mapFiles.add(p_commandParts[i]);
+	                i++;
+	            }
+	        } else if ("-P".equals(param)) {
+	            // Parse player strategies until reaching another parameter or end
+	            while (i < p_commandParts.length && !p_commandParts[i].startsWith("-")) {
+	                playerStrategies.add(p_commandParts[i]);
+	                i++;
+	            }
+	        } else if ("-G".equals(param)) {
+	            // Parse number of games
+	            if (i < p_commandParts.length) {
+	                try {
+	                    numberOfGames = Integer.parseInt(p_commandParts[i]);
+	                    i++;
+	                } catch (NumberFormatException e) {
+	                    getView().displayError("Invalid number of games: " + p_commandParts[i]);
+	                    return false;
+	                }
+	            }
+	        } else if ("-D".equals(param)) {
+	            // Parse maximum number of turns
+	            if (i < p_commandParts.length) {
+	                try {
+	                    maxTurns = Integer.parseInt(p_commandParts[i]);
+	                    i++;
+	                } catch (NumberFormatException e) {
+	                    getView().displayError("Invalid maximum number of turns: " + p_commandParts[i]);
+	                    return false;
+	                }
+	            }
+	        }
+	    }
+	    
+	    // Validate parameters
+	    if (mapFiles.isEmpty()) {
+	        getView().displayError("No map files specified for tournament");
+	        return false;
+	    }
+	    
+	    if (playerStrategies.isEmpty()) {
+	        getView().displayError("No player strategies specified for tournament");
+	        return false;
+	    }
+	    
+	    if (numberOfGames <= 0) {
+	        getView().displayError("Number of games must be positive");
+	        return false;
+	    }
+	    
+	    if (maxTurns <= 0) {
+	        getView().displayError("Max turns must be positive");
+	        return false;
+	    }
+	    
+	    // Validate number of maps (1-5)
+	    if (mapFiles.size() < 1 || mapFiles.size() > 5) {
+	        getView().displayError("Number of maps must be between 1 and 5");
+	        return false;
+	    }
+	    
+	    // Validate number of player strategies (2-4)
+	    if (playerStrategies.size() < 2 || playerStrategies.size() > 4) {
+	        getView().displayError("Number of player strategies must be between 2 and 4");
+	        return false;
+	    }
+	    
+	    // Validate number of games (1-5)
+	    if (numberOfGames < 1 || numberOfGames > 5) {
+	        getView().displayError("Number of games must be between 1 and 5");
+	        return false;
+	    }
+	    
+	    // Validate max turns (10-50)
+	    if (maxTurns < 10 || maxTurns > 50) {
+	        getView().displayError("Maximum number of turns must be between 10 and 50");
+	        return false;
+	    }
+	    
+	    // Validate player strategies
+	    for (String strategy : playerStrategies) {
+	        if (!isValidPlayerStrategy(strategy)) {
+	            getView().displayError("Invalid player strategy: " + strategy);
+	            return false;
+	        }
+	    }
+	    
+	    // Log tournament start
+	    if (d_gameLogger != null) {
+	        d_gameLogger.logAction("Starting tournament with maps: " + String.join(", ", mapFiles) + 
+	                              ", player strategies: " + String.join(", ", playerStrategies) + 
+	                              ", number of games: " + numberOfGames + 
+	                              ", max turns: " + maxTurns);
+	    }
+	    
+	    // Create and run tournament
+	    com.Game.model.TournamentMode tournament = new com.Game.model.TournamentMode(
+	        mapFiles, playerStrategies, numberOfGames, maxTurns, this);
+	    tournament.runTournament();
+	    tournament.displayResults();
+	    
+	    return true;
+	}
+
+	/**
+	 * Checks if a player strategy is valid.
+	 *
+	 * @param p_strategy The player strategy to check
+	 * @return true if valid, false otherwise
+	 */
+	private boolean isValidPlayerStrategy(String p_strategy) {
+	    return p_strategy.equalsIgnoreCase("aggressive") ||
+	           p_strategy.equalsIgnoreCase("benevolent") ||
+	           p_strategy.equalsIgnoreCase("random") ||
+	           p_strategy.equalsIgnoreCase("cheater");
 	}
 
 	/**
@@ -325,41 +475,41 @@ public class GameController {
 				// Skip the phase's StartPhase method which might be causing the duplication
 				// getCurrentState().StartPhase(this, d_players, d_commandPromptView,
 				// l_commandParts, d_gameMap);
-			} else if (d_currentPhase == MAIN_GAME_PHASE) {
-				d_view.displayMainGameMenu();
-				l_input = d_commandPromptView.getCommand();
-				l_commandParts = l_input.split("\\s+");
+			} 
+			// In the MAIN_GAME_PHASE section of the startGame method
+			else if (d_currentPhase == MAIN_GAME_PHASE) {
+			    d_view.displayMainGameMenu();
+			    l_input = d_commandPromptView.getCommand();
+			    l_commandParts = l_input.split("\\s+");
 
-				if (l_commandParts.length == 0) {
-					continue;
-				}
+			    if (l_commandParts.length == 0) {
+			        continue;
+			    }
 
-				String l_command = l_commandParts[0];
-				if (d_gameLogger != null) {
-					d_gameLogger.logAction("Command entered: " + l_input);
-				}
+			    String l_command = l_commandParts[0];
+			    if (d_gameLogger != null) {
+			        d_gameLogger.logAction("Command entered: " + l_input);
+			    }
 
-				if (l_command.equals("exit")) {
-					d_view.displayMessage("Exiting the program.");
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction("Program exited");
-					}
-					d_commandPromptView.closeScanner();
-					System.exit(0);
-				}
+			    if (l_command.equals("exit")) {
+			        d_view.displayMessage("Exiting the program.");
+			        if (d_gameLogger != null) {
+			            d_gameLogger.logAction("Program exited");
+			        }
+			        d_commandPromptView.closeScanner();
+			        System.exit(0);
+			    }
 
-				// SKIP VALIDATION TEMPORARILY
-				// if (!getCurrentState().validateCommand(l_command)) {
-				// d_view.displayError("Command '" + l_command + "' is not valid in the current
-				// phase.");
-				// if (d_gameLogger != null) {
-				// d_gameLogger.logAction("Invalid command '" + l_command + "' for current
-				// phase");
-				// }
-				// continue;
-				// }
+			    // SKIP VALIDATION TEMPORARILY
+			    // if (!getCurrentState().validateCommand(l_command)) {
+			    // d_view.displayError("Command '" + l_command + "' is not valid in the current phase.");
+			    // if (d_gameLogger != null) {
+			    // d_gameLogger.logAction("Invalid command '" + l_command + "' for current phase");
+			    // }
+			    // continue;
+			    // }
 
-				d_gamePlayController.handleCommand(l_commandParts, l_command);
+			    d_gamePlayController.handleCommand(l_commandParts, l_command);
 			}
 		}
 	}
@@ -439,44 +589,76 @@ public class GameController {
 	 *
 	 * @param p_action     The action to perform (add/remove)
 	 * @param p_playerName The name of the player to add/remove
+	 * @param p_playerType The type of player to add (human, aggressive, benevolent, random, cheater)
 	 */
-	public void handleGamePlayer(String p_action, String p_playerName) {
-		if (p_action.equals("-add")) {
-			// Check if player already exists - case-insensitive to be robust
-			boolean l_playerExists = false;
-			for (Player l_player : d_players) {
-				if (l_player.getName().equalsIgnoreCase(p_playerName)) {
-					l_playerExists = true;
-					break;
-				}
-			}
+	public void handleGamePlayer(String p_action, String p_playerName, String p_playerType) {
+	    if (p_action.equals("-add")) {
+	        // Check if player already exists - case-insensitive to be robust
+	        boolean l_playerExists = false;
+	        for (Player l_player : d_players) {
+	            if (l_player.getName().equalsIgnoreCase(p_playerName)) {
+	                l_playerExists = true;
+	                break;
+	            }
+	        }
 
-			if (!l_playerExists) {
-				d_players.add(new HumanPlayer(p_playerName));
-				d_view.displayMessage("Player added: " + p_playerName);
-				if (d_gameLogger != null) {
-					d_gameLogger.logAction("Player added: " + p_playerName);
-				}
-			} else {
-				d_view.displayError("Player already exists: " + p_playerName);
-				if (d_gameLogger != null) {
-					d_gameLogger.logAction("Error: Player already exists: " + p_playerName);
-				}
-			}
-		} else if (p_action.equals("-remove")) {
-			d_players.removeIf(player -> player.getName().equals(p_playerName));
-			d_view.displayMessage("Player removed: " + p_playerName);
-			if (d_gameLogger != null) {
-				d_gameLogger.logAction("Player removed: " + p_playerName);
-			}
-		} else {
-			d_view.displayError("Invalid action for gameplayer.");
-			if (d_gameLogger != null) {
-				d_gameLogger.logAction("Error: Invalid action for gameplayer: " + p_action);
-			}
-		}
+	        if (!l_playerExists) {
+	            // Create the appropriate player type
+	            Player l_newPlayer;
+	            
+	            switch (p_playerType.toLowerCase()) {
+	                case "aggressive":
+	                    l_newPlayer = new AggressivePlayer(p_playerName);
+	                    break;
+	                case "benevolent":
+	                    l_newPlayer = new BenevolentPlayer(p_playerName);
+	                    break;
+	                case "random":
+	                    l_newPlayer = new RandomPlayer(p_playerName);
+	                    break;
+	                case "cheater":
+	                    l_newPlayer = new CheaterPlayer(p_playerName);
+	                    break;
+	                case "human":
+	                default:
+	                    l_newPlayer = new HumanPlayer(p_playerName);
+	                    break;
+	            }
+	            
+	            d_players.add(l_newPlayer);
+	            d_view.displayMessage("Player added: " + p_playerName + " (Type: " + p_playerType + ")");
+	            if (d_gameLogger != null) {
+	                d_gameLogger.logAction("Player added: " + p_playerName + " (Type: " + p_playerType + ")");
+	            }
+	        } else {
+	            d_view.displayError("Player already exists: " + p_playerName);
+	            if (d_gameLogger != null) {
+	                d_gameLogger.logAction("Error: Player already exists: " + p_playerName);
+	            }
+	        }
+	    } else if (p_action.equals("-remove")) {
+	        d_players.removeIf(player -> player.getName().equals(p_playerName));
+	        d_view.displayMessage("Player removed: " + p_playerName);
+	        if (d_gameLogger != null) {
+	            d_gameLogger.logAction("Player removed: " + p_playerName);
+	        }
+	    } else {
+	        d_view.displayError("Invalid action for gameplayer.");
+	        if (d_gameLogger != null) {
+	            d_gameLogger.logAction("Error: Invalid action for gameplayer: " + p_action);
+	        }
+	    }
 	}
 
+	/**
+	 * Handles the gameplayer command with default player type (human).
+	 *
+	 * @param p_action     The action to perform (add/remove)
+	 * @param p_playerName The name of the player to add/remove
+	 */
+	public void handleGamePlayer(String p_action, String p_playerName) {
+	    handleGamePlayer(p_action, p_playerName, "human");
+	}
 	/**
 	 * Gets the game view.
 	 *
