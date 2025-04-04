@@ -62,6 +62,7 @@ public class GameView {
         System.out.println("2. issueorder      - Issue an order");
         System.out.println("3. executeorders   - Execute all issued orders");
         System.out.println("4. endturn         - End the current turn, and move to the next one");
+        System.out.println("5. tournament      - Start a tournament");
         System.out.println("\nType 'exit' to quit the main game phase.\n");
     }
     
