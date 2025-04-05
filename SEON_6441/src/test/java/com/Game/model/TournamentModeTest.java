@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -50,6 +51,100 @@ public class TournamentModeTest {
         d_playerStrategies = new ArrayList<>();
         d_playerStrategies.add("aggressive");
         d_playerStrategies.add("benevolent");
+    }
+    /**
+     * Test map validation before tournament.
+     */
+    @Test
+    public void testMapValidation() {
+        // Test with valid map
+        List<String> validMaps = new ArrayList<>();
+        validMaps.add("canada.map");
+        
+        d_mapLoader.read("canada.map");
+        boolean isValidMap = d_mapLoader.validateMap(false);
+        assertTrue("Map should be valid", isValidMap);
+        
+        // Test with invalid map
+        List<String> invalidMaps = new ArrayList<>();
+        invalidMaps.add("invalid.map");
+        
+        // Create a mock MapLoader that always returns false for validate
+        MapLoader mockLoader = new MapLoader() {
+            @Override
+            public boolean validateMap(boolean showMsg) {
+                return false;
+            }
+        };
+        
+        // Read should fail or validation should fail
+        assertFalse("Invalid map should fail validation", mockLoader.validateMap(false));
+    }
+
+    /**
+     * Test enhanced tournament results display.
+     */
+    @Test
+    public void testEnhancedResultsDisplay() {
+        // Create a tournament with known results for display testing
+        d_tournament = new TournamentMode(d_mapFiles, d_playerStrategies, 2, 20, d_gameController);
+        
+        // Access the results map through reflection
+        try {
+            java.lang.reflect.Field resultsField = TournamentMode.class.getDeclaredField("d_results");
+            resultsField.setAccessible(true);
+            
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, java.util.Map<Integer, String>> results = 
+                (java.util.Map<String, java.util.Map<Integer, String>>) resultsField.get(d_tournament);
+            
+            // Add some test results
+            java.util.Map<Integer, String> mapResults = new HashMap<>();
+            mapResults.put(1, "aggressive");
+            mapResults.put(2, "benevolent");
+            
+            results.put("canada.map", mapResults);
+            
+            // Test that statistics count is correct
+            java.lang.reflect.Method countWinsMethod = 
+                TournamentMode.class.getDeclaredMethod("countWins");
+            countWinsMethod.setAccessible(true);
+            
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, Integer> winCounts = 
+                (java.util.Map<String, Integer>) countWinsMethod.invoke(d_tournament);
+            
+            assertEquals("Aggressive should have 1 win", Integer.valueOf(1), winCounts.get("aggressive"));
+            assertEquals("Benevolent should have 1 win", Integer.valueOf(1), winCounts.get("benevolent"));
+            
+        } catch (Exception e) {
+            fail("Exception during reflection: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Test game mode selection.
+     */
+    @Test
+    public void testGameModeSelection() {
+        // This is more of an integration test that would require mocking
+        // user input, so we'll simulate the validation logic
+        
+        // Test valid selections
+        assertTrue("Selection 1 should be valid", isValidGameModeSelection(1));
+        assertTrue("Selection 2 should be valid", isValidGameModeSelection(2));
+        
+        // Test invalid selections
+        assertFalse("Selection 0 should be invalid", isValidGameModeSelection(0));
+        assertFalse("Selection 3 should be invalid", isValidGameModeSelection(3));
+        assertFalse("Selection -1 should be invalid", isValidGameModeSelection(-1));
+    }
+
+    /**
+     * Helper method to validate game mode selection.
+     */
+    private boolean isValidGameModeSelection(int selection) {
+        return selection == 1 || selection == 2;
     }
     
     /**

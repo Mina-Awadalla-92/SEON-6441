@@ -18,13 +18,13 @@ import java.util.Set;
  */
 public class MapEditorPhase extends Phase {
 
-    /**
-     * Set of commands valid in the Map Editor phase.
-     */
-    private static final Set<String> VALID_COMMANDS = new HashSet<>(Arrays.asList(
-        "editcontinent", "editcountry", "editneighbor", "showmap", 
-        "savemap", "editmap", "validatemap", "loadmap", "gameplayer"
-    ));
+	/**
+	 * Set of commands valid in the Map Editor phase.
+	 */
+	private static final Set<String> VALID_COMMANDS = new HashSet<>(Arrays.asList(
+	    "editcontinent", "editcountry", "editneighbor", "showmap", 
+	    "savemap", "editmap", "validatemap", "loadmap", "gameplayer", "selectmode"
+	));
 
     /**
      * Starts the Map Editor phase with the provided game controller, players, and command prompt view.

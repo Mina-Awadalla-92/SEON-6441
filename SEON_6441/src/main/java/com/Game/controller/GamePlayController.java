@@ -156,6 +156,15 @@ public class GamePlayController {
 	            d_ordersExecutedThisTurn = false; // Reset the flag for the new turn
 	            break;
 	        case "tournament":
+	            // Validate the current map before starting tournament
+	            if (!validateCurrentMap()) {
+	                d_gameController.getView().displayError(
+	                        "Current map is invalid. Please load a valid map before starting a tournament.");
+	                if (d_gameLogger != null) {
+	                    d_gameLogger.logAction("Error: Attempted to start tournament with invalid map");
+	                }
+	                return;
+	            }
 	            d_gameController.handleTournamentCommand(p_commandParts);
 	            break;
 	        default:
@@ -164,6 +173,34 @@ public class GamePlayController {
 	                d_gameLogger.logAction("Error: Unknown command '" + p_command + "' in main game phase");
 	            }
 	    }
+	}
+
+	/**
+	 * Validates the current map loaded in the game.
+	 * 
+	 * @return true if the map is valid, false otherwise
+	 */
+	private boolean validateCurrentMap() {
+	    if (d_gameMap == null || d_gameMap.getTerritoryList().isEmpty()) {
+	        d_gameController.getView().displayError("No map loaded.");
+	        return false;
+	    }
+	    
+	    // Validate map connectivity
+	    boolean isMapConnected = d_gameMap.mapValidation();
+	    if (!isMapConnected) {
+	        d_gameController.getView().displayError("Map validation failed: Map is not connected.");
+	        return false;
+	    }
+	    
+	    // Validate continent connectivity
+	    boolean areContinentsConnected = d_gameMap.continentValidation();
+	    if (!areContinentsConnected) {
+	        d_gameController.getView().displayError("Map validation failed: One or more continents are not connected.");
+	        return false;
+	    }
+	    
+	    return true;
 	}
 
 	/**

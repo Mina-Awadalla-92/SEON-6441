@@ -40,6 +40,18 @@ public class GameView {
     }
     
     /**
+     * Displays the menu for the tournament map editing phase.
+     */
+    public void displayTournamentMapEditingMenu() {
+        System.out.println("\n=== Tournament Mode: Map Editing Phase ===\n");
+        System.out.println("1. loadmap <filename>  - Load an existing map");
+        System.out.println("2. editmap <filename>  - Edit a map");
+        System.out.println("3. validatemap         - Validate the current map");
+        System.out.println("4. showmap             - Display the current map");
+        System.out.println("\nLoad a map to proceed with the tournament.\n");
+    }
+    
+    /**
      * Displays the menu for the startup phase.
      */
     public void displayStartupMenu() {
@@ -64,6 +76,18 @@ public class GameView {
         System.out.println("4. endturn         - End the current turn, and move to the next one");
         System.out.println("5. tournament      - Start a tournament");
         System.out.println("\nType 'exit' to quit the main game phase.\n");
+    }
+    
+    /**
+     * Displays the menu for the tournament mode.
+     */
+    public void displayTournamentMenu() {
+        System.out.println("\n=== Tournament Mode Menu ===\n");
+        System.out.println("1. showmap                - Display the current map");
+        System.out.println("2. tournament <args>      - Start a tournament with specified parameters");
+        System.out.println("   Format: tournament -M listofmapfiles -P listofplayerstrategies -G numberofgames -D maxnumberofturns");
+        System.out.println("   Example: tournament -M canada.map swiss.map -P aggressive benevolent random cheater -G 3 -D 20");
+        System.out.println("\nType 'exit' to quit the tournament mode.\n");
     }
     
     /**

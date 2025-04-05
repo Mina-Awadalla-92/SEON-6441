@@ -80,9 +80,9 @@ public class TournamentMode {
     public void runTournament() {
         if (d_gameLogger != null) {
             d_gameLogger.logAction("Starting tournament with " + d_mapFiles.size() + " maps, " + 
-                                   d_playerStrategies.size() + " player strategies, " + 
-                                   d_numberOfGames + " games per map, and " + 
-                                   d_maxTurns + " max turns per game");
+                                  d_playerStrategies.size() + " player strategies, " + 
+                                  d_numberOfGames + " games per map, and " + 
+                                  d_maxTurns + " max turns per game");
         }
         
         // Set up initial message
@@ -93,7 +93,22 @@ public class TournamentMode {
         System.out.println("Max Turns per Game: " + d_maxTurns);
         System.out.println("Running tournament...");
         
-        for (String mapFile : d_mapFiles) {
+        // First validate all maps
+        List<String> validMaps = validateMaps();
+        if (validMaps.isEmpty()) {
+            System.out.println("\nError: No valid maps found. Tournament cannot proceed.");
+            if (d_gameLogger != null) {
+                d_gameLogger.logAction("Tournament aborted: No valid maps found");
+            }
+            return;
+        }
+        
+        if (validMaps.size() < d_mapFiles.size()) {
+            System.out.println("\nWarning: Some maps are invalid and will be skipped.");
+            System.out.println("Proceeding with valid maps: " + String.join(", ", validMaps));
+        }
+        
+        for (String mapFile : validMaps) {
             // Create result tracking for this map
             d_results.put(mapFile, new HashMap<>());
             
@@ -113,6 +128,237 @@ public class TournamentMode {
         }
         
         System.out.println("\nTournament completed!");
+    }
+
+    /**
+     * Validates all maps in the map files list with improved error reporting.
+     * 
+     * @return A list of valid map files
+     */
+    private List<String> validateMaps() {
+        List<String> validMaps = new ArrayList<>();
+        List<String> invalidMaps = new ArrayList<>();
+        MapLoader mapValidator = new MapLoader();
+        
+        System.out.println("\n===== MAP VALIDATION =====");
+        
+        for (String mapFile : d_mapFiles) {
+            System.out.println("\nValidating map: " + mapFile);
+            
+            // Reset the map loader for each map to ensure independent validation
+            mapValidator = new MapLoader();
+            
+            // Check if map exists
+            BufferedReader reader = mapValidator.isMapExist(mapFile);
+            if (reader == null) {
+                System.out.println("  ❌ Error: Map file not found");
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Map validation failed: File not found - " + mapFile);
+                }
+                invalidMaps.add(mapFile);
+                continue;
+            }
+            
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            
+            // Check map format
+            boolean isValidFormat = mapValidator.isValid(mapFile);
+            if (!isValidFormat) {
+                System.out.println("  ❌ Error: Invalid map format");
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Map validation failed: Invalid format - " + mapFile);
+                }
+                invalidMaps.add(mapFile);
+                continue;
+            }
+            
+            // Load and validate map connectivity
+            mapValidator.read(mapFile);
+            boolean isValidMap = mapValidator.validateMap(false);
+            if (!isValidMap) {
+                System.out.println("  ❌ Error: Map validation failed (connectivity or other issues)");
+                if (d_gameLogger != null) {
+                    d_gameLogger.logAction("Map validation failed: Invalid map structure - " + mapFile);
+                }
+                invalidMaps.add(mapFile);
+                continue;
+            }
+            
+            System.out.println("  ✓ Map is valid");
+            validMaps.add(mapFile);
+        }
+        
+        // Print validation summary
+        System.out.println("\n===== VALIDATION SUMMARY =====");
+        System.out.println("Total maps: " + d_mapFiles.size());
+        System.out.println("Valid maps: " + validMaps.size());
+        System.out.println("Invalid maps: " + invalidMaps.size());
+        
+        if (!invalidMaps.isEmpty()) {
+            System.out.println("\nInvalid maps that will be skipped:");
+            for (String map : invalidMaps) {
+                System.out.println("  - " + map);
+            }
+        }
+        
+        System.out.println();
+        
+        return validMaps;
+    }
+
+    /**
+     * Displays the tournament results in a formatted table.
+     */
+    public void displayResults() {
+        System.out.println("\n=============== Tournament Results ===============");
+        System.out.println("M: " + String.join(", ", d_mapFiles));
+        System.out.println("P: " + String.join(", ", d_playerStrategies));
+        System.out.println("G: " + d_numberOfGames);
+        System.out.println("D: " + d_maxTurns);
+        System.out.println();
+        
+        // Calculate column widths for better formatting
+        int mapNameWidth = 15; // Minimum width for map names
+        int resultWidth = 10;  // Minimum width for game results
+        
+        // Find the longest map name
+        for (String mapFile : d_results.keySet()) {
+            String mapName = extractMapName(mapFile);
+            mapNameWidth = Math.max(mapNameWidth, mapName.length() + 2);
+        }
+        
+        // Create header row with better formatting
+        String headerFormat = "%-" + mapNameWidth + "s";
+        System.out.printf(headerFormat, "Map");
+        
+        for (int i = 1; i <= d_numberOfGames; i++) {
+            System.out.printf("%-" + resultWidth + "s", "Game " + i);
+        }
+        System.out.println();
+        
+        // Add a divider line
+        printDivider(mapNameWidth + (resultWidth * d_numberOfGames));
+        
+        // Display results for each map with better formatting
+        String rowFormat = "%-" + mapNameWidth + "s";
+        for (String mapFile : d_results.keySet()) {
+            String mapName = extractMapName(mapFile);
+            System.out.printf(rowFormat, mapName);
+            
+            // Display results for each game on this map
+            java.util.Map<Integer, String> mapResults = d_results.get(mapFile);
+            for (int gameNumber = 1; gameNumber <= d_numberOfGames; gameNumber++) {
+                String winner = mapResults.getOrDefault(gameNumber, "N/A");
+                System.out.printf("%-" + resultWidth + "s", winner);
+            }
+            System.out.println();
+        }
+        
+        // Add another divider line
+        printDivider(mapNameWidth + (resultWidth * d_numberOfGames));
+        
+        // Display winning stats
+        System.out.println("\nWinning Statistics:");
+        
+        java.util.Map<String, Integer> winCounts = countWins();
+        for (String player : winCounts.keySet()) {
+            System.out.println(player + ": " + winCounts.get(player) + " wins");
+        }
+        
+        System.out.println("=================================================");
+        
+        // Log the tournament results
+        if (d_gameLogger != null) {
+            StringBuilder logSB = new StringBuilder("Tournament results:\n");
+            logSB.append("Maps: ").append(String.join(", ", d_mapFiles)).append("\n");
+            logSB.append("Player strategies: ").append(String.join(", ", d_playerStrategies)).append("\n");
+            logSB.append("Games per map: ").append(d_numberOfGames).append("\n");
+            logSB.append("Max turns per game: ").append(d_maxTurns).append("\n\n");
+            
+            for (String mapFile : d_results.keySet()) {
+                String mapName = extractMapName(mapFile);
+                logSB.append("Map ").append(mapName).append(" results: ");
+                
+                java.util.Map<Integer, String> mapResults = d_results.get(mapFile);
+                for (int gameNumber = 1; gameNumber <= d_numberOfGames; gameNumber++) {
+                    String winner = mapResults.getOrDefault(gameNumber, "N/A");
+                    logSB.append("Game ").append(gameNumber).append(": ").append(winner).append(", ");
+                }
+                logSB.append("\n");
+            }
+            
+            d_gameLogger.logAction(logSB.toString());
+        }
+    }
+
+    /**
+     * Extracts a user-friendly map name from the file path.
+     * 
+     * @param mapFile The map file path
+     * @return A user-friendly map name
+     */
+    private String extractMapName(String mapFile) {
+        String mapName = mapFile;
+        if (mapFile.contains("/")) {
+            mapName = mapFile.substring(mapFile.lastIndexOf('/') + 1);
+        } else if (mapFile.contains("\\")) {
+            mapName = mapFile.substring(mapFile.lastIndexOf('\\') + 1);
+        }
+        if (mapName.toLowerCase().endsWith(".map")) {
+            mapName = mapName.substring(0, mapName.length() - 4);
+        }
+        return mapName;
+    }
+
+    /**
+     * Prints a divider line of specified width.
+     * 
+     * @param width The width of the divider line
+     */
+    private void printDivider(int width) {
+        for (int i = 0; i < width; i++) {
+            System.out.print("-");
+        }
+        System.out.println();
+    }
+
+    /**
+     * Counts the number of wins for each player strategy.
+     * 
+     * @return A map of player names to win counts
+     */
+    private java.util.Map<String, Integer> countWins() {
+        java.util.Map<String, Integer> winCounts = new HashMap<>();
+        
+        // Initialize win counts for all player strategies and Draw
+        for (String strategy : d_playerStrategies) {
+            winCounts.put(strategy, 0);
+        }
+        winCounts.put("Draw", 0);
+        
+        // Count wins from results
+        for (java.util.Map<Integer, String> mapResults : d_results.values()) {
+            for (String winner : mapResults.values()) {
+                // Extract the base strategy name from the winner
+                String baseStrategy = winner;
+                if (winner.contains("_")) {
+                    baseStrategy = winner.substring(0, winner.indexOf("_"));
+                }
+                
+                // Increment the count for the appropriate strategy
+                if (winCounts.containsKey(baseStrategy)) {
+                    winCounts.put(baseStrategy, winCounts.get(baseStrategy) + 1);
+                } else if (baseStrategy.equals("Draw")) {
+                    winCounts.put("Draw", winCounts.get("Draw") + 1);
+                }
+            }
+        }
+        
+        return winCounts;
     }
 
     /**
@@ -369,79 +615,79 @@ public class TournamentMode {
                 return new HumanPlayer(p_name);
         }
     }
-    
-    /**
-     * Displays the tournament results in a formatted table.
-     */
-    public void displayResults() {
-        System.out.println("\n=============== Tournament Results ===============");
-        System.out.println("M: " + String.join(", ", d_mapFiles));
-        System.out.println("P: " + String.join(", ", d_playerStrategies));
-        System.out.println("G: " + d_numberOfGames);
-        System.out.println("D: " + d_maxTurns);
-        System.out.println();
-        
-        // Create header row
-        System.out.print("\t\t");
-        for (int i = 1; i <= d_numberOfGames; i++) {
-            System.out.print("Game " + i + "\t");
-        }
-        System.out.println();
-        
-        // Display results for each map
-        for (String mapFile : d_mapFiles) {
-            // Extract the map name from the file path
-            String mapName = mapFile;
-            if (mapFile.contains("/")) {
-                mapName = mapFile.substring(mapFile.lastIndexOf('/') + 1);
-            } else if (mapFile.contains("\\")) {
-                mapName = mapFile.substring(mapFile.lastIndexOf('\\') + 1);
-            }
-            if (mapName.toLowerCase().endsWith(".map")) {
-                mapName = mapName.substring(0, mapName.length() - 4);
-            }
-            
-            System.out.print(mapName + "\t");
-            
-            // Display results for each game on this map
-            java.util.Map<Integer, String> mapResults = d_results.get(mapFile);
-            for (int gameNumber = 1; gameNumber <= d_numberOfGames; gameNumber++) {
-                String winner = mapResults.get(gameNumber);
-                System.out.print(winner + "\t");
-            }
-            System.out.println();
-        }
-        
-        System.out.println("=================================================");
-        
-        // Log the tournament results
-        if (d_gameLogger != null) {
-            StringBuilder logSB = new StringBuilder("Tournament results:\n");
-            logSB.append("Maps: ").append(String.join(", ", d_mapFiles)).append("\n");
-            logSB.append("Player strategies: ").append(String.join(", ", d_playerStrategies)).append("\n");
-            logSB.append("Games per map: ").append(d_numberOfGames).append("\n");
-            logSB.append("Max turns per game: ").append(d_maxTurns).append("\n");
-            
-            for (String mapFile : d_mapFiles) {
-                String mapName = mapFile;
-                if (mapFile.contains("/")) {
-                    mapName = mapFile.substring(mapFile.lastIndexOf('/') + 1);
-                }
-                if (mapName.toLowerCase().endsWith(".map")) {
-                    mapName = mapName.substring(0, mapName.length() - 4);
-                }
-                
-                logSB.append("Map ").append(mapName).append(" results: ");
-                
-                java.util.Map<Integer, String> mapResults = d_results.get(mapFile);
-                for (int gameNumber = 1; gameNumber <= d_numberOfGames; gameNumber++) {
-                    String winner = mapResults.get(gameNumber);
-                    logSB.append("Game ").append(gameNumber).append(": ").append(winner).append(", ");
-                }
-                logSB.append("\n");
-            }
-            
-            d_gameLogger.logAction(logSB.toString());
-        }
-    }
+//    
+//    /**
+//     * Displays the tournament results in a formatted table.
+//     */
+//    public void displayResults() {
+//        System.out.println("\n=============== Tournament Results ===============");
+//        System.out.println("M: " + String.join(", ", d_mapFiles));
+//        System.out.println("P: " + String.join(", ", d_playerStrategies));
+//        System.out.println("G: " + d_numberOfGames);
+//        System.out.println("D: " + d_maxTurns);
+//        System.out.println();
+//        
+//        // Create header row
+//        System.out.print("\t\t");
+//        for (int i = 1; i <= d_numberOfGames; i++) {
+//            System.out.print("Game " + i + "\t");
+//        }
+//        System.out.println();
+//        
+//        // Display results for each map
+//        for (String mapFile : d_mapFiles) {
+//            // Extract the map name from the file path
+//            String mapName = mapFile;
+//            if (mapFile.contains("/")) {
+//                mapName = mapFile.substring(mapFile.lastIndexOf('/') + 1);
+//            } else if (mapFile.contains("\\")) {
+//                mapName = mapFile.substring(mapFile.lastIndexOf('\\') + 1);
+//            }
+//            if (mapName.toLowerCase().endsWith(".map")) {
+//                mapName = mapName.substring(0, mapName.length() - 4);
+//            }
+//            
+//            System.out.print(mapName + "\t");
+//            
+//            // Display results for each game on this map
+//            java.util.Map<Integer, String> mapResults = d_results.get(mapFile);
+//            for (int gameNumber = 1; gameNumber <= d_numberOfGames; gameNumber++) {
+//                String winner = mapResults.get(gameNumber);
+//                System.out.print(winner + "\t");
+//            }
+//            System.out.println();
+//        }
+//        
+//        System.out.println("=================================================");
+//        
+//        // Log the tournament results
+//        if (d_gameLogger != null) {
+//            StringBuilder logSB = new StringBuilder("Tournament results:\n");
+//            logSB.append("Maps: ").append(String.join(", ", d_mapFiles)).append("\n");
+//            logSB.append("Player strategies: ").append(String.join(", ", d_playerStrategies)).append("\n");
+//            logSB.append("Games per map: ").append(d_numberOfGames).append("\n");
+//            logSB.append("Max turns per game: ").append(d_maxTurns).append("\n");
+//            
+//            for (String mapFile : d_mapFiles) {
+//                String mapName = mapFile;
+//                if (mapFile.contains("/")) {
+//                    mapName = mapFile.substring(mapFile.lastIndexOf('/') + 1);
+//                }
+//                if (mapName.toLowerCase().endsWith(".map")) {
+//                    mapName = mapName.substring(0, mapName.length() - 4);
+//                }
+//                
+//                logSB.append("Map ").append(mapName).append(" results: ");
+//                
+//                java.util.Map<Integer, String> mapResults = d_results.get(mapFile);
+//                for (int gameNumber = 1; gameNumber <= d_numberOfGames; gameNumber++) {
+//                    String winner = mapResults.get(gameNumber);
+//                    logSB.append("Game ").append(gameNumber).append(": ").append(winner).append(", ");
+//                }
+//                logSB.append("\n");
+//            }
+//            
+//            d_gameLogger.logAction(logSB.toString());
+//        }
+//    }
 }

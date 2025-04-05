@@ -155,9 +155,7 @@ public class GameController {
 	}
 	
 	/**
-	 * Parses and validates the tournament command.
-	 * Tournament command format:
-	 * tournament -M listofmapfiles -P listofplayerstrategies -G numberofgames -D maxnumberofturns
+	 * Handles the tournament command.
 	 *
 	 * @param p_commandParts The parts of the tournament command
 	 * @return true if tournament was successfully started, false otherwise
@@ -278,6 +276,9 @@ public class GameController {
 	                              ", max turns: " + maxTurns);
 	    }
 	    
+	    // Make sure no players are in the game for tournament mode
+	    d_players.clear();
+	    
 	    // Create and run tournament
 	    com.Game.model.TournamentMode tournament = new com.Game.model.TournamentMode(
 	        mapFiles, playerStrategies, numberOfGames, maxTurns, this);
@@ -374,144 +375,221 @@ public class GameController {
 		return d_currentState;
 	}
 
+
 	/**
-	 * Starts the game and processes user commands. Provides a command prompt that's
-	 * available throughout the game. This method has been updated to use the State
-	 * pattern.
+	 * Starts the game and processes user commands.
+	 * Provides a command prompt that's available throughout the game.
 	 */
 	public void startGame() {
-		// Initialize with MapEditor phase
-		setPhase(PhaseType.MAP_EDITOR);
+	    // Display game mode selection menu at startup
+	    d_view.displayWelcomeMessage();
+	    boolean l_isTournamentMode = selectGameModeAtStartup();
+	    
+	    // Initialize the appropriate phase based on mode
+	    if (l_isTournamentMode) {
+	        setPhase(PhaseType.MAP_EDITOR);
+	        d_view.displayMessage("\nTournament Mode selected. Please load a map to continue.");
+	    } else {
+	        setPhase(PhaseType.MAP_EDITOR);
+	        d_view.displayMessage("\nSingle Player Mode selected. Please load a map to continue.");
+	    }
 
-		if (d_gameLogger != null) {
-			d_gameLogger.logAction("Game started");
-		}
+	    if (d_gameLogger != null) {
+	        d_gameLogger.logAction("Game started in " + (l_isTournamentMode ? "Tournament" : "Single Player") + " Mode");
+	    }
 
-		d_view.displayWelcomeMessage();
-		boolean l_isMapLoaded = false;
+	    boolean l_isMapLoaded = false;
 
-		while (true) {
-			String l_input;
-			String[] l_commandParts;
+	    while (true) {
+	        String l_input;
+	        String[] l_commandParts;
 
-			if (d_currentPhase == MAP_EDITING_PHASE) {
-				d_view.displayMapEditingMenu();
-				l_input = d_commandPromptView.getCommand();
-				l_commandParts = l_input.split("\\s+");
+	        if (d_currentPhase == MAP_EDITING_PHASE) {
+	            // Display appropriate menu based on game mode
+	            if (l_isTournamentMode) {
+	                d_view.displayTournamentMapEditingMenu();
+	            } else {
+	                d_view.displayMapEditingMenu();
+	            }
+	            
+	            l_input = d_commandPromptView.getCommand();
+	            l_commandParts = l_input.split("\\s+");
 
-				if (l_commandParts.length == 0) {
-					continue;
-				}
+	            if (l_commandParts.length == 0) {
+	                continue;
+	            }
 
-				String l_command = l_commandParts[0];
-				if (d_gameLogger != null) {
-					d_gameLogger.logAction("Command entered: " + l_input);
-				}
+	            String l_command = l_commandParts[0];
+	            if (d_gameLogger != null) {
+	                d_gameLogger.logAction("Command entered: " + l_input);
+	            }
 
-				if (l_command.equals("exit")) {
-					d_view.displayMessage("Exiting the program.");
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction("Program exited");
-					}
-					d_commandPromptView.closeScanner();
-					System.exit(0);
-				}
+	            if (l_command.equals("exit")) {
+	                d_view.displayMessage("Exiting the program.");
+	                if (d_gameLogger != null) {
+	                    d_gameLogger.logAction("Program exited");
+	                }
+	                d_commandPromptView.closeScanner();
+	                System.exit(0);
+	            }
 
-				// Validate command for current phase
-				if (!getCurrentState().validateCommand(l_command)) {
-					d_view.displayError("Command '" + l_command + "' is not valid in the current phase.");
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction("Invalid command '" + l_command + "' for current phase");
-					}
-					continue;
-				}
+	            // Validate command for current phase
+	            if (!getCurrentState().validateCommand(l_command)) {
+	                d_view.displayError("Command '" + l_command + "' is not valid in the current phase.");
+	                if (d_gameLogger != null) {
+	                    d_gameLogger.logAction("Invalid command '" + l_command + "' for current phase");
+	                }
+	                continue;
+	            }
 
-				if (!l_isMapLoaded && !l_command.equals("editmap") && !l_command.equals("loadmap")) {
-					d_view.displayError("You must load/edit a map first using the 'editmap' or 'loadmap' command.");
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction("Error: Attempt to use command without loading a map first");
-					}
-				} else {
-					l_isMapLoaded = d_mapEditorController.handleCommand(l_commandParts, l_command, l_isMapLoaded);
+	            if (!l_isMapLoaded && !l_command.equals("editmap") && !l_command.equals("loadmap")) {
+	                d_view.displayError("You must load/edit a map first using the 'editmap' or 'loadmap' command.");
+	                if (d_gameLogger != null) {
+	                    d_gameLogger.logAction("Error: Attempt to use command without loading a map first");
+	                }
+	            } else {
+	                l_isMapLoaded = d_mapEditorController.handleCommand(l_commandParts, l_command, l_isMapLoaded);
 
-					// Let the current state handle any phase-specific logic
-					getCurrentState().StartPhase(this, d_players, d_commandPromptView, l_commandParts, d_gameMap);
-				}
-			} // In the STARTUP_PHASE section of the loop in startGame method
-			else if (d_currentPhase == STARTUP_PHASE) {
-				d_view.displayStartupMenu();
-				l_input = d_commandPromptView.getCommand();
-				l_commandParts = l_input.split("\\s+");
+	                // Let the current state handle any phase-specific logic
+	                getCurrentState().StartPhase(this, d_players, d_commandPromptView, l_commandParts, d_gameMap);
+	                
+	                // For tournament mode, after map is loaded, move directly to tournament phase
+	                if (l_isTournamentMode && l_isMapLoaded && l_command.equals("loadmap")) {
+	                    if (d_mapLoader.validateMap(false)) {
+	                        d_view.displayMessage("\nMap successfully loaded and validated.");
+	                        d_view.displayMessage("You're now ready to start a tournament.");
+	                        d_view.displayMessage("Use the 'tournament' command to begin.");
+	                        
+	                        // Move to main game phase for tournament
+	                        d_currentPhase = MAIN_GAME_PHASE;
+	                        setPhase(PhaseType.ISSUE_ORDER);
+	                    } else {
+	                        d_view.displayError("\nThe loaded map failed validation. Please fix or choose another map.");
+	                        if (d_gameLogger != null) {
+	                            d_gameLogger.logAction("Map validation failed: " + d_mapFilePath);
+	                        }
+	                    }
+	                }
+	                
+	                // For single player mode, handle the transition to startup phase
+	                if (!l_isTournamentMode && l_command.equals("gameplayer")) {
+	                    d_currentPhase = STARTUP_PHASE;
+	                    setPhase(PhaseType.STARTUP);
+	                    handleStartupCommand(l_commandParts, l_command);
+	                }
+	            }
+	        } else if (d_currentPhase == STARTUP_PHASE) {
+	            // Only reachable in single player mode
+	            d_view.displayStartupMenu();
+	            l_input = d_commandPromptView.getCommand();
+	            l_commandParts = l_input.split("\\s+");
 
-				if (l_commandParts.length == 0) {
-					continue;
-				}
+	            if (l_commandParts.length == 0) {
+	                continue;
+	            }
 
-				String l_command = l_commandParts[0];
-				if (d_gameLogger != null) {
-					d_gameLogger.logAction("Command entered: " + l_input);
-				}
+	            String l_command = l_commandParts[0];
+	            if (d_gameLogger != null) {
+	                d_gameLogger.logAction("Command entered: " + l_input);
+	            }
 
-				if (l_command.equals("exit")) {
-					d_view.displayMessage("Exiting the program.");
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction("Program exited");
-					}
-					d_commandPromptView.closeScanner();
-					System.exit(0);
-				}
+	            if (l_command.equals("exit")) {
+	                d_view.displayMessage("Exiting the program.");
+	                if (d_gameLogger != null) {
+	                    d_gameLogger.logAction("Program exited");
+	                }
+	                d_commandPromptView.closeScanner();
+	                System.exit(0);
+	            }
 
-				// Validate command for current phase
-				if (!getCurrentState().validateCommand(l_command)) {
-					d_view.displayError("Command '" + l_command + "' is not valid in the current phase.");
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction("Invalid command '" + l_command + "' for current phase");
-					}
-					continue;
-				}
+	            // Validate command for current phase
+	            if (!getCurrentState().validateCommand(l_command)) {
+	                d_view.displayError("Command '" + l_command + "' is not valid in the current phase.");
+	                if (d_gameLogger != null) {
+	                    d_gameLogger.logAction("Invalid command '" + l_command + "' for current phase");
+	                }
+	                continue;
+	            }
 
-				handleStartupCommand(l_commandParts, l_command);
+	            handleStartupCommand(l_commandParts, l_command);
+	        } else if (d_currentPhase == MAIN_GAME_PHASE) {
+	            // Display appropriate menu based on game mode
+	            if (l_isTournamentMode) {
+	                d_view.displayTournamentMenu();
+	            } else {
+	                d_view.displayMainGameMenu();
+	            }
+	            
+	            l_input = d_commandPromptView.getCommand();
+	            l_commandParts = l_input.split("\\s+");
 
-				// Skip the phase's StartPhase method which might be causing the duplication
-				// getCurrentState().StartPhase(this, d_players, d_commandPromptView,
-				// l_commandParts, d_gameMap);
-			} 
-			// In the MAIN_GAME_PHASE section of the startGame method
-			else if (d_currentPhase == MAIN_GAME_PHASE) {
-			    d_view.displayMainGameMenu();
-			    l_input = d_commandPromptView.getCommand();
-			    l_commandParts = l_input.split("\\s+");
+	            if (l_commandParts.length == 0) {
+	                continue;
+	            }
 
-			    if (l_commandParts.length == 0) {
-			        continue;
-			    }
+	            String l_command = l_commandParts[0];
+	            if (d_gameLogger != null) {
+	                d_gameLogger.logAction("Command entered: " + l_input);
+	            }
 
-			    String l_command = l_commandParts[0];
-			    if (d_gameLogger != null) {
-			        d_gameLogger.logAction("Command entered: " + l_input);
-			    }
+	            if (l_command.equals("exit")) {
+	                d_view.displayMessage("Exiting the program.");
+	                if (d_gameLogger != null) {
+	                    d_gameLogger.logAction("Program exited");
+	                }
+	                d_commandPromptView.closeScanner();
+	                System.exit(0);
+	            }
 
-			    if (l_command.equals("exit")) {
-			        d_view.displayMessage("Exiting the program.");
-			        if (d_gameLogger != null) {
-			            d_gameLogger.logAction("Program exited");
-			        }
-			        d_commandPromptView.closeScanner();
-			        System.exit(0);
-			    }
+	            // Handle commands based on game mode
+	            if (l_isTournamentMode && l_command.equals("tournament")) {
+	                handleTournamentCommand(l_commandParts);
+	            } else {
+	                d_gamePlayController.handleCommand(l_commandParts, l_command);
+	            }
+	        }
+	    }
+	}
 
-			    // SKIP VALIDATION TEMPORARILY
-			    // if (!getCurrentState().validateCommand(l_command)) {
-			    // d_view.displayError("Command '" + l_command + "' is not valid in the current phase.");
-			    // if (d_gameLogger != null) {
-			    // d_gameLogger.logAction("Invalid command '" + l_command + "' for current phase");
-			    // }
-			    // continue;
-			    // }
-
-			    d_gamePlayController.handleCommand(l_commandParts, l_command);
-			}
-		}
+	/**
+	 * Prompts the user to select a game mode at startup.
+	 * 
+	 * @return true if Tournament Mode is selected, false for Single Player Mode
+	 */
+	private boolean selectGameModeAtStartup() {
+	    System.out.println("\n==== GAME MODE SELECTION ====");
+	    System.out.println("1. Single Player Mode (Human players with setup)");
+	    System.out.println("2. Tournament Mode (Automated play between computer players)");
+	    
+	    int selection = -1;
+	    while (selection != 1 && selection != 2) {
+	        selection = d_commandPromptView.getInteger("Enter your selection (1 or 2)");
+	        if (selection != 1 && selection != 2) {
+	            d_view.displayError("Invalid selection. Please enter 1 or 2.");
+	        }
+	    }
+	    
+	    return selection == 2;
+	}
+	/**
+	 * Prompts the user to select a game mode after a valid map is loaded.
+	 * 
+	 * @return true if mode was selected, false otherwise
+	 */
+	private boolean selectGameMode() {
+	    d_view.displayMessage("\n=== Game Mode Selection ===");
+	    d_view.displayMessage("A valid map has been loaded. Please select a game mode:");
+	    d_view.displayMessage("1. Single Player Mode - Play a standard game with player setup");
+	    d_view.displayMessage("2. Tournament Mode - Run automated tournaments between computer players");
+	    
+	    int selection = d_commandPromptView.getInteger("Enter your selection (1 or 2)");
+	    
+	    if (selection != 1 && selection != 2) {
+	        d_view.displayError("Invalid selection. Please try again.");
+	        return false;
+	    }
+	    
+	    return true;
 	}
 
 	/**

@@ -21,6 +21,82 @@ public class CommandPromptView {
     }
     
     /**
+     * Gets a game mode selection from the user.
+     * 
+     * @return The selected mode (1 for single player, 2 for tournament)
+     */
+    public int getGameModeSelection() {
+        System.out.print("Select game mode (1 for Single Player, 2 for Tournament): ");
+        try {
+            return Integer.parseInt(d_scanner.nextLine().trim());
+        } catch (NumberFormatException e) {
+            return -1; // Invalid selection
+        }
+    }
+
+    /**
+     * Gets a tournament command from the user with guided input.
+     * This breaks down the tournament command into parts for easier input.
+     * 
+     * @return The complete tournament command as a string
+     */
+    public String getTournamentCommand() {
+        StringBuilder command = new StringBuilder("tournament");
+        
+        // Get map files
+        System.out.println("\nEnter map files (1-5 maps, space separated):");
+        String mapFiles = d_scanner.nextLine().trim();
+        command.append(" -M ").append(mapFiles);
+        
+        // Get player strategies
+        System.out.println("\nEnter player strategies (2-4 strategies, space separated):");
+        System.out.println("Available strategies: aggressive, benevolent, random, cheater");
+        String playerStrategies = d_scanner.nextLine().trim();
+        command.append(" -P ").append(playerStrategies);
+        
+        // Get number of games
+        System.out.println("\nEnter number of games per map (1-5):");
+        String numberOfGames = d_scanner.nextLine().trim();
+        command.append(" -G ").append(numberOfGames);
+        
+        // Get max turns
+        System.out.println("\nEnter maximum number of turns per game (10-50):");
+        String maxTurns = d_scanner.nextLine().trim();
+        command.append(" -D ").append(maxTurns);
+        
+        return command.toString();
+    }
+
+    /**
+     * Gets a yes/no response for a simplified tournament setup.
+     * 
+     * @param message The message to display
+     * @return true for yes, false for no
+     */
+    public boolean getYesNoResponse(String message) {
+        System.out.print(message + " (y/n): ");
+        String response = d_scanner.nextLine().trim().toLowerCase();
+        return response.startsWith("y");
+    }
+
+    /**
+     * Gets a tournament setup with default settings or custom options.
+     * 
+     * @return The tournament command as a string
+     */
+    public String getQuickTournamentSetup() {
+        System.out.println("\n=== Tournament Setup ===");
+        
+        boolean useDefaults = getYesNoResponse("Use default tournament settings?");
+        
+        if (useDefaults) {
+            return "tournament -M canada.map -P aggressive benevolent random cheater -G 2 -D 20";
+        } else {
+            return getTournamentCommand();
+        }
+    }
+    
+    /**
      * Prompts the user to enter a command and returns the input.
      * 
      * @return The user's command input as a string
