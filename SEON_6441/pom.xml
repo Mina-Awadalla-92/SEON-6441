@@ -60,6 +60,9 @@
                     </goals>
                 </execution>
             </executions>
+            <configuration>
+                <encoding>UTF-8</encoding>
+            </configuration>
         </plugin>
         <!-- Surefire plugin to support JUnit 5 and 4 -->
         <plugin>
