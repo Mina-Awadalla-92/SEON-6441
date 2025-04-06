@@ -127,40 +127,80 @@ public class GamePlayController {
 	 * @param p_command      The main command (first word)
 	 */
 	public void handleCommand(String[] p_commandParts, String p_command) {
-		switch (p_command) {
-		case "showmap":
-			d_gameController.getView().displayMap(d_gameMap, d_players);
-			if (d_gameLogger != null) {
-				d_gameLogger.logAction("Map displayed during gameplay");
-			}
-			break;
-		case "issueorder":
-			if (d_ordersExecutedThisTurn) {
-				d_gameController.getView().displayError(
-						"Orders have already been executed this turn. Please use 'endturn' to proceed to the next turn.");
-				if (d_gameLogger != null) {
-					d_gameLogger.logAction("Error: Attempted to issue orders after execution phase");
-				}
-				return;
-			}
-			d_gameController.setPhase(PhaseType.ISSUE_ORDER);
-			handleIssueOrder();
-			break;
-		case "executeorders":
-			d_gameController.setPhase(PhaseType.ORDER_EXECUTION);
-			handleExecuteOrders();
-			d_ordersExecutedThisTurn = true; // Set the flag after executing orders
-			break;
-		case "endturn":
-			handleEndTurn();
-			d_ordersExecutedThisTurn = false; // Reset the flag for the new turn
-			break;
-		default:
-			d_gameController.getView().displayError("Unknown command or invalid for current phase: " + p_command);
-			if (d_gameLogger != null) {
-				d_gameLogger.logAction("Error: Unknown command '" + p_command + "' in main game phase");
-			}
-		}
+	    switch (p_command) {
+	        case "showmap":
+	            d_gameController.getView().displayMap(d_gameMap, d_players);
+	            if (d_gameLogger != null) {
+	                d_gameLogger.logAction("Map displayed during gameplay");
+	            }
+	            break;
+	        case "issueorder":
+	            if (d_ordersExecutedThisTurn) {
+	                d_gameController.getView().displayError(
+	                        "Orders have already been executed this turn. Please use 'endturn' to proceed to the next turn.");
+	                if (d_gameLogger != null) {
+	                    d_gameLogger.logAction("Error: Attempted to issue orders after execution phase");
+	                }
+	                return;
+	            }
+	            d_gameController.setPhase(PhaseType.ISSUE_ORDER);
+	            handleIssueOrder();
+	            break;
+	        case "executeorders":
+	            d_gameController.setPhase(PhaseType.ORDER_EXECUTION);
+	            handleExecuteOrders();
+	            d_ordersExecutedThisTurn = true; // Set the flag after executing orders
+	            break;
+	        case "endturn":
+	            handleEndTurn();
+	            d_ordersExecutedThisTurn = false; // Reset the flag for the new turn
+	            break;
+	        case "tournament":
+	            // Validate the current map before starting tournament
+	            if (!validateCurrentMap()) {
+	                d_gameController.getView().displayError(
+	                        "Current map is invalid. Please load a valid map before starting a tournament.");
+	                if (d_gameLogger != null) {
+	                    d_gameLogger.logAction("Error: Attempted to start tournament with invalid map");
+	                }
+	                return;
+	            }
+	            d_gameController.handleTournamentCommand(p_commandParts);
+	            break;
+	        default:
+	            d_gameController.getView().displayError("Unknown command or invalid for current phase: " + p_command);
+	            if (d_gameLogger != null) {
+	                d_gameLogger.logAction("Error: Unknown command '" + p_command + "' in main game phase");
+	            }
+	    }
+	}
+
+	/**
+	 * Validates the current map loaded in the game.
+	 * 
+	 * @return true if the map is valid, false otherwise
+	 */
+	private boolean validateCurrentMap() {
+	    if (d_gameMap == null || d_gameMap.getTerritoryList().isEmpty()) {
+	        d_gameController.getView().displayError("No map loaded.");
+	        return false;
+	    }
+	    
+	    // Validate map connectivity
+	    boolean isMapConnected = d_gameMap.mapValidation();
+	    if (!isMapConnected) {
+	        d_gameController.getView().displayError("Map validation failed: Map is not connected.");
+	        return false;
+	    }
+	    
+	    // Validate continent connectivity
+	    boolean areContinentsConnected = d_gameMap.continentValidation();
+	    if (!areContinentsConnected) {
+	        d_gameController.getView().displayError("Map validation failed: One or more continents are not connected.");
+	        return false;
+	    }
+	    
+	    return true;
 	}
 
 	/**
@@ -192,26 +232,25 @@ public class GamePlayController {
 	}
 
 	/**
-	 * Handles the issue order phase of the game. Allows each player to issue deploy
-	 * orders. In the Command pattern, this is where Players (Invokers) create Order
-	 * objects (Commands).
+	 * Handles the issue order phase of the game. Allows each player to issue deploy orders.
+	 * In the Command pattern, this is where Players (Invokers) create Order objects (Commands).
 	 */
 	private void handleIssueOrder() {
-		if (!d_gameController.isGameStarted()) {
-			d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
-			d_gameLogger.logAction("Error: Attempted to start issue order phase before game started");
-			return;
-		}
+	    if (!d_gameController.isGameStarted()) {
+	        d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
+	        d_gameLogger.logAction("Error: Attempted to start issue order phase before game started");
+	        return;
+	    }
 
-		d_gameController.getView().displayIssueOrdersPhase();
-		d_gameLogger.logPhaseChange("ISSUE ORDER");
+	    d_gameController.getView().displayIssueOrdersPhase();
+	    d_gameLogger.logPhaseChange("ISSUE ORDER");
 
-		d_currentPhase = d_currentPhase.setPhase(PhaseType.ISSUE_ORDER);
-		d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null,
-				d_gameMap);
+	    d_currentPhase = d_currentPhase.setPhase(PhaseType.ISSUE_ORDER);
+	    d_currentPhase.StartPhase(d_gameController, d_players, d_gameController.getCommandPromptView(), null,
+	            d_gameMap);
 
-		d_gameController.getView().displayIssueOrdersComplete();
-		d_gameLogger.logAction("All players have issued their orders");
+	    d_gameController.getView().displayIssueOrdersComplete();
+	    d_gameLogger.logAction("All players have issued their orders");
 	}
 
 	/**
@@ -311,30 +350,30 @@ public class GamePlayController {
 	 *
 	 * @return The winning player, or null if there is no winner yet
 	 */
-	private Player checkForWinner() {
-		// Check if any player owns all territories
-		for (Player l_player : d_players) {
-			if (l_player.getOwnedTerritories().size() == d_gameMap.getTerritoryList().size()) {
-				return l_player;
-			}
-		}
+	public Player checkForWinner() {
+	    // Check if any player owns all territories
+	    for (Player l_player : d_players) {
+	        if (l_player.getOwnedTerritories().size() == d_gameMap.getTerritoryList().size()) {
+	            return l_player;
+	        }
+	    }
 
-		// Check if only one player has territories
-		int l_playersWithTerritories = 0;
-		Player l_lastPlayerWithTerritories = null;
+	    // Check if only one player has territories
+	    int l_playersWithTerritories = 0;
+	    Player l_lastPlayerWithTerritories = null;
 
-		for (Player l_player : d_players) {
-			if (l_player.getOwnedTerritories().size() > 0) {
-				l_playersWithTerritories++;
-				l_lastPlayerWithTerritories = l_player;
-			}
-		}
+	    for (Player l_player : d_players) {
+	        if (l_player.getOwnedTerritories().size() > 0) {
+	            l_playersWithTerritories++;
+	            l_lastPlayerWithTerritories = l_player;
+	        }
+	    }
 
-		if (l_playersWithTerritories == 1) {
-			return l_lastPlayerWithTerritories;
-		}
+	    if (l_playersWithTerritories == 1) {
+	        return l_lastPlayerWithTerritories;
+	    }
 
-		return null; // No winner yet
+	    return null; // No winner yet
 	}
 
 	/**

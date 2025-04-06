@@ -62,6 +62,91 @@ public class MapLoader {
     public void resetLoadedMap() {
         this.d_loadedMap = new Map();
     }
+    
+    /**
+     * Validates a collection of maps for use in the tournament mode.
+     * 
+     * @param p_mapFiles List of map file paths to validate
+     * @return Map of validation results (map path -> validation result)
+     */
+    public java.util.Map<String, Boolean> validateMapsForTournament(List<String> p_mapFiles) {
+        java.util.Map<String, Boolean> validationResults = new HashMap<>();
+        
+        for (String mapFile : p_mapFiles) {
+            System.out.println("Validating map: " + mapFile);
+            
+            // Check if map exists
+            BufferedReader reader = isMapExist(mapFile);
+            if (reader == null) {
+                System.out.println("  Error: Map file not found - " + mapFile);
+                validationResults.put(mapFile, false);
+                continue;
+            }
+            
+            try {
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            
+            // Check map format
+            boolean isValidFormat = isValid(mapFile);
+            if (!isValidFormat) {
+                System.out.println("  Error: Invalid map format - " + mapFile);
+                validationResults.put(mapFile, false);
+                continue;
+            }
+            
+            // Load and validate map connectivity
+            resetLoadedMap();
+            read(mapFile);
+            boolean isValidMap = validateMap(false);
+            
+            if (!isValidMap) {
+                System.out.println("  Error: Map validation failed (connectivity or other issues) - " + mapFile);
+                validationResults.put(mapFile, false);
+            } else {
+                System.out.println("  Map is valid - " + mapFile);
+                validationResults.put(mapFile, true);
+            }
+        }
+        
+        return validationResults;
+    }
+
+    /**
+     * Checks if a map is completely valid:
+     * 1. File exists
+     * 2. Format is valid
+     * 3. Map is connected
+     * 4. Continents are connected
+     * 
+     * @param p_mapFile Path to the map file
+     * @return true if the map is completely valid, false otherwise
+     */
+    public boolean isMapCompletelyValid(String p_mapFile) {
+        // Check if map exists
+        BufferedReader reader = isMapExist(p_mapFile);
+        if (reader == null) {
+            return false;
+        }
+        
+        try {
+            reader.close();
+        } catch (IOException e) {
+            return false;
+        }
+        
+        // Check map format
+        if (!isValid(p_mapFile)) {
+            return false;
+        }
+        
+        // Load and validate map connectivity
+        resetLoadedMap();
+        read(p_mapFile);
+        return validateMap(false);
+    }
 
     /**
      * Reads a map from a file.
