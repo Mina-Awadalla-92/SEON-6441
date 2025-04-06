@@ -8,6 +8,11 @@ import com.Game.model.order.AdvanceMove;
 import com.Game.model.order.AirliftAttack;
 import com.Game.model.order.DeployOrder;
 
+/**
+ * Represents a Random in the game who owns territories and can issue orders.
+ * Players can deploy armies, acquire territories, manage their reinforcements,
+ * cards, conquered territories count, and negotiated players per turn.
+ */
 public class RandomPlayer extends Player {
 
     private Random rand;

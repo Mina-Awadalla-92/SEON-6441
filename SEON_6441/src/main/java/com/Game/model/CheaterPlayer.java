@@ -5,6 +5,11 @@ import java.util.List;
 
 import com.Game.observer.GameLogger;
 
+/**
+ * Represents a Cheater player in the game who owns territories and can issue orders.
+ * Players can deploy armies, acquire territories, manage their reinforcements,
+ * cards, conquered territories count, and negotiated players per turn.
+ */
 public class CheaterPlayer extends Player {
 
     /**

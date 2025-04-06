@@ -679,6 +679,11 @@ public abstract class Player {
 		d_hasConqueredThisTurn = p_value;
 	}
 
+	/**
+	 * Returns the type of the player.
+	 *
+	 * @return the player type as a String
+	 */
 	public String getPlayerType() {
 		return this.d_playerType;
 	}

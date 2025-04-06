@@ -4,6 +4,11 @@ import java.util.List;
 import com.Game.model.order.AdvanceMove;
 import com.Game.model.order.DeployOrder;
 
+/**
+ * Represents a Benevolent player in the game who owns territories and can issue orders.
+ * Players can deploy armies, acquire territories, manage their reinforcements,
+ * cards, conquered territories count, and negotiated players per turn.
+ */
 public class BenevolentPlayer extends Player {
 
     /**

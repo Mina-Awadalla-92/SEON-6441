@@ -207,8 +207,6 @@ public class GamePlayController {
 	 * It reads the map file, loads the map, validates it, and assigns players and their territories.
 	 *
 	 * @param p_commandParts An array containing the command and the map file name.
-	 *
-	 * @throws IOException If an error occurs while loading the map or reading player information.
 	 */
 	public void handleLoadSavedGame(String[] p_commandParts)
 	{
