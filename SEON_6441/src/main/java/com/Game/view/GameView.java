@@ -40,6 +40,102 @@ public class GameView {
     }
     
     /**
+     * Displays detailed information about the single game mode setup.
+     * 
+     * @param mapFile The selected map file
+     * @param maxTurns Maximum number of turns
+     * @param playerStrategies List of player strategies
+     */
+    public void displaySingleGameSetup(String mapFile, int maxTurns, List<String> playerStrategies) {
+        System.out.println("\n===== Single Game Configuration =====");
+        System.out.println("Map: " + mapFile);
+        System.out.println("Maximum Turns: " + maxTurns);
+        
+        System.out.println("\nPlayer Strategies:");
+        for (int i = 0; i < playerStrategies.size(); i++) {
+            System.out.println("Player " + (i+1) + ": " + playerStrategies.get(i));
+        }
+        System.out.println("======================================");
+    }
+
+    /**
+     * Displays a message about the game mode when no human players are present.
+     */
+    public void displayAutoGameMessage() {
+        System.out.println("\n===== AUTOMATIC GAME MODE =====");
+        System.out.println("No human players detected.");
+        System.out.println("The game will proceed automatically.");
+        System.out.println("Sit back and watch the computer strategies compete!");
+        System.out.println("======================================");
+    }
+
+    /**
+     * Displays player strategy details for user understanding.
+     */
+    public void displayPlayerStrategyInfo() {
+        System.out.println("\n===== PLAYER STRATEGY INFORMATION =====");
+        System.out.println("1. Human Player: Requires user interaction to make decisions");
+        System.out.println("2. Aggressive Player: Focuses on centralization of forces and attacking");
+        System.out.println("   - Deploys on strongest country");
+        System.out.println("   - Always attacks with strongest country");
+        System.out.println("   - Moves armies to maximize force aggregation");
+        System.out.println("\n3. Benevolent Player: Focuses on protecting weak countries");
+        System.out.println("   - Deploys on weakest country");
+        System.out.println("   - Never attacks");
+        System.out.println("   - Moves armies to reinforce weaker countries");
+        System.out.println("\n4. Random Player: Makes completely random decisions");
+        System.out.println("   - Deploys on random country");
+        System.out.println("   - Attacks random neighboring countries");
+        System.out.println("   - Moves armies randomly");
+        System.out.println("\n5. Cheater Player: Uses unconventional tactics");
+        System.out.println("   - Automatically conquers all immediate neighboring enemy countries");
+        System.out.println("   - Doubles the number of armies on countries with enemy neighbors");
+        System.out.println("======================================");
+    }
+
+    /**
+     * Displays a pre-game warning about player strategies.
+     * 
+     * @param playerStrategies List of player strategies
+     */
+    public void displayPlayerStrategyWarning(List<String> playerStrategies) {
+        System.out.println("\n===== PLAYER STRATEGY WARNING =====");
+        System.out.println("Game will be played with the following strategies:");
+        
+        for (int i = 0; i < playerStrategies.size(); i++) {
+            System.out.println("Player " + (i+1) + ": " + playerStrategies.get(i));
+        }
+        
+        System.out.println("\nEach strategy has unique behavior:");
+        System.out.println("- Pay attention to how different strategies interact");
+        System.out.println("- Results may vary due to random elements");
+        System.out.println("- The goal is to conquer all territories");
+        System.out.println("======================================");
+    }
+
+    /**
+     * Displays a summary of the game result.
+     * 
+     * @param winner The name of the winning player or "Draw"
+     * @param mapFile The map used for the game
+     * @param turnsTaken Number of turns taken to complete the game
+     */
+    public void displayGameResult(String winner, String mapFile, int turnsTaken) {
+        System.out.println("\n===== GAME RESULT =====");
+        System.out.println("Map: " + mapFile);
+        System.out.println("Turns Taken: " + turnsTaken);
+        
+        if (winner.equals("Draw")) {
+            System.out.println("Result: DRAW");
+            System.out.println("No player managed to conquer all territories within the turn limit.");
+        } else {
+            System.out.println("Winner: " + winner);
+            System.out.println("Congratulations! The player conquered all territories.");
+        }
+        System.out.println("======================================");
+    }
+    
+    /**
      * Displays the menu for the tournament map editing phase.
      */
     public void displayTournamentMapEditingMenu() {

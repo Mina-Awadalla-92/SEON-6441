@@ -11,6 +11,7 @@ import com.Game.Phases.Phase;
 import com.Game.Phases.PhaseType;
 import com.Game.model.*;
 import com.Game.utils.MapLoader;
+import com.Game.utils.SingleGameUtil;
 import com.Game.model.CardType;
 import com.Game.observer.GameLogger;
 
@@ -18,6 +19,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Controller class responsible for handling gameplay operations. This class
@@ -26,7 +28,7 @@ import java.util.regex.Pattern;
  * pattern, GamePlayController (as part of the GameEngine) acts as the Client.
  */
 public class GamePlayController {
-
+	
 	/**
 	 * Message displayed when a command is issued before the game has started.
 	 */
@@ -535,73 +537,35 @@ public class GamePlayController {
 	}
 
 	/**
-	 * Handles the end of a turn. Checks for a winner and either ends the game or
-	 * starts a new turn.
-	 */
-	private void handleEndTurn() {
-		if (!d_gameController.isGameStarted()) {
-			d_gameController.getView().displayError(GAME_NOT_STARTED_MESSAGE);
-			if (d_gameLogger != null) {
-				d_gameLogger.logAction("Error: Attempted to end turn before game started");
-			}
-			return;
-		}
+     * Handles the end of a turn in automatic mode.
+     * This method ensures card distribution and player status reset.
+     */
+    private void handleEndTurn() {
+        System.out.println("\nAuto: Ending turn and preparing next turn...");
 
-		// Check for game end condition
-		Player l_winner = checkForWinner();
+        // Award cards to players who conquered territories
+        for (Player player : d_players) {
+            if (player.getHasConqueredThisTurn()) {
+                // Pick a random card type
+                com.Game.model.CardType[] allCardTypes = com.Game.model.CardType.values();
+                int randomIndex = d_random.nextInt(allCardTypes.length);
+                com.Game.model.CardType randomCard = allCardTypes[randomIndex];
 
-		if (l_winner != null) {
-			d_gameController.getView().displayWinner(l_winner.getName());
-			if (d_gameLogger != null) {
-				d_gameLogger.logAction("Game ended. Player " + l_winner.getName() + " is the winner!");
-			}
+                player.addCard(randomCard);
+                System.out.println("Auto: Player " + player.getName() + " was awarded a " + randomCard.name() + " card");
+            }
+        }
 
-			d_gameController.setGameStarted(false);
-			d_gameController.setCurrentPhase(GameController.MAP_EDITING_PHASE);
-		} else {
-			// Start a new turn with reinforcement phase
-			d_gameController.getView().displayEndTurn();
-			if (d_gameLogger != null) {
-				d_gameLogger.logAction("Turn ended. Starting new turn.");
-			}
+        // Reset player status for the new turn
+        for (Player player : d_players) {
+            player.setHasConqueredThisTurn(false);
+            player.setNegociatedPlayersPerTurn(new ArrayList<>());
+        }
 
-			// Award cards to players who conquered territories
-			System.out.println("\nCards awarding:\n");
-			for (Player l_player : d_players) {
-				if (l_player.getHasConqueredThisTurn()) {
-					CardType[] allCardTypes = CardType.values();
+        // Start reinforcement for next turn
+        handleReinforcement();
+    }
 
-					// Pick a random index
-					int l_randomIndex = d_random.nextInt(allCardTypes.length);
-
-					// Get the random card
-					CardType randomCard = allCardTypes[l_randomIndex];
-
-					// Add the card to the player's hand
-					l_player.addCard(randomCard);
-
-					System.out.println("Player " + l_player.getName() + " was awarded " + randomCard.name());
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction("Player " + l_player.getName() + " was awarded a " + randomCard.name()
-								+ " card for conquering territory");
-					}
-				}
-			}
-			System.out.println();
-
-			// Reset player status for the new turn
-			for (Player l_player : d_players) {
-				l_player.setHasConqueredThisTurn(false);
-				l_player.setNegociatedPlayersPerTurn(new ArrayList<>());
-			}
-			if (d_gameLogger != null) {
-				d_gameLogger.logAction("Player conquest and diplomacy statuses reset for new turn");
-			}
-
-			// Start reinforcement phase
-			handleReinforcement();
-		}
-	}
 
 	/**
 	 * Checks if there is a winner in the current game state.
@@ -708,26 +672,199 @@ public class GamePlayController {
 	}
 
 	/**
-	 * Starts the main game after the startup phase.
-	 *
-	 * @return true if the game started successfully, false otherwise
-	 */
-	public boolean startMainGame() {
-		if (d_players.size() < 2) {
-			d_gameController.getView().displayError("Need at least 2 players to start the game.");
-			d_gameLogger.logAction("Error: Cannot start game. Need at least 2 players.");
-			return false;
-		}
+     * Starts the main game with additional automatic mode handling.
+     *
+     * @return true if the game started successfully, false otherwise
+     */
+    public boolean startMainGame() {
+        if (d_players.size() < 2) {
+            d_gameController.getView().displayError("Need at least 2 players to start the game.");
+            d_gameLogger.logAction("Error: Cannot start game. Need at least 2 players.");
+            return false;
+        }
 
-		// Initialize the game
-		d_gameController.setGameStarted(true);
-		d_gameController.setCurrentPhase(GameController.MAIN_GAME_PHASE);
+        // Initialize the game
+        d_gameController.setGameStarted(true);
+        d_gameController.setCurrentPhase(GameController.MAIN_GAME_PHASE);
 
-		d_gameController.getView().displayMessage("Game started! Beginning reinforcement phase.");
-		d_gameLogger.logAction("Main game started");
+        d_gameController.getView().displayMessage("Game started! Beginning reinforcement phase.");
+        d_gameLogger.logAction("Main game started");
 
-		// Start with reinforcement phase
-		handleReinforcement();
-		return true;
-	}
+        // Start with reinforcement phase
+        handleReinforcement();
+
+        // If no human players, start automatic game loop
+        if (shouldRunAutomatically()) {
+            runAutomaticGameLoop();
+        }
+
+        return true;
+    }
+    
+    /**
+     * Checks if the game should proceed automatically based on player types.
+     * 
+     * @return true if no human players are present, false otherwise
+     */
+    public boolean shouldRunAutomatically() {
+        return d_players.stream()
+                .noneMatch(player -> player instanceof HumanPlayer);
+    }
+
+    /**
+     * Prepares players for single game mode.
+     * 
+     * @param mapFile The map file being used
+     * @param playerStrategies List of player strategies
+     * @return List of created players
+     */
+    public List<Player> prepareSingleGamePlayers(String mapFile, List<String> playerStrategies) {
+        // Generate unique names for players
+        List<String> playerNames = SingleGameUtil.generatePlayerNames(playerStrategies);
+        
+        // Create players based on strategies
+        List<Player> players = new ArrayList<>();
+        for (int i = 0; i < playerStrategies.size(); i++) {
+            String strategy = playerStrategies.get(i);
+            String playerName = playerNames.get(i);
+            
+            try {
+                Player player = SingleGameUtil.createPlayerByStrategy(strategy, playerName);
+                players.add(player);
+            } catch (IllegalArgumentException e) {
+                d_gameController.getView().displayError(
+                    "Failed to create player with strategy: " + strategy
+                );
+            }
+        }
+        
+        return players;
+    }
+
+    /**
+     * Runs a single game in automatic mode.
+     * Continues until a winner is determined or max turns are reached.
+     * 
+     * @param maxTurns Maximum number of turns for the game
+     * @return The name of the winner or "Draw"
+     */
+    public String runAutomaticSingleGame(int maxTurns) {
+        // Track current turn
+        int currentTurn = 0;
+        
+        while (currentTurn < maxTurns) {
+            // Reinforcement phase
+            handleReinforcement();
+            
+            // Issue orders phase
+            handleIssueOrder();
+            
+            // Execute orders phase
+            handleExecuteOrders();
+            
+            // Check for winner
+            Player winner = checkForWinner();
+            if (winner != null) {
+                return winner.getName();
+            }
+            
+            // End turn and prepare for next
+            handleEndTurn();
+            
+            currentTurn++;
+        }
+        
+        // If no winner after max turns
+        return "Draw";
+    }
+
+    /**
+     * Provides a summary of the game state.
+     * 
+     * @return A map containing game statistics
+     */
+    public java.util.Map<String, Object> getGameStatistics() {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        
+        // Total territories
+        int totalTerritories = d_gameMap.getTerritoryList().size();
+        stats.put("TotalTerritories", totalTerritories);
+        
+        // Player territory distribution
+        java.util.Map<String, Integer> territoryDistribution = d_players.stream()
+            .collect(Collectors.toMap(
+                Player::getName, 
+                p -> p.getOwnedTerritories().size()
+            ));
+        stats.put("TerritoryDistribution", territoryDistribution);
+        
+        // Player army distribution
+        java.util.Map<String, Integer> armyDistribution = d_players.stream()
+            .collect(Collectors.toMap(
+                Player::getName, 
+                p -> p.getOwnedTerritories().stream()
+                    .mapToInt(t -> t.getNumOfArmies())
+                    .sum()
+            ));
+        stats.put("ArmyDistribution", armyDistribution);
+        
+        return stats;
+    }
+
+    /**
+     * Provides a detailed log of the game's progress.
+     * 
+     * @return A list of significant game events
+     */
+    public List<String> getGameProgressLog() {
+        List<String> progressLog = new ArrayList<>();
+        
+        // Log initial game state
+        progressLog.add("Game Started: " + 
+            d_players.stream()
+                .map(Player::getName)
+                .collect(Collectors.joining(", "))
+        );
+        
+        // You can expand this method to capture more detailed game events
+        // For example, territory conquests, significant battles, etc.
+        
+        return progressLog;
+    }
+    
+    /**
+     * Runs the game automatically when no human players are present.
+     * Continues until a winner is determined or manual intervention is needed.
+     */
+    private void runAutomaticGameLoop() {
+        new Thread(() -> {
+            while (d_gameController.isGameStarted()) {
+                try {
+                    // Issue orders for all players
+                    handleIssueOrder();
+
+                    // Execute orders
+                    handleExecuteOrders();
+
+                    // Check for winner
+                    Player winner = checkForWinner();
+                    if (winner != null) {
+                        d_gameController.getView().displayWinner(winner.getName());
+                        d_gameController.setGameStarted(false);
+                        break;
+                    }
+
+                    // End turn and prepare for next turn
+                    handleEndTurn();
+
+                    // Small delay to prevent overwhelming the system
+                    Thread.sleep(500);
+                } catch (Exception e) {
+                    d_gameLogger.logAction("Error in automatic game loop: " + e.getMessage());
+                    break;
+                }
+            }
+        }).start();
+    }
+
 }

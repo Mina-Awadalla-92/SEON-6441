@@ -1,6 +1,12 @@
 package com.Game.view;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
+
+import com.Game.utils.HelpDocumentation;
+import com.Game.utils.SingleGameUtil;
 
 /**
  * Handles user input through the command line.
@@ -21,6 +27,163 @@ public class CommandPromptView {
     }
     
     /**
+     * Interactive method to configure single game mode settings.
+     * 
+     * @return List containing map file, max turns, and player strategies
+     */
+    public List<Object> configureSingleGameSettings() {
+        List<Object> gameSettings = new ArrayList<>();
+        
+        // Display help information
+        System.out.println(HelpDocumentation.getSingleGameQuickHelp());
+        
+        // Map file selection
+        String mapFile = selectMapFile();
+        gameSettings.add(mapFile);
+        
+        // Maximum turns configuration
+        int maxTurns = configureMaxTurns();
+        gameSettings.add(maxTurns);
+        
+        // Player strategies configuration
+        List<String> playerStrategies = configurePlayerStrategies();
+        gameSettings.add(playerStrategies);
+        
+        return gameSettings;
+    }
+
+    /**
+     * Interactively select a map file.
+     * 
+     * @return Selected map file name
+     */
+    private String selectMapFile() {
+        while (true) {
+            System.out.println("\n===== MAP SELECTION =====");
+            System.out.println("Available maps in resources:");
+            System.out.println("1. canada.map");
+            System.out.println("2. swiss.map");
+            System.out.println("3. MiddleEast-Qatar.map");
+            System.out.println("4. Enter custom map file");
+            
+            int choice = getInteger("Select map (1-4)");
+            
+            switch (choice) {
+                case 1:
+                    return "canada.map";
+                case 2:
+                    return "swiss.map";
+                case 3:
+                    return "MiddleEast-Qatar.map";
+                case 4:
+                    return getString("Enter full path to map file");
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    /**
+     * Configures the maximum number of turns for the game.
+     * 
+     * @return Number of maximum turns
+     */
+    private int configureMaxTurns() {
+        while (true) {
+            System.out.println("\n===== TURN CONFIGURATION =====");
+            int maxTurns = getInteger("Enter maximum number of turns (10-50)");
+            
+            if (maxTurns >= 10 && maxTurns <= 50) {
+                return maxTurns;
+            }
+            
+            System.out.println("Invalid input. Maximum turns must be between 10 and 50.");
+        }
+    }
+
+    /**
+     * Interactively configure player strategies.
+     * 
+     * @return List of selected player strategies
+     */
+    private List<String> configurePlayerStrategies() {
+        List<String> strategies = new ArrayList<>();
+        
+        while (true) {
+            System.out.println("\n===== PLAYER STRATEGY CONFIGURATION =====");
+            System.out.println("Current Players: " + strategies.size());
+            
+            // Display available strategies
+            System.out.println("\nAvailable Strategies:");
+            System.out.println("1. Human Player");
+            System.out.println("2. Aggressive Computer Player");
+            System.out.println("3. Benevolent Computer Player");
+            System.out.println("4. Random Computer Player");
+            System.out.println("5. Cheater Computer Player");
+            System.out.println("6. Finish Player Setup");
+            
+            // Show strategy recommendations if applicable
+            List<String> recommendations = SingleGameUtil.getStrategyRecommendations(strategies);
+            if (!recommendations.isEmpty()) {
+                System.out.println("\nRecommended Strategies: " + 
+                    recommendations.stream()
+                        .map(s -> s.substring(0, 1).toUpperCase() + s.substring(1))
+                        .collect(Collectors.joining(", ")));
+            }
+            
+            int choice = getInteger("Enter your choice");
+            
+            switch (choice) {
+                case 1:
+                    strategies.add("human");
+                    break;
+                case 2:
+                    strategies.add("aggressive");
+                    break;
+                case 3:
+                    strategies.add("benevolent");
+                    break;
+                case 4:
+                    strategies.add("random");
+                    break;
+                case 5:
+                    strategies.add("cheater");
+                    break;
+                case 6:
+                    // Validate player setup
+                    if (strategies.size() < 2) {
+                        System.out.println("Error: You must have at least 2 players.");
+                        continue;
+                    }
+                    
+                    // Confirm strategy selection
+                    System.out.println("\nSelected Strategies:");
+                    for (int i = 0; i < strategies.size(); i++) {
+                        System.out.println("Player " + (i+1) + ": " + 
+                            strategies.get(i).substring(0, 1).toUpperCase() + 
+                            strategies.get(i).substring(1));
+                    }
+                    
+                    boolean confirm = getConfirmation("Confirm these player strategies?");
+                    if (confirm) {
+                        return strategies;
+                    }
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    /**
+     * Provides help information about player strategies.
+     */
+    public void showPlayerStrategyHelp() {
+        System.out.println(HelpDocumentation.getSingleGameHelp());
+        getConfirmation("Press Enter to continue");
+    }
+    
+    /**
      * Gets a game mode selection from the user.
      * 
      * @return The selected mode (1 for single player, 2 for tournament)
@@ -33,6 +196,76 @@ public class CommandPromptView {
             return -1; // Invalid selection
         }
     }
+    
+    /**
+     * Provides an interactive player setup for single game mode.
+     * Allows adding human and computer players with different strategies.
+     * 
+     * @return List of player strategies selected by the user
+     */
+    public List<String> configureSingleGamePlayers() {
+        List<String> playerStrategies = new ArrayList<>();
+        
+        while (true) {
+            System.out.println("\n===== Single Game Player Setup =====");
+            System.out.println("Current Players: " + playerStrategies.size());
+            System.out.println("\nChoose a player type to add:");
+            System.out.println("1. Human Player");
+            System.out.println("2. Aggressive Computer Player");
+            System.out.println("3. Benevolent Computer Player");
+            System.out.println("4. Random Computer Player");
+            System.out.println("5. Cheater Computer Player");
+            System.out.println("6. Finish Player Setup");
+            
+            int choice = getInteger("Enter your choice");
+            
+            switch (choice) {
+                case 1:
+                    playerStrategies.add("human");
+                    break;
+                case 2:
+                    playerStrategies.add("aggressive");
+                    break;
+                case 3:
+                    playerStrategies.add("benevolent");
+                    break;
+                case 4:
+                    playerStrategies.add("random");
+                    break;
+                case 5:
+                    playerStrategies.add("cheater");
+                    break;
+                case 6:
+                    // Validate player setup
+                    if (playerStrategies.size() < 2) {
+                        System.out.println("Error: You must have at least 2 players.");
+                        continue;
+                    }
+                    return playerStrategies;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+
+    /**
+     * Configures the maximum number of turns for the game.
+     * 
+     * @return The number of maximum turns
+     */
+    private int getMaxTurnsConfiguration() {
+        while (true) {
+            int maxTurns = getInteger("Enter maximum number of turns (10-50)");
+            
+            if (maxTurns >= 10 && maxTurns <= 50) {
+                return maxTurns;
+            }
+            
+            System.out.println("Invalid input. Maximum turns must be between 10 and 50.");
+        }
+    }
+
 
     /**
      * Gets a tournament command from the user with guided input.
