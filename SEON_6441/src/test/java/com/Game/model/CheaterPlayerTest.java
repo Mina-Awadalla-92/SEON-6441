@@ -26,7 +26,7 @@ public class CheaterPlayerTest {
         c_t2 = new Territory("C_T2", "Continent1", 5);
         map.addTerritory(c_t1);
         map.addTerritory(c_t2);
-        cheater = new CheaterPlayer("Cheater");
+        cheater = new CheaterPlayer("Cheater","Cheater");
         c_t1.setOwner(cheater);
         c_t2.setOwner(cheater);
         cheater.addTerritory(c_t1);
@@ -37,7 +37,7 @@ public class CheaterPlayerTest {
         // Create enemy territories adjacent to the cheater's territories.
         enemy1 = new Territory("EnemyC1", "Continent1", 5);
         enemy2 = new Territory("EnemyC2", "Continent1", 5);
-        enemyPlayer = new HumanPlayer("EnemyC");
+        enemyPlayer = new HumanPlayer("EnemyC", "Human");
         enemy1.setOwner(enemyPlayer);
         enemy2.setOwner(enemyPlayer);
         enemyPlayer.addTerritory(enemy1);

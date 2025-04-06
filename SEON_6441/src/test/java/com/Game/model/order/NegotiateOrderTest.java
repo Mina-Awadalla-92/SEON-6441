@@ -24,8 +24,8 @@ public class NegotiateOrderTest {
 	@Before
 	public void setUp() {
 		// Create two players: the issuer and the target of the negotiation.
-		issuer = new HumanPlayer("Issuer");
-		target = new HumanPlayer("Target");
+		issuer = new HumanPlayer("Issuer","human1");
+		target = new HumanPlayer("Target","human2");
 
 		// Ensure the negotiated lists are initially empty.
 		issuer.resetNegociatedPlayersPerTurn();

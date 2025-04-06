@@ -36,9 +36,9 @@ public class AirliftOrderTest {
 		testMap = new Map();
 
 		// Create Players
-		attacker = new HumanPlayer("Attacker");
-		defender = new HumanPlayer("Defender");
-		thirdPlayer = new HumanPlayer("ThirdPlayer");
+		attacker = new HumanPlayer("Attacker","human");
+		defender = new HumanPlayer("Defender", "human");
+		thirdPlayer = new HumanPlayer("ThirdPlayer", "human");
 
 		// Create a territory owned by Attacker
 		fromTerritory = new Territory("FromLand", "ContinentA", 2);

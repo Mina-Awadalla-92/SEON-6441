@@ -26,9 +26,10 @@ public class AggressivePlayer extends Player {
 	 * Constructor initializing human player with a name.
 	 *
 	 * @param p_name Player's name
+	 * @param p_playerType Type of player.
 	 */
-	public AggressivePlayer(String p_name) {
-		super(p_name);
+	public AggressivePlayer(String p_name, String p_playerType) {
+		super(p_name, p_playerType);
 		
 	}
 
@@ -36,15 +37,20 @@ public class AggressivePlayer extends Player {
 	 * Constructor initializing human player with a name and reinforcement armies.
 	 *
 	 * @param p_name                     Player's name
-	 * @param p_nbrOfReinforcementArmies Number of reinforcement armies
+	 * @param p_nbrOfReinforcementArmies Number of reinforcement armies'
+	 * @param p_playerType Type of player.
 	 */
-	public AggressivePlayer(String p_name, int p_nbrOfReinforcementArmies) {
-		super(p_name, p_nbrOfReinforcementArmies);
+	public AggressivePlayer(String p_name, int p_nbrOfReinforcementArmies, String p_playerType) {
+		super(p_name, p_nbrOfReinforcementArmies, p_playerType);
 	}
 
 	
 	@Override
 	public boolean issueOrder(String p_command, Map p_map, List<Player> p_players) {
+		if (p_command == null) {
+			return false;
+		}
+
 	    // p_command is passed as empty. We ignore its value and decide orders based on an aggressive strategy.
 	    boolean orderIssued = false;
 

@@ -33,8 +33,8 @@ public class AdvanceOrderTest {
 	@Before
 	public void setUp() {
 		// Create players
-		d_attacker = new HumanPlayer("Attacker", 10);
-		d_defender = new HumanPlayer("Defender", 10);
+		d_attacker = new HumanPlayer("Attacker", 10,"human1");
+		d_defender = new HumanPlayer("Defender", 10,"human2");
 
 		// Create territories
 		d_sourceTerritory = new Territory("SourceTerritory", "TestContinent", 2);

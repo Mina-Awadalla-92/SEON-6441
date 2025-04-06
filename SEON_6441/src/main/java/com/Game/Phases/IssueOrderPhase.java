@@ -50,14 +50,6 @@ public class IssueOrderPhase extends Phase {
 
 		for (Player l_player : p_players) {
 			
-			if(!l_player.getPlayerType().equals("HUMAN")) {
-				l_player.issueOrder(null, p_gameMap, p_players);
-				if (d_gameLogger != null) {
-					d_gameLogger.logAction("Player " + l_player.getName() + " issued orders");
-				}
-				continue;
-			}
-			
 			boolean l_playerDone = false;
 			
 			p_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());

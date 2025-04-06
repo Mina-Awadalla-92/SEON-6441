@@ -128,7 +128,7 @@ public class GameController {
 		this.d_gameMap = new Map();
 		this.d_mapLoader = new MapLoader();
 		this.d_players = new ArrayList<>();
-		this.d_neutralPlayer = new HumanPlayer("Neutral");
+		this.d_neutralPlayer = new HumanPlayer("Neutral", "human");
 		this.d_gameStarted = false;
 		this.d_currentPhase = MAP_EDITING_PHASE;
 		this.d_countriesAssigned = false;
@@ -383,19 +383,31 @@ public class GameController {
 	public void startGame() {
 	    // Display game mode selection menu at startup
 	    d_view.displayWelcomeMessage();
-	    boolean l_isTournamentMode = selectGameModeAtStartup();
+	    int l_gameMode = selectGameModeAtStartup();
 	    
 	    // Initialize the appropriate phase based on mode
-	    if (l_isTournamentMode) {
+	    if (l_gameMode == 2) {
 	        setPhase(PhaseType.MAP_EDITOR);
 	        d_view.displayMessage("\nTournament Mode selected. Please load a map to continue.");
-	    } else {
+	    }
+		else if (l_gameMode == 3) {
+			d_currentPhase = MAIN_GAME_PHASE;
+			d_view.displayMessage("\nResuming the saved game.");
+		}
+		else {
 	        setPhase(PhaseType.MAP_EDITOR);
 	        d_view.displayMessage("\nSingle Player Mode selected. Please load a map to continue.");
 	    }
 
 	    if (d_gameLogger != null) {
-	        d_gameLogger.logAction("Game started in " + (l_isTournamentMode ? "Tournament" : "Single Player") + " Mode");
+			String currentGameMode = "Single Player"; // Default to Single Player
+			if (l_gameMode == 2) {
+				currentGameMode = "Tournament";
+			} else if (l_gameMode != 1 && l_gameMode != 3) {
+				currentGameMode = "Single Player";
+			}
+
+			d_gameLogger.logAction("Game started in " + currentGameMode + " Mode");
 	    }
 
 	    boolean l_isMapLoaded = false;
@@ -406,7 +418,7 @@ public class GameController {
 
 	        if (d_currentPhase == MAP_EDITING_PHASE) {
 	            // Display appropriate menu based on game mode
-	            if (l_isTournamentMode) {
+	            if (l_gameMode == 2) {
 	                d_view.displayTournamentMapEditingMenu();
 	            } else {
 	                d_view.displayMapEditingMenu();
@@ -454,7 +466,7 @@ public class GameController {
 	                getCurrentState().StartPhase(this, d_players, d_commandPromptView, l_commandParts, d_gameMap);
 	                
 	                // For tournament mode, after map is loaded, move directly to tournament phase
-	                if (l_isTournamentMode && l_isMapLoaded && l_command.equals("loadmap")) {
+	                if (l_gameMode == 2 && l_isMapLoaded && l_command.equals("loadmap")) {
 	                    if (d_mapLoader.validateMap(false)) {
 	                        d_view.displayMessage("\nMap successfully loaded and validated.");
 	                        d_view.displayMessage("You're now ready to start a tournament.");
@@ -472,7 +484,7 @@ public class GameController {
 	                }
 	                
 	                // For single player mode, handle the transition to startup phase
-	                if (!l_isTournamentMode && l_command.equals("gameplayer")) {
+	                if (l_gameMode == 1 && l_command.equals("gameplayer")) {
 	                    d_currentPhase = STARTUP_PHASE;
 	                    setPhase(PhaseType.STARTUP);
 	                    handleStartupCommand(l_commandParts, l_command);
@@ -514,7 +526,7 @@ public class GameController {
 	            handleStartupCommand(l_commandParts, l_command);
 	        } else if (d_currentPhase == MAIN_GAME_PHASE) {
 	            // Display appropriate menu based on game mode
-	            if (l_isTournamentMode) {
+	            if (l_gameMode == 2) {
 	                d_view.displayTournamentMenu();
 	            } else {
 	                d_view.displayMainGameMenu();
@@ -542,35 +554,60 @@ public class GameController {
 	            }
 
 	            // Handle commands based on game mode
-	            if (l_isTournamentMode && l_command.equals("tournament")) {
+	            if (l_gameMode == 2 && l_command.equals("tournament")) {
 	                handleTournamentCommand(l_commandParts);
-	            } else {
+	            }
+				else if (l_gameMode == 3 && l_command.equals("loadgame")) {
+					handleLoadGameCommand(l_commandParts);
+				}
+				else {
 	                d_gamePlayController.handleCommand(l_commandParts, l_command);
 	            }
+
 	        }
 	    }
 	}
 
 	/**
-	 * Prompts the user to select a game mode at startup.
-	 * 
-	 * @return true if Tournament Mode is selected, false for Single Player Mode
+	 * Handles the 'load game' command by delegating it to the GamePlayController.
+	 *
+	 * @param p_commandParts An array of strings containing the command and its arguments.
 	 */
-	private boolean selectGameModeAtStartup() {
-	    System.out.println("\n==== GAME MODE SELECTION ====");
-	    System.out.println("1. Single Player Mode (Human players with setup)");
-	    System.out.println("2. Tournament Mode (Automated play between computer players)");
-	    
-	    int selection = -1;
-	    while (selection != 1 && selection != 2) {
-	        selection = d_commandPromptView.getInteger("Enter your selection (1 or 2)");
-	        if (selection != 1 && selection != 2) {
-	            d_view.displayError("Invalid selection. Please enter 1 or 2.");
-	        }
-	    }
-	    
-	    return selection == 2;
+	private void handleLoadGameCommand (String[] p_commandParts)
+	{
+		this.d_gamePlayController.handleLoadSavedGame(p_commandParts);
 	}
+
+	/**
+	 * Prompts the user to select a game mode at startup. The valid options are:
+	 * 1. Single Player Mode (Human players with setup)
+	 * 2. Tournament Mode (Automated play between computer players)
+	 * 3. Resume playing a saved game.
+	 * The method will repeatedly ask the user to enter a valid option (1, 2, or 3) if the input is invalid.
+	 *
+	 * @return int The selected game mode:
+	 *             1 for Single Player Mode,
+	 *             2 for Tournament Mode,
+	 *             3 for Resume playing a saved game.
+	 *             The method will not return until a valid selection is made.
+	 */
+	private int selectGameModeAtStartup() {
+		System.out.println("\n==== GAME MODE SELECTION ====");
+		System.out.println("1. Single Player Mode (Human players with setup)");
+		System.out.println("2. Tournament Mode (Automated play between computer players)");
+		System.out.println("3. Resume playing a saved game.");
+
+		int selection = -1;
+		while (selection != 1 && selection != 2 && selection != 3) {
+			selection = d_commandPromptView.getInteger("Enter your selection (1, 2, or 3)");
+			if (selection != 1 && selection != 2 && selection != 3) {
+				d_view.displayError("Invalid selection. Please enter 1, 2, or 3.");
+			}
+		}
+
+		return selection;
+	}
+
 	/**
 	 * Prompts the user to select a game mode after a valid map is loaded.
 	 * 
@@ -654,6 +691,7 @@ public class GameController {
 			// Allow loading a different map
 			d_currentPhase = MAP_EDITING_PHASE;
 			d_gameLogger.logPhaseChange("MAP EDITING");
+			d_gamePlayController.startMainGame();
 			d_mapEditorController.handleCommand(p_commandParts, p_command, true);
 			break;
 		default:
@@ -686,20 +724,20 @@ public class GameController {
 	            
 	            switch (p_playerType.toLowerCase()) {
 	                case "aggressive":
-	                    l_newPlayer = new AggressivePlayer(p_playerName);
+	                    l_newPlayer = new AggressivePlayer(p_playerName, p_playerType);
 	                    break;
 	                case "benevolent":
-	                    l_newPlayer = new BenevolentPlayer(p_playerName);
+	                    l_newPlayer = new BenevolentPlayer(p_playerName, p_playerType);
 	                    break;
 	                case "random":
-	                    l_newPlayer = new RandomPlayer(p_playerName);
+	                    l_newPlayer = new RandomPlayer(p_playerName, p_playerType);
 	                    break;
 	                case "cheater":
-	                    l_newPlayer = new CheaterPlayer(p_playerName);
+	                    l_newPlayer = new CheaterPlayer(p_playerName, p_playerType);
 	                    break;
 	                case "human":
 	                default:
-	                    l_newPlayer = new HumanPlayer(p_playerName);
+	                    l_newPlayer = new HumanPlayer(p_playerName, p_playerType);
 	                    break;
 	            }
 	            

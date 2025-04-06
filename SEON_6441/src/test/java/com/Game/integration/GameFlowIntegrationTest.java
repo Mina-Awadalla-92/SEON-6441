@@ -178,8 +178,8 @@ public class GameFlowIntegrationTest {
 		// Instead of calling handleEndTurn, let's test the card system directly
 
 		// Set up players
-		Player player1 = new HumanPlayer("Player1");
-		Player player2 = new HumanPlayer("Player2");
+		Player player1 = new HumanPlayer("Player1", "human1");
+		Player player2 = new HumanPlayer("Player2", "human2");
 
 		// Set hasConqueredThisTurn flag for player1
 		player1.setHasConqueredThisTurn(true);
@@ -222,7 +222,7 @@ public class GameFlowIntegrationTest {
 				"editneighbor", true);
 
 		// Set up a player with territories
-		Player player = new HumanPlayer("TestPlayer", 5); // 5 reinforcement armies
+		Player player = new HumanPlayer("TestPlayer", 5,"human"); // 5 reinforcement armies
 		Territory territory1 = d_gameMap.getTerritoryByName("Country1");
 		Territory territory2 = d_gameMap.getTerritoryByName("Country2");
 

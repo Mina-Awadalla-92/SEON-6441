@@ -50,7 +50,7 @@ public class GameView {
         System.out.println("4. showmap             - Display the current map");
         System.out.println("\nLoad a map to proceed with the tournament.\n");
     }
-    
+
     /**
      * Displays the menu for the startup phase.
      */
@@ -74,7 +74,8 @@ public class GameView {
         System.out.println("2. issueorder      - Issue an order");
         System.out.println("3. executeorders   - Execute all issued orders");
         System.out.println("4. endturn         - End the current turn, and move to the next one");
-        System.out.println("5. tournament      - Start a tournament");
+        System.out.println("5. savegame        - Save the current game.");
+        System.out.println("6. loadgame <args> - Load saved game");
         System.out.println("\nType 'exit' to quit the main game phase.\n");
     }
     
@@ -89,7 +90,7 @@ public class GameView {
         System.out.println("   Example: tournament -M canada.map swiss.map -P aggressive benevolent random cheater -G 3 -D 20");
         System.out.println("\nType 'exit' to quit the tournament mode.\n");
     }
-    
+
     /**
      * Displays the current state of the map and players.
      * 

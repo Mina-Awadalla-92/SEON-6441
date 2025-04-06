@@ -25,7 +25,7 @@ public class BlockadeOrderTest {
 	public void setUp() {
 		// Create a player with a name (reinforcement armies not relevant for blockade
 		// tests)
-		player = new HumanPlayer("PlayerOne");
+		player = new HumanPlayer("PlayerOne","human");
 
 		// Create a territory owned by the player
 		territory = new Territory("TestLand", "TestContinent", 2);

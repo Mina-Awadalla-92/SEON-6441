@@ -27,14 +27,14 @@ public class RandomPlayerTest {
         r_t2 = new Territory("R_T2", "Continent1", 5);
         map.addTerritory(r_t1);
         map.addTerritory(r_t2);
-        random = new RandomPlayer("Random", 12);
+        random = new RandomPlayer("Random", 12, "Random");
         r_t1.setOwner(random);
         r_t2.setOwner(random);
         random.addTerritory(r_t1);
         random.addTerritory(r_t2);
         // Create an enemy territory adjacent to r_t1.
         enemy = new Territory("EnemyR", "Continent1", 5);
-        enemyPlayer = new HumanPlayer("EnemyR");
+        enemyPlayer = new HumanPlayer("EnemyR", "Human");
         enemy.setOwner(enemyPlayer);
         enemyPlayer.addTerritory(enemy);
         map.addTerritory(enemy);

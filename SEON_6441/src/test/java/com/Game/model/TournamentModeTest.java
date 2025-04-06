@@ -240,8 +240,8 @@ public class TournamentModeTest {
         
         // Create players
         List<Player> players = new ArrayList<>();
-        players.add(new AggressivePlayer("Aggressive"));
-        players.add(new BenevolentPlayer("Benevolent"));
+        players.add(new AggressivePlayer("Aggressive player","Aggressive"));
+        players.add(new BenevolentPlayer("Benevolent player","Benevolent"));
         
         // Assign countries
         assignCountriesRandomly(map, players);
@@ -313,16 +313,16 @@ public class TournamentModeTest {
     private Player createPlayerByStrategy(String strategy, String name) {
         switch (strategy.toLowerCase()) {
             case "aggressive":
-                return new AggressivePlayer(name);
+                return new AggressivePlayer(name, "aggressive");
             case "benevolent":
-                return new BenevolentPlayer(name);
+                return new BenevolentPlayer(name, "benevolent");
             case "random":
-                return new RandomPlayer(name);
+                return new RandomPlayer(name, "random");
             case "cheater":
-                return new CheaterPlayer(name);
+                return new CheaterPlayer(name, "cheater");
             default:
                 // Default to human player if strategy not recognized
-                return new HumanPlayer(name);
+                return new HumanPlayer(name, "human");
         }
     }
     
