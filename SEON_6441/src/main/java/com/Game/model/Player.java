@@ -46,7 +46,7 @@ public abstract class Player {
 	 * The player's card collection, mapping CardType to the count.
 	 */
 	protected HashMap<CardType, Integer> d_cards;
-	
+
 	/**
 	 * The player's card collection, mapping CardType to the count.
 	 */
@@ -67,8 +67,9 @@ public abstract class Player {
 	 * Constructor initializing player with a name.
 	 *
 	 * @param p_name Player's name
+	 * @param p_playerTyp Type of player.
 	 */
-	public Player(String p_name) {
+	public Player(String p_name, String p_playerTyp) {
 		this.d_name = p_name;
 		this.d_ownedTerritories = new ArrayList<>();
 		this.d_orders = new ArrayList<>();
@@ -76,6 +77,7 @@ public abstract class Player {
 		this.d_cards = new HashMap<>();
 		this.d_negociatedPlayersPerTurn = new ArrayList<>();
 		this.d_hasConqueredThisTurn = false;
+		this.d_playerType = p_playerTyp;
 	}
 
 	/**
@@ -83,8 +85,9 @@ public abstract class Player {
 	 *
 	 * @param p_name                     Player's name
 	 * @param p_nbrOfReinforcementArmies Number of reinforcement armies
+	 * @param p_playerType Type of player.
 	 */
-	public Player(String p_name, int p_nbrOfReinforcementArmies) {
+	public Player(String p_name, int p_nbrOfReinforcementArmies, String p_playerType) {
 		this.d_name = p_name;
 		this.d_ownedTerritories = new ArrayList<>();
 		this.d_orders = new ArrayList<>();
@@ -92,6 +95,7 @@ public abstract class Player {
 		this.d_cards = new HashMap<>();
 		this.d_negociatedPlayersPerTurn = new ArrayList<>();
 		this.d_hasConqueredThisTurn = false;
+		this.d_playerType = p_playerType;
 	}
 
 	/**
@@ -678,7 +682,7 @@ public abstract class Player {
 	public String getPlayerType() {
 		return this.d_playerType;
 	}
-	
+
 	/**
 	 * Returns a string representation of the player, including their name, number
 	 * of reinforcement armies, and the number of conquered territories for the

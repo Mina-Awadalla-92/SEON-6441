@@ -9,18 +9,20 @@ public class BenevolentPlayer extends Player {
     /**
      * Constructor initializing the benevolent player with a name.
      * @param p_name Player's name.
+     * @param p_playerType Type of player.
      */
-    public BenevolentPlayer(String p_name) {
-        super(p_name);
+    public BenevolentPlayer(String p_name, String p_playerType) {
+        super(p_name, p_playerType);
     }
 
     /**
      * Constructor initializing the benevolent player with a name and reinforcement armies.
      * @param p_name Player's name.
      * @param p_nbrOfReinforcementArmies Number of reinforcement armies.
+     * @param p_playerType Type of player.
      */
-    public BenevolentPlayer(String p_name, int p_nbrOfReinforcementArmies) {
-        super(p_name, p_nbrOfReinforcementArmies);
+    public BenevolentPlayer(String p_name, int p_nbrOfReinforcementArmies, String p_playerType) {
+        super(p_name, p_nbrOfReinforcementArmies, p_playerType);
     }
 
     /**
@@ -36,6 +38,10 @@ public class BenevolentPlayer extends Player {
      */
     @Override
     public boolean issueOrder(String p_command, Map p_map, List<Player> p_players) {
+        if (p_command == null) {
+            return false;
+        }
+
         boolean orderIssued = false;
 
         // ===== Phase 1: Reinforcement =====

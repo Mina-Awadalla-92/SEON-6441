@@ -25,10 +25,10 @@ public class BombOrderTest {
 	@Before
 	public void setUp() {
 		// Create the issuer (the player issuing the bomb order)
-		issuer = new HumanPlayer("Issuer");
+		issuer = new HumanPlayer("Issuer","human1");
 
 		// Create the defender (the owner of the target territory)
-		defender = new HumanPlayer("Defender");
+		defender = new HumanPlayer("Defender","human2");
 
 		// Create a territory for the defender with an initial army count.
 		targetTerritory = new Territory("TargetLand", "TestContinent", 2);

@@ -26,7 +26,7 @@ public class BenevolentPlayerTest {
         strong = new Territory("B_T2", "Continent1", 5);
         map.addTerritory(weak);
         map.addTerritory(strong);
-        benevolent = new BenevolentPlayer("Benevolent", 8);
+        benevolent = new BenevolentPlayer("Benevolent player",8, "Benevolent");
         weak.setOwner(benevolent);
         strong.setOwner(benevolent);
         benevolent.addTerritory(weak);
@@ -36,7 +36,7 @@ public class BenevolentPlayerTest {
         strong.setNumOfArmies(6);
         // Create an enemy territory adjacent to 'strong'.
         enemy = new Territory("EnemyB", "Continent1", 5);
-        enemyPlayer = new HumanPlayer("EnemyB");
+        enemyPlayer = new HumanPlayer("EnemyB", "Human");
         enemy.setOwner(enemyPlayer);
         enemyPlayer.addTerritory(enemy);
         map.addTerritory(enemy);

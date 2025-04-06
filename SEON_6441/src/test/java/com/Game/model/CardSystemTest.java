@@ -18,7 +18,7 @@ public class CardSystemTest {
 	 */
 	@Before
 	public void setUp() {
-		d_player = new HumanPlayer("TestPlayer", 10);
+		d_player = new HumanPlayer("TestPlayer", 10,"human1");
 	}
 
 	/**

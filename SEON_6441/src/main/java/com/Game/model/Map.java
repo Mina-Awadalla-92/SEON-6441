@@ -3,6 +3,7 @@ package com.Game.model;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -258,6 +259,110 @@ public class Map {
         } catch (IOException e) {
             e.printStackTrace();
             System.err.println("Error saving the file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Saves the current state of the game to a map file.
+     *
+     * <p>This method creates or overwrites a file with the specified name (appending ".map" if not present)
+     * inside the {@code /resources/LoadingMaps} directory. It writes details about the players, their owned
+     * territories, and delegates the map saving logic to {@code saveMapToFile()}.</p>
+     *
+     * @param p_fileName The name of the file to which the game state should be saved.
+     * @param d_players  A list of players whose game state (including owned territories) is to be saved.
+     */
+    public void saveGameState(String p_fileName, List<Player> d_players) {
+        // Ensure the file name ends with .map
+        if (!p_fileName.endsWith(".map")) {
+            p_fileName += ".map";
+        }
+
+        String directoryPath = Paths.get(System.getProperty("user.dir"),
+                        "SEON_6441", "src", "main", "resources", "LoadingMaps")
+                .toAbsolutePath().toString();
+        File l_file = new File(directoryPath, p_fileName);
+
+        // Debugging: Print the absolute path to confirm it's correct
+        System.out.println("Saving game state to file: " + l_file.getAbsolutePath());
+
+        File l_parentDir = l_file.getParentFile();
+        if (l_parentDir != null && !l_parentDir.exists()) {
+            System.out.println("Directory does not exist. Creating directory: " + l_parentDir.getAbsolutePath());
+            l_parentDir.mkdirs();
+        }
+
+        try (BufferedWriter l_writer = new BufferedWriter(new FileWriter(l_file))) {
+            // Writing game state header
+            l_writer.write("[Game is Saved]\n\n");
+
+            // Writing players section
+            l_writer.write("[Players]\n");
+            for (Player l_player : d_players) {
+                l_writer.write(l_player.getName() + " " + l_player.getClass().getSimpleName() + "\n");
+            }
+            l_writer.write("\n");
+
+            l_writer.write("[Territory Owner]\n");
+            for (Player l_player : d_players) {
+                for (Territory l_territory : l_player.getOwnedTerritories()) {
+                    l_writer.write(l_player.getName() + " owns " + l_territory.getName() +
+                            " with " + l_territory.getNumOfArmies() + " armies\n");
+                }
+            }
+            l_writer.write("\n");
+
+            // Now call saveMapToFile to write the map information
+            saveMapToFile(l_writer);
+
+            System.out.println("Game state saved successfully!");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Error saving the game state: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Writes the map data to the provided {@link BufferedWriter} in a structured format.
+     *
+     * <p>The map data includes:</p>
+     * <ul>
+     *   <li>The list of continents with their control values under the <b>[continents]</b> section.</li>
+     *   <li>The list of countries (territories) with their continent association under the <b>[countries]</b> section.</li>
+     *   <li>The adjacency (borders) between countries under the <b>[borders]</b> section.</li>
+     * </ul>
+     *
+     * <p>This method is typically called as part of saving the entire game state.</p>
+     *
+     * @param p_writer The writer used to output the map data to a file.
+     * @throws IOException If an I/O error occurs during writing.
+     */
+    private void saveMapToFile(BufferedWriter p_writer) throws IOException {
+        // Writing continents section
+        p_writer.write("[continents]\n");
+        for (java.util.Map.Entry<String, Integer> l_entry : d_continents.entrySet()) {
+            p_writer.write(l_entry.getKey() + " " + l_entry.getValue() + "\n");
+        }
+        p_writer.write("\n");
+
+        // Writing countries section
+        p_writer.write("[countries]\n");
+        for (int i = 0; i < d_territoryList.size(); i++) {
+            Territory l_t = d_territoryList.get(i);
+            p_writer.write((i + 1) + " " + l_t.getName() + " " + (new ArrayList<>(d_continents.keySet()).indexOf(l_t.getContinent()) + 1) + "\n");
+        }
+        p_writer.write("\n");
+
+        // Writing borders section
+        p_writer.write("[borders]\n");
+        for (int i = 0; i < d_territoryList.size(); i++) {
+            Territory l_t = d_territoryList.get(i);
+            p_writer.write((i + 1) + "");
+            for (Territory l_neighbor : l_t.getNeighborList()) {
+                p_writer.write(" " + (d_territoryList.indexOf(l_neighbor) + 1));
+            }
+            p_writer.write("\n");
+            p_writer.flush();
         }
     }
 

@@ -15,9 +15,10 @@ public class RandomPlayer extends Player {
     /**
      * Constructor initializing the random player with a name.
      * @param p_name Player's name.
+     * @param p_playerType Type of player.
      */
-    public RandomPlayer(String p_name) {
-        super(p_name);
+    public RandomPlayer(String p_name, String p_playerType) {
+        super(p_name, p_playerType);
         this.rand = new Random();
     }
 
@@ -25,9 +26,10 @@ public class RandomPlayer extends Player {
      * Constructor initializing the random player with a name and reinforcement armies.
      * @param p_name Player's name.
      * @param p_nbrOfReinforcementArmies Number of reinforcement armies.
+     * @param p_playerType Type of player.
      */
-    public RandomPlayer(String p_name, int p_nbrOfReinforcementArmies) {
-        super(p_name, p_nbrOfReinforcementArmies);
+    public RandomPlayer(String p_name, int p_nbrOfReinforcementArmies, String p_playerType) {
+        super(p_name, p_nbrOfReinforcementArmies, p_playerType);
         this.rand = new Random();
     }
 
@@ -44,6 +46,10 @@ public class RandomPlayer extends Player {
      */
     @Override
     public boolean issueOrder(String p_command, Map p_map, List<Player> p_players) {
+        if (p_command == null) {
+            return false;
+        }
+
         boolean orderIssued = false;
 
         // ===== Phase 1: Reinforcement =====

@@ -26,9 +26,10 @@ public class HumanPlayer extends Player {
 	 * Constructor initializing human player with a name.
 	 *
 	 * @param p_name Player's name
+	 * @param p_playerType Type of player.
 	 */
-	public HumanPlayer(String p_name) {
-		super(p_name);
+	public HumanPlayer(String p_name, String p_playerType) {
+		super(p_name, p_playerType);
 		
 	}
 
@@ -37,14 +38,19 @@ public class HumanPlayer extends Player {
 	 *
 	 * @param p_name                     Player's name
 	 * @param p_nbrOfReinforcementArmies Number of reinforcement armies
+	 * @param p_playerType Type of player.
 	 */
-	public HumanPlayer(String p_name, int p_nbrOfReinforcementArmies) {
-		super(p_name, p_nbrOfReinforcementArmies);
+	public HumanPlayer(String p_name, int p_nbrOfReinforcementArmies, String p_playerType) {
+		super(p_name, p_nbrOfReinforcementArmies, p_playerType);
 	}
 
 	
 	@Override
 	public boolean issueOrder(String p_command, Map p_map, List<Player> p_players) {
+		if (p_command == null) {
+			return false;
+		}
+
 		String[] l_parts = p_command.split(" ");
 		if (l_parts.length < 2 || l_parts.length > 4) {
 			return false;

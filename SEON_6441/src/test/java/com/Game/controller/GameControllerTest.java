@@ -55,8 +55,8 @@ public class GameControllerTest {
 
 		// Create players
 		d_players = new ArrayList<>();
-		d_players.add(new HumanPlayer("TestPlayer1"));
-		d_players.add(new HumanPlayer("TestPlayer2"));
+		d_players.add(new HumanPlayer("TestPlayer1", "human1"));
+		d_players.add(new HumanPlayer("TestPlayer2", "human2"));
 
 		// Initialize controllers with real components where needed
 		d_gameController = new GameController();
@@ -116,7 +116,7 @@ public class GameControllerTest {
 
 		// Test Players
 		List<Player> newPlayers = new ArrayList<>();
-		newPlayers.add(new HumanPlayer("NewPlayer"));
+		newPlayers.add(new HumanPlayer("NewPlayer", "human"));
 		controller.setPlayers(newPlayers);
 		assertSame("getPlayers should return the set players list", newPlayers, controller.getPlayers());
 

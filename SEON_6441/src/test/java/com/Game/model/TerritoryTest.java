@@ -26,8 +26,8 @@ public class TerritoryTest {
 	@Before
 	public void setUp() {
 		// Create players
-		d_player1 = new HumanPlayer("Player1");
-		d_player2 = new HumanPlayer("Player2");
+		d_player1 = new HumanPlayer("Player1","human1");
+		d_player2 = new HumanPlayer("Player2","human2");
 
 		// Create territories
 		d_territory1 = new Territory("Territory1", "Continent1", 5);

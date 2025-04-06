@@ -10,18 +10,20 @@ public class CheaterPlayer extends Player {
     /**
      * Constructor initializing the cheater player with a name.
      * @param p_name Player's name.
+     * @param p_playerType Type of player.
      */
-    public CheaterPlayer(String p_name) {
-        super(p_name);
+    public CheaterPlayer(String p_name, String p_playerType) {
+        super(p_name, p_playerType);
     }
 
     /**
      * Constructor initializing the cheater player with a name and reinforcement armies.
      * @param p_name Player's name.
      * @param p_nbrOfReinforcementArmies Number of reinforcement armies.
+     * @param p_playerType Type of player.
      */
-    public CheaterPlayer(String p_name, int p_nbrOfReinforcementArmies) {
-        super(p_name, p_nbrOfReinforcementArmies);
+    public CheaterPlayer(String p_name, int p_nbrOfReinforcementArmies, String p_playerType) {
+        super(p_name, p_nbrOfReinforcementArmies, p_playerType);
     }
 
     /**
@@ -36,6 +38,10 @@ public class CheaterPlayer extends Player {
      */
     @Override
     public boolean issueOrder(String p_command, Map p_map, List<Player> p_players) {
+        if (p_command == null) {
+            return false;
+        }
+
         // Create a copy of owned territories to avoid concurrent modification issues.
         List<Territory> ownedCopy = new ArrayList<>(d_ownedTerritories);
         GameLogger logger = GameLogger.getInstance();

@@ -26,14 +26,14 @@ public class AggressivePlayerTest {
         a_t2 = new Territory("A_T2", "Continent1", 5);
         map.addTerritory(a_t1);
         map.addTerritory(a_t2);
-        aggressive = new AggressivePlayer("Aggressive", 10);
+        aggressive = new AggressivePlayer("Aggressive", 10,"Aggressive");
         a_t1.setOwner(aggressive);
         a_t2.setOwner(aggressive);
         aggressive.addTerritory(a_t1);
         aggressive.addTerritory(a_t2);
         // Create an enemy territory.
         enemy = new Territory("Enemy", "Continent1", 5);
-        enemyPlayer = new HumanPlayer("Enemy");
+        enemyPlayer = new HumanPlayer("Enemy", "Human");
         enemy.setOwner(enemyPlayer);
         enemyPlayer.addTerritory(enemy);
         map.addTerritory(enemy);

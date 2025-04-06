@@ -1,0 +1,112 @@
+[Game is Saved]
+
+[Players]
+p1 HumanPlayer
+p2 HumanPlayer
+
+[Territory Owner]
+p1 owns Manitoba-North with 1 armies
+p1 owns NT-Victoria_Island-West with 1 armies
+p1 owns N&L-Labrador with 1 armies
+p1 owns Saskatchewan-North with 1 armies
+p1 owns Nunavut-Continental with 1 armies
+p1 owns Quebec-North with 1 armies
+p1 owns Quebec-Central with 1 armies
+p1 owns Ontario-North with 1 armies
+p1 owns Nova_Scotia with 1 armies
+p1 owns Alberta-South with 1 armies
+p1 owns Prince_Edward_Island with 1 armies
+p1 owns N&L-Newfoundland with 1 armies
+p1 owns British_Columbia-South with 1 armies
+p1 owns NU-Northern_Islands with 1 armies
+p1 owns NU-Baffin_Island with 1 armies
+p1 owns NU-Victoria_Island-East with 1 armies
+p2 owns Manitoba-South with 1 armies
+p2 owns Quebec-South with 1 armies
+p2 owns Ontario-West with 1 armies
+p2 owns Saskatchewan-South with 1 armies
+p2 owns Northwest_Territories-Continental with 1 armies
+p2 owns New_Brunswick with 1 armies
+p2 owns Alberta-North with 1 armies
+p2 owns NT-Banks_Island with 1 armies
+p2 owns Ontario-South with 1 armies
+p2 owns NU-Ellesmere_Island with 1 armies
+p2 owns Yukon_Territory with 1 armies
+p2 owns NT-Northern_Islands with 1 armies
+p2 owns British_Columbia-North with 1 armies
+p2 owns BC-Vancouver_Island with 1 armies
+p2 owns NU-Southern_Islands with 1 armies
+
+[continents]
+Atlantic_Provinces 3
+Western_Provinces-South 3
+Nunavut 3
+Western_Provinces-North 2
+Ontario_and_Quebec 4
+Northwestern_Territories 2
+
+[countries]
+1 Manitoba-North 4
+2 Manitoba-South 2
+3 NT-Victoria_Island-West 6
+4 Quebec-South 5
+5 N&L-Labrador 1
+6 Ontario-West 5
+7 Saskatchewan-North 4
+8 Saskatchewan-South 2
+9 Nunavut-Continental 3
+10 Northwest_Territories-Continental 6
+11 Quebec-North 5
+12 New_Brunswick 1
+13 Quebec-Central 5
+14 Alberta-North 4
+15 Ontario-North 5
+16 NT-Banks_Island 6
+17 Nova_Scotia 1
+18 Ontario-South 5
+19 Alberta-South 2
+20 NU-Ellesmere_Island 3
+21 Prince_Edward_Island 1
+22 Yukon_Territory 6
+23 N&L-Newfoundland 1
+24 NT-Northern_Islands 6
+25 British_Columbia-South 2
+26 British_Columbia-North 4
+27 NU-Northern_Islands 3
+28 BC-Vancouver_Island 2
+29 NU-Baffin_Island 3
+30 NU-Southern_Islands 3
+31 NU-Victoria_Island-East 3
+
+[borders]
+1 15 2 7 9
+2 6 8 1
+3 31 24 16 10
+4 12 13 18
+5 23 13 11
+6 18 15 2
+7 8 14 1 10
+8 2 7 19
+9 1 30 29 31 27 10
+10 26 14 7 9 16 3 22
+11 5 13 30 29
+12 4 21 17
+13 23 5 11 4 15
+14 19 26 7 10
+15 13 18 6 1 30
+16 24 3 10
+17 12 21 23
+18 4 15 6
+19 8 14 25
+20 29 27
+21 12 17
+22 26 10
+23 17 5 13
+24 27 16 3
+25 19 28 26
+26 25 22 10 14
+27 9 29 31 20 24
+28 25
+29 11 9 30 20 27
+30 11 15 9 29
+31 9 27 3

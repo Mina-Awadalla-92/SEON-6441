@@ -30,7 +30,7 @@ public class DeployOrderTest {
     @Before
     public void setUp() {
         // Create a HumanPlayer with 10 reinforcement armies.
-        d_player = new HumanPlayer("TestPlayer", 10);
+        d_player = new HumanPlayer("TestPlayer", 10,"human");
         // Create a territory and assign it to a continent.
         d_territory = new Territory("TestTerritory", "TestContinent", 2);
         d_territory.setOwner(d_player);

@@ -603,16 +603,16 @@ public class TournamentMode {
     private Player createPlayerByStrategy(String p_strategy, String p_name) {
         switch (p_strategy.toLowerCase()) {
             case "aggressive":
-                return new AggressivePlayer(p_name);
+                return new AggressivePlayer(p_name, "aggressive");
             case "benevolent":
-                return new BenevolentPlayer(p_name);
+                return new BenevolentPlayer(p_name, "benevolent");
             case "random":
-                return new RandomPlayer(p_name);
+                return new RandomPlayer(p_name, "random");
             case "cheater":
-                return new CheaterPlayer(p_name);
+                return new CheaterPlayer(p_name, "cheater");
             default:
                 // Default to human player if strategy not recognized
-                return new HumanPlayer(p_name);
+                return new HumanPlayer(p_name, "human");
         }
     }
 //    

@@ -1,6 +1,6 @@
 package com.Game.controller;
 
-import java.io.File;
+import java.io.*;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,11 +9,15 @@ import java.util.Random;
 import com.Game.Phases.IssueOrderPhase;
 import com.Game.Phases.Phase;
 import com.Game.Phases.PhaseType;
+import com.Game.model.*;
+import com.Game.utils.MapLoader;
 import com.Game.model.CardType;
-import com.Game.model.Map;
-import com.Game.model.Player;
-import com.Game.model.Territory;
 import com.Game.observer.GameLogger;
+
+import java.io.File;
+import java.io.FileReader;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Controller class responsible for handling gameplay operations. This class
@@ -167,6 +171,10 @@ public class GamePlayController {
 	            }
 	            d_gameController.handleTournamentCommand(p_commandParts);
 	            break;
+			case "savegame":
+				handleSaveGame(p_commandParts);
+				d_ordersExecutedThisTurn = false; // Reset the flag for the new turn
+				break;
 	        default:
 	            d_gameController.getView().displayError("Unknown command or invalid for current phase: " + p_command);
 	            if (d_gameLogger != null) {
@@ -176,8 +184,260 @@ public class GamePlayController {
 	}
 
 	/**
+	 * Handles the 'save game' command by validating the input and saving the current game state.
+	 *
+	 * <p>If the command format is incorrect, an error message is displayed.
+	 * Otherwise, the game state is saved to the specified filename.</p>
+	 *
+	 * @param p_commandParts An array of strings containing the command and its arguments.
+	 */
+	private void handleSaveGame(String[] p_commandParts)
+	{
+		if (p_commandParts.length != 2) {
+			d_gameController.getView().displayError("Usage: savegame filename");
+			return;
+		}
+
+		String l_filename = p_commandParts[1];
+		d_gameMap.saveGameState(l_filename,  d_players);
+	}
+
+	/**
+	 * Handles loading a saved game from a file and assigns the game state, including map and players.
+	 * It reads the map file, loads the map, validates it, and assigns players and their territories.
+	 *
+	 * @param p_commandParts An array containing the command and the map file name.
+	 *
+	 * @throws IOException If an error occurs while loading the map or reading player information.
+	 */
+	public void handleLoadSavedGame(String[] p_commandParts)
+	{
+		if (p_commandParts.length != 2) {
+			d_gameController.getView().displayError("Usage: loadgame filename");
+			return;
+		}
+		MapLoader d_mapLoader = new MapLoader();
+		String l_mapFilePath = p_commandParts[1];
+		d_gameController.setMapFilePath(l_mapFilePath);
+		d_mapLoader.resetLoadedMap();
+
+		BufferedReader l_reader = null;
+		boolean l_isMapExist = false;
+		l_reader = d_mapLoader.isMapExist(l_mapFilePath);
+		if (l_reader != null) {
+			l_isMapExist = true;
+		}
+
+		if(l_isMapExist) {
+			boolean l_isMapInitiallyValid = d_mapLoader.isValid(l_mapFilePath);
+			if (l_isMapInitiallyValid) {
+				d_mapLoader.read(l_mapFilePath);
+				d_gameMap = d_mapLoader.getLoadedMap();
+				d_gameController.setGameMap(d_gameMap);
+
+				if(d_mapLoader.validateMap()) {
+					d_gameController.getView().displayMessage(l_mapFilePath + " is loaded successfully.");
+					d_gameController.setCurrentPhase(GameController.MAIN_GAME_PHASE);
+
+					List<Player> l_loadedPlayers = loadPlayersFromFile(l_mapFilePath);
+					d_gameController.setPlayers(l_loadedPlayers);
+
+					assignTerritoriesToPlayersFromFile(l_mapFilePath, l_loadedPlayers);
+
+					startMainGame();
+				}
+			}
+		} else {
+			d_gameController.getView().displayError("The specified map does not exist.");
+			d_gameMap = new Map();
+			d_gameController.setGameMap(d_gameMap);
+		}
+
+	}
+
+	/**
+	 * Assigns territories to players from a map file, including the territory owner and the number of armies.
+	 * This method reads the file, parses the territory owner and army count for each player, and sets the corresponding
+	 * ownership and army count on the territories.
+	 *
+	 * @param p_filePath The path to the map file that contains the territory ownership and army count details.
+	 * @param p_players A list of players that are to be assigned territories from the file.
+	 *
+	 * @throws IOException If an error occurs while reading the file.
+	 */
+	private void assignTerritoriesToPlayersFromFile(String p_filePath, List<Player> p_players) {
+		BufferedReader l_reader = null;
+
+		try {
+			File l_file = new File(p_filePath);
+			if (l_file.exists()) {
+				l_reader = new BufferedReader(new FileReader(l_file));
+			} else {
+				String l_resourcePath = p_filePath;
+				if (!l_resourcePath.contains("LoadingMaps/") && !l_resourcePath.contains("LoadingMaps\\")) {
+					l_resourcePath = "LoadingMaps/" + l_resourcePath;
+				}
+
+				InputStream l_inputStream = getClass().getClassLoader().getResourceAsStream(l_resourcePath);
+				if (l_inputStream == null) {
+					d_gameController.getView().displayError("Map file not found in resources: " + l_resourcePath);
+					return;
+				}
+
+				l_reader = new BufferedReader(new InputStreamReader(l_inputStream));
+			}
+
+			String l_line;
+			boolean l_isTerritorySection = false;
+
+			while ((l_line = l_reader.readLine()) != null) {
+				l_line = l_line.trim();
+				if (l_line.isEmpty()) continue;
+
+				if (l_line.equalsIgnoreCase("[Territory Owner]")) {
+					l_isTerritorySection = true;
+					continue;
+				}
+
+				if (l_isTerritorySection) {
+					if (l_line.startsWith("[")) break;
+
+					// Example: p1 owns Ontario with 5 armies
+					Pattern pattern = Pattern.compile("^(.+) owns (.+?) with (\\d+) armies$");
+					Matcher matcher = pattern.matcher(l_line);
+
+					if (matcher.matches()) {
+						String l_playerName = matcher.group(1).trim();
+						String l_territoryName = matcher.group(2).trim();
+						int l_armyCount = Integer.parseInt(matcher.group(3));
+
+						Player l_player = p_players.stream()
+								.filter(p -> p.getName().equalsIgnoreCase(l_playerName))
+								.findFirst()
+								.orElse(null);
+
+						if (l_player != null) {
+							Territory l_territory = d_gameMap.getTerritoryByName(l_territoryName);
+							if (l_territory != null) {
+								l_territory.setOwner(l_player);
+								l_territory.setNumOfArmies(l_armyCount);
+								l_player.addTerritory(l_territory); // if you have this helper
+							}
+						}
+					}
+				}
+			}
+		} catch (IOException e) {
+			d_gameController.getView().displayError("Error reading territory owner info: " + e.getMessage());
+		} finally {
+			try {
+				if (l_reader != null) {
+					l_reader.close();
+				}
+			} catch (IOException e) {
+				// ignore
+			}
+		}
+	}
+
+	/**
+	 * Loads player data from a specified file. Each player’s name and type are read from the file and used
+	 * to create player objects, which are then added to a list.
+	 *
+	 * The file format is expected to contain a section titled "[Players]" followed by lines in the format:
+	 * "playerName playerType". The player type is used to instantiate the appropriate player subclass (e.g., HumanPlayer).
+	 *
+	 * @param p_filePath The path to the file that contains player information.
+	 * @return A list of Player objects created from the data in the file, or null if the file could not be loaded.
+	 *
+	 * @throws IOException If an error occurs while reading the file.
+	 */
+	private List<Player> loadPlayersFromFile(String p_filePath) {
+		List<Player> l_players = new ArrayList<>();
+		boolean l_isPlayerSection = false;
+
+		BufferedReader l_reader = null;
+
+		try {
+			File l_file = new File(p_filePath);
+			if (l_file.exists()) {
+				// File exists locally, open it for reading
+				l_reader = new BufferedReader(new FileReader(l_file));
+			} else {
+				// Try with LoadingMaps prefix
+				String l_resourcePath = p_filePath;
+				if (!l_resourcePath.contains("LoadingMaps/") && !l_resourcePath.contains("LoadingMaps\\")) {
+					l_resourcePath = "LoadingMaps/" + l_resourcePath;
+				}
+
+				InputStream l_inputStream = getClass().getClassLoader().getResourceAsStream(l_resourcePath);
+				if (l_inputStream == null) {
+					return null;
+				}
+
+				// Resource found, create a reader
+				l_reader = new BufferedReader(new InputStreamReader(l_inputStream));
+			}
+
+			String l_line;
+			while ((l_line = l_reader.readLine()) != null) {
+				l_line = l_line.trim();
+				if (l_line.isEmpty()) continue;
+
+				if (l_line.equalsIgnoreCase("[Players]")) {
+					l_isPlayerSection = true;
+					continue;
+				}
+
+				if (l_isPlayerSection) {
+					if (l_line.startsWith("[")) break;
+
+					String[] l_parts = l_line.split("\\s+");
+					if (l_parts.length == 2) {
+						String l_name = l_parts[0];
+						String l_rawType = l_parts[1];
+						String l_type = l_rawType.replace("Player", "").toLowerCase();
+
+						Player l_player;
+						switch (l_type) {
+							case "human":
+								l_player = new HumanPlayer(l_name, l_type);
+								break;
+							case "aggressive":
+								l_player = new AggressivePlayer(l_name, l_type);
+								break;
+							case "benevolent":
+								l_player = new BenevolentPlayer(l_name, l_type);
+								break;
+							case "random":
+								l_player = new RandomPlayer(l_name, l_type);
+								break;
+							default:
+								l_player = new HumanPlayer(l_name, "human"); // fallback
+								break;
+						}
+
+						l_players.add(l_player);
+					}
+				}
+			}
+		} catch (IOException e) {
+			d_gameController.getView().displayError("Error reading player info from file: " + e.getMessage());
+		} finally {
+			try {
+				if (l_reader != null) {
+					l_reader.close();
+				}
+			} catch (IOException e) {
+			}
+		}
+
+		return l_players;
+	}
+
+	/**
 	 * Validates the current map loaded in the game.
-	 * 
+	 *
 	 * @return true if the map is valid, false otherwise
 	 */
 	private boolean validateCurrentMap() {
@@ -185,21 +445,21 @@ public class GamePlayController {
 	        d_gameController.getView().displayError("No map loaded.");
 	        return false;
 	    }
-	    
+
 	    // Validate map connectivity
 	    boolean isMapConnected = d_gameMap.mapValidation();
 	    if (!isMapConnected) {
 	        d_gameController.getView().displayError("Map validation failed: Map is not connected.");
 	        return false;
 	    }
-	    
+
 	    // Validate continent connectivity
 	    boolean areContinentsConnected = d_gameMap.continentValidation();
 	    if (!areContinentsConnected) {
 	        d_gameController.getView().displayError("Map validation failed: One or more continents are not connected.");
 	        return false;
 	    }
-	    
+
 	    return true;
 	}
 
