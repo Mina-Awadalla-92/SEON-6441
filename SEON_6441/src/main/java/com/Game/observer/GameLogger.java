@@ -1,5 +1,8 @@
 package com.Game.observer;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 /**
  * GameLogger class serves as a facade for the logging system.
  * It initializes and manages the LogEntryBuffer and observers, providing a simplified
@@ -34,6 +37,103 @@ public class GameLogger {
         
         // Register the file observer with the buffer
         this.d_logEntryBuffer.addObserver(d_fileObserver);
+    }
+    
+    /**
+     * Logs detailed information about the single game configuration.
+     * 
+     * @param mapFile The selected map file
+     * @param maxTurns Maximum number of turns
+     * @param playerStrategies List of player strategies
+     */
+    public void logSingleGameSetup(String mapFile, int maxTurns, java.util.List<String> playerStrategies) {
+        StringBuilder setupLog = new StringBuilder();
+        setupLog.append("===== SINGLE GAME CONFIGURATION =====\n");
+        setupLog.append("Timestamp: ").append(getCurrentTimestamp()).append("\n");
+        setupLog.append("Map: ").append(mapFile).append("\n");
+        setupLog.append("Maximum Turns: ").append(maxTurns).append("\n");
+        setupLog.append("Player Strategies:\n");
+        
+        for (int i = 0; i < playerStrategies.size(); i++) {
+            setupLog.append("  Player ").append(i+1).append(": ")
+                    .append(playerStrategies.get(i)).append("\n");
+        }
+        setupLog.append("======================================\n");
+        
+        logAction(setupLog.toString());
+    }
+    
+    /**
+     * Logs the result of a single game mode.
+     * 
+     * @param winner The name of the winning player or "Draw"
+     * @param mapFile The map used for the game
+     * @param turnsTaken Number of turns taken to complete the game
+     */
+    public void logSingleGameResult(String winner, String mapFile, int turnsTaken) {
+        StringBuilder resultLog = new StringBuilder();
+        resultLog.append("===== SINGLE GAME RESULT =====\n");
+        resultLog.append("Timestamp: ").append(getCurrentTimestamp()).append("\n");
+        resultLog.append("Map: ").append(mapFile).append("\n");
+        resultLog.append("Turns Taken: ").append(turnsTaken).append("\n");
+        
+        if (winner.equals("Draw")) {
+            resultLog.append("Result: DRAW\n");
+            resultLog.append("No player managed to conquer all territories within the turn limit.\n");
+        } else {
+            resultLog.append("Winner: ").append(winner).append("\n");
+            resultLog.append("Player successfully conquered all territories.\n");
+        }
+        resultLog.append("======================================\n");
+        
+        logAction(resultLog.toString());
+    }
+    
+    /**
+     * Logs detailed strategy information for each player type.
+     */
+    public void logPlayerStrategyInfo() {
+        StringBuilder strategyLog = new StringBuilder();
+        strategyLog.append("===== PLAYER STRATEGY DETAILS =====\n");
+        strategyLog.append("Timestamp: ").append(getCurrentTimestamp()).append("\n");
+        
+        strategyLog.append("1. Human Player:\n");
+        strategyLog.append("   - Requires user interaction to make decisions\n");
+        
+        strategyLog.append("2. Aggressive Player:\n");
+        strategyLog.append("   - Focuses on centralization of forces\n");
+        strategyLog.append("   - Deploys on strongest country\n");
+        strategyLog.append("   - Always attacks with strongest country\n");
+        strategyLog.append("   - Moves armies to maximize force aggregation\n");
+        
+        strategyLog.append("3. Benevolent Player:\n");
+        strategyLog.append("   - Focuses on protecting weak countries\n");
+        strategyLog.append("   - Deploys on weakest country\n");
+        strategyLog.append("   - Never attacks\n");
+        strategyLog.append("   - Moves armies to reinforce weaker countries\n");
+        
+        strategyLog.append("4. Random Player:\n");
+        strategyLog.append("   - Makes completely random decisions\n");
+        strategyLog.append("   - Deploys on random country\n");
+        strategyLog.append("   - Attacks random neighboring countries\n");
+        strategyLog.append("   - Moves armies randomly\n");
+        
+        strategyLog.append("5. Cheater Player:\n");
+        strategyLog.append("   - Automatically conquers immediate neighboring enemy countries\n");
+        strategyLog.append("   - Doubles the number of armies on countries with enemy neighbors\n");
+        strategyLog.append("======================================\n");
+        
+        logAction(strategyLog.toString());
+    }
+    
+    /**
+     * Gets the current timestamp formatted as a string.
+     * 
+     * @return Formatted current timestamp
+     */
+    private String getCurrentTimestamp() {
+        return LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
     
     /**
