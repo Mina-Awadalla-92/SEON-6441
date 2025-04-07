@@ -7,7 +7,7 @@ import java.util.Random;
 import com.Game.controller.GameController;
 import com.Game.observer.GameLogger;
 import com.Game.utils.MapLoader;
-import com.Game.utils.TournamentUtil;
+import com.Game.utils.SingleGameUtil;
 
 /**
  * Represents a single game mode in the Warzone game.
@@ -26,7 +26,7 @@ public class SingleGameMode {
     private List<String> d_playerStrategies;
     
     /**
-     * Maximum number of turns for the game.
+     * Maximum number of turns for the game (used only in tournament mode).
      */
     private int d_maxTurns;
     
@@ -65,7 +65,7 @@ public class SingleGameMode {
      *
      * @param p_mapFile The map file to be used
      * @param p_playerStrategies List of player strategies
-     * @param p_maxTurns Maximum number of turns
+     * @param p_maxTurns Maximum number of turns (only used in tournament mode)
      * @param p_gameController Reference to the game controller
      */
     public SingleGameMode(String p_mapFile, List<String> p_playerStrategies, 
@@ -122,11 +122,20 @@ public class SingleGameMode {
         // Assign countries randomly
         assignCountriesRandomly(l_gameMap, l_players);
         
-     // Run the game for up to max turns or until a winner is found
+        // Check if game has human players
+        boolean hasHumanPlayers = l_players.stream()
+            .anyMatch(player -> player instanceof HumanPlayer);
+        
+        // Run the game until a winner is found, without a turn limit for single game mode
         int currentTurn = 0;
         Player winner = null;
         
-        while (currentTurn < d_maxTurns && winner == null) {
+        while (winner == null) {
+            // For tournament mode, obey the max turns limit
+            if (!hasHumanPlayers && d_maxTurns > 0 && currentTurn >= d_maxTurns) {
+                break;
+            }
+            
             // Reinforcement phase
             calculateReinforcements(l_players);
             
@@ -148,6 +157,7 @@ public class SingleGameMode {
             currentTurn++;
             d_turnsTaken = currentTurn; // Update turns taken
         }
+        
         if (winner != null) {
             if (d_gameLogger != null) {
                 d_gameLogger.logAction("Single Game on map " + d_mapFile + 
@@ -157,7 +167,7 @@ public class SingleGameMode {
         } else {
             if (d_gameLogger != null) {
                 d_gameLogger.logAction("Single Game on map " + d_mapFile + 
-                                      " ended in a draw after " + d_maxTurns + " turns");
+                                      " ended in a draw after " + currentTurn + " turns");
             }
             return "Draw";
         }
