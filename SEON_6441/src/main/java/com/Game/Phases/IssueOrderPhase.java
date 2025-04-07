@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.Game.controller.GameController;
+import com.Game.model.HumanPlayer;
 import com.Game.model.Map;
 import com.Game.model.Player;
 import com.Game.observer.GameLogger;
@@ -32,6 +33,8 @@ public class IssueOrderPhase extends Phase {
 	/**
 	 * Starts the Issue Order phase, allowing players to assign orders until they
 	 * finish or run out of reinforcement armies.
+	 * This implementation handles both human and computer players, ensuring human players
+	 * get a chance to issue orders even when playing against computer players.
 	 *
 	 * @param p_gameController    the game controller handling the game state
 	 * @param p_players           list of players participating in the game
@@ -48,65 +51,87 @@ public class IssueOrderPhase extends Phase {
 			d_gameLogger.logAction("Starting Issue Order Phase");
 		}
 
+		// First, handle the computer players (non-human players)
 		for (Player l_player : p_players) {
-			
-			boolean l_playerDone = false;
-			
-			p_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
-			p_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories(), l_player, p_gameMap);
+			if (!(l_player instanceof HumanPlayer)) {
+				if (d_gameLogger != null) {
+					d_gameLogger.logAction("Computer player " + l_player.getName() + " is issuing orders");
+				}
+				
+				// Display information about the computer player's turn
+				p_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
+				p_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories(), l_player, p_gameMap);
+				
+				// Computer players issue orders automatically
+				boolean l_success = l_player.issueOrder("", p_gameMap, p_players);
+				
+				if (d_gameLogger != null) {
+					d_gameLogger.logAction("Computer player " + l_player.getName() + " finished issuing orders");
+				}
+			}
+		}
 
-			while (!l_playerDone) {
-				// Check if player has reinforcement armies
-				if (l_player.getNbrOfReinforcementArmies() <= 0) {
-					// If no reinforcement armies, ask if they want to issue more orders or finish
-					System.out.println(
-							"You have used all your reinforcement armies. Do you want to issue other types of orders?");
-					String l_response = p_commandPromptView.getString("Enter 'yes' to continue or 'no' to finish");
-					if (!l_response.equalsIgnoreCase("yes")) {
+		// Then, handle the human players separately
+		for (Player l_player : p_players) {
+			if (l_player instanceof HumanPlayer) {
+				boolean l_playerDone = false;
+				
+				p_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
+				p_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories(), l_player, p_gameMap);
+
+				while (!l_playerDone) {
+					// Check if player has reinforcement armies
+					if (l_player.getNbrOfReinforcementArmies() <= 0) {
+						// If no reinforcement armies, ask if they want to issue more orders or finish
+						System.out.println(
+								"You have used all your reinforcement armies. Do you want to issue other types of orders?");
+						String l_response = p_commandPromptView.getString("Enter 'yes' to continue or 'no' to finish");
+						if (!l_response.equalsIgnoreCase("yes")) {
+							l_playerDone = true;
+							if (d_gameLogger != null) {
+								d_gameLogger.logAction("Player " + l_player.getName() + " finished issuing orders");
+							}
+							continue;
+						}
+					}
+
+					String l_orderCommand = p_commandPromptView.getPlayerOrder(l_player.getName(),
+							l_player.getNbrOfReinforcementArmies());
+
+					if (l_orderCommand.equalsIgnoreCase("FINISH")) {
 						l_playerDone = true;
 						if (d_gameLogger != null) {
 							d_gameLogger.logAction("Player " + l_player.getName() + " finished issuing orders");
 						}
 						continue;
 					}
-				}
 
-				String l_orderCommand = p_commandPromptView.getPlayerOrder(l_player.getName(),
-						l_player.getNbrOfReinforcementArmies());
-
-				if (l_orderCommand.equalsIgnoreCase("FINISH")) {
-					l_playerDone = true;
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction("Player " + l_player.getName() + " finished issuing orders");
+					// Validate command is appropriate for this phase
+					String[] l_commandParts = l_orderCommand.split("\\s+");
+					if (l_commandParts.length > 0 && !validateCommand(l_commandParts[0])) {
+						p_gameController.getView()
+								.displayError("Invalid command for issue order phase: " + l_commandParts[0]);
+						if (d_gameLogger != null) {
+							d_gameLogger.logAction(
+									"Player " + l_player.getName() + " attempted invalid command: " + l_commandParts[0]);
+						}
+						continue;
 					}
-					continue;
-				}
 
-				// Validate command is appropriate for this phase
-				String[] l_commandParts = l_orderCommand.split("\\s+");
-				if (l_commandParts.length > 0 && !validateCommand(l_commandParts[0])) {
-					p_gameController.getView()
-							.displayError("Invalid command for issue order phase: " + l_commandParts[0]);
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction(
-								"Player " + l_player.getName() + " attempted invalid command: " + l_commandParts[0]);
-					}
-					continue;
-				}
+					// Issue the order
+					boolean l_success = l_player.issueOrder(l_orderCommand, p_gameMap, p_players);
 
-				// Issue the order
-				boolean l_success = l_player.issueOrder(l_orderCommand, p_gameMap, p_players);
-
-				if (!l_success) {
-					p_gameController.getView()
-							.displayError("Failed to create order. Please check your command format.");
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction(
-								"Player " + l_player.getName() + " failed to issue order: " + l_orderCommand);
-					}
-				} else {
-					if (d_gameLogger != null) {
-						d_gameLogger.logAction("Player " + l_player.getName() + " issued order: " + l_orderCommand);
+					if (!l_success) {
+						p_gameController.getView()
+								.displayError("Failed to create order. Please check your command format.");
+						if (d_gameLogger != null) {
+							d_gameLogger.logAction(
+									"Player " + l_player.getName() + " failed to issue order: " + l_orderCommand);
+						}
+					} else {
+						if (d_gameLogger != null) {
+							d_gameLogger.logAction("Player " + l_player.getName() + " issued order: " + l_orderCommand);
+						}
 					}
 				}
 			}
