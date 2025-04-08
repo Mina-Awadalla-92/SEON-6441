@@ -39,8 +39,9 @@ public class StartupPhase extends Phase {
         if (p_commandParts != null && p_commandParts.length >= 3) {
             String l_action = p_commandParts[1];
             String l_playerName = p_commandParts[2];
+            String l_playerType = p_commandParts[3];
 
-            p_gameController.handleGamePlayer(l_action, l_playerName);
+            p_gameController.handleGamePlayer(l_action, l_playerName, l_playerType);
             
             if (d_gameLogger != null) {
                 d_gameLogger.logAction("Player management: " + l_action + " " + l_playerName);

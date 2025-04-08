@@ -645,7 +645,8 @@ public class GameController {
 			if (p_commandParts.length >= 3) {
 				String l_action = p_commandParts[1];
 				String l_playerName = p_commandParts[2];
-				handleGamePlayer(l_action, l_playerName);
+				String l_playerType = p_commandParts[3];
+				handleGamePlayer(l_action, l_playerName, l_playerType);
 			} else {
 				d_view.displayError("Usage: gameplayer -add playerName OR gameplayer -remove playerName");
 				d_gameLogger.logAction("Error: Invalid gameplayer command format");
@@ -766,15 +767,6 @@ public class GameController {
 	    }
 	}
 
-	/**
-	 * Handles the gameplayer command with default player type (human).
-	 *
-	 * @param p_action     The action to perform (add/remove)
-	 * @param p_playerName The name of the player to add/remove
-	 */
-	public void handleGamePlayer(String p_action, String p_playerName) {
-	    handleGamePlayer(p_action, p_playerName, "human");
-	}
 	/**
 	 * Gets the game view.
 	 *
