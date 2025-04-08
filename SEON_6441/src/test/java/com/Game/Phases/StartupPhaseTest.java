@@ -70,13 +70,13 @@ public class StartupPhaseTest {
     @Test
     public void testStartPhase_ValidGamePlayerCommand_Add() {
         // Given: Valid "gameplayer" command to add a player
-        String[] commandParts = {"gameplayer", "-add", "player1"};
+        String[] commandParts = {"gameplayer", "-add", "player1", "human"};
 
         // When: Start the phase with the add command
         startupPhase.StartPhase(gameControllerMock, Arrays.asList(playerMock1, playerMock2), commandPromptViewMock, commandParts, gameMapMock);
 
         // Then: The controller should handle the "gameplayer" command
-        verify(gameControllerMock).handleGamePlayer("-add", "player1");
+        verify(gameControllerMock).handleGamePlayer("-add", "player1", "human");
         verify(gameLoggerMock).logAction("Player management: -add player1");
     }
 }

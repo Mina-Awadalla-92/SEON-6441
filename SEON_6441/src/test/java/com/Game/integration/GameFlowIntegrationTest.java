@@ -100,8 +100,8 @@ public class GameFlowIntegrationTest {
 				"editneighbor", true);
 
 		// Add players
-		d_gameController.handleGamePlayer("-add", "Player1");
-		d_gameController.handleGamePlayer("-add", "Player2");
+		d_gameController.handleGamePlayer("-add", "Player1", "human");
+		d_gameController.handleGamePlayer("-add", "Player2", "human");
 
 		// Verify players were added
 		List<Player> players = d_gameController.getPlayers();
@@ -141,8 +141,8 @@ public class GameFlowIntegrationTest {
 		}
 
 		// Add players
-		d_gameController.handleGamePlayer("-add", "Player1");
-		d_gameController.handleGamePlayer("-add", "Player2");
+		d_gameController.handleGamePlayer("-add", "Player1", "human");
+		d_gameController.handleGamePlayer("-add", "Player2", "human");
 
 		// Manually assign territories to test reinforcement calculation
 		Player player1 = d_gameController.getPlayers().get(0);

@@ -85,20 +85,20 @@ public class GameControllerTest {
 		GameController controller = new GameController();
 
 		// Test adding a player
-		controller.handleGamePlayer("-add", "TestPlayer");
+		controller.handleGamePlayer("-add", "TestPlayer", "human");
 		assertEquals("Controller should have 1 player", 1, controller.getPlayers().size());
 		assertEquals("Player name should be correct", "TestPlayer", controller.getPlayers().get(0).getName());
 
 		// Test adding a duplicate player
-		controller.handleGamePlayer("-add", "TestPlayer");
+		controller.handleGamePlayer("-add", "TestPlayer","human");
 		assertEquals("Controller should still have just 1 player", 1, controller.getPlayers().size());
 
 		// Test removing a player
-		controller.handleGamePlayer("-remove", "TestPlayer");
+		controller.handleGamePlayer("-remove", "TestPlayer","human");
 		assertTrue("Players list should be empty after removal", controller.getPlayers().isEmpty());
 
 		// Test invalid action
-		controller.handleGamePlayer("-invalid", "TestPlayer");
+		controller.handleGamePlayer("-invalid", "TestPlayer","human");
 		assertTrue("Players list should still be empty after invalid action", controller.getPlayers().isEmpty());
 	}
 

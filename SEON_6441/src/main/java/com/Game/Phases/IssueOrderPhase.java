@@ -71,8 +71,7 @@ public class IssueOrderPhase extends Phase {
 					}
 				}
 
-				String l_orderCommand = p_commandPromptView.getPlayerOrder(l_player.getName(),
-						l_player.getNbrOfReinforcementArmies());
+				String l_orderCommand = p_commandPromptView.getPlayerOrder(l_player.getName(), l_player.getPlayerType(), l_player.getNbrOfReinforcementArmies());
 
 				if (l_orderCommand.equalsIgnoreCase("FINISH")) {
 					l_playerDone = true;
