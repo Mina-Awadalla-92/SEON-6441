@@ -530,16 +530,21 @@ public class GameController {
 
 					d_view.displayTournamentMenu();
 	            } else {
-					//check if all players automated
-					boolean allNotHuman = d_players.stream()
-							.allMatch(player -> !"human".equals(player.getPlayerType()));
 
-					if(allNotHuman)
+					if(l_gameMode == 1 && !d_players.isEmpty())
 					{
-						AutomateSingleGameMode();
-						d_view.displayMessage("Game ended successfully!");
-						System.exit(0);
+						//check if all players automated
+						boolean allNotHuman = d_players.stream()
+								.allMatch(player -> !"human".equals(player.getPlayerType()));
+
+						if(allNotHuman)
+						{
+							AutomateSingleGameMode();
+							d_view.displayMessage("Game ended successfully!");
+							System.exit(0);
+						}
 					}
+
 
 	                d_view.displayMainGameMenu();
 	            }
@@ -911,7 +916,14 @@ public class GameController {
 		return d_gameLogger;
 	}
 
-
+	/**
+	 * Automates a single game in which all players take turns until a winner is determined.
+	 *
+	 * <p>The game loop continues through reinforcement, issuing orders, and executing orders
+	 * until one player owns all the territories or is the only one left with territories.</p>
+	 *
+	 * @return the name of the winning player, or "Draw" if no player wins.
+	 */
 	private String AutomateSingleGameMode()
 	{
 		Player winner = null;
@@ -948,6 +960,12 @@ public class GameController {
 
 	}
 
+	/**
+	 * Calculates and assigns reinforcement armies to each player based on the number
+	 * of territories they currently own. The minimum reinforcement is 3 armies.
+	 *
+	 * @param p_players the list of players participating in the game
+	 */
 	private void calculateReinforcements(List<Player> p_players) {
 		for (Player player : p_players) {
 			// Basic calculation: number of territories divided by 3, minimum 3
@@ -956,12 +974,25 @@ public class GameController {
 		}
 	}
 
+	/**
+	 * Prompts each player to issue orders for their turn. The orders are based on the current game map
+	 * and the state of all players.
+	 *
+	 * @param p_players the list of players in the game
+	 * @param p_gameMap the current state of the game map
+	 */
 	private void issueOrders(List<Player> p_players, com.Game.model.Map p_gameMap) {
 		for (Player player : p_players) {
 			player.issueOrder("", p_gameMap, p_players);
 		}
 	}
 
+	/**
+	 * Executes all orders issued by the players in a round-robin fashion until
+	 * all players have no more orders to execute.
+	 *
+	 * @param p_players the list of players in the game
+	 */
 	private void executeOrders(List<Player> p_players) {
 		boolean ordersRemaining = true;
 
@@ -979,6 +1010,14 @@ public class GameController {
 		}
 	}
 
+	/**
+	 * Checks whether a player has won the game.
+	 * A player is considered a winner if they own all territories or are the only player left with any territories.
+	 *
+	 * @param p_gameMap the current game map containing all territories
+	 * @param p_players the list of players in the game
+	 * @return the winning player if there is one, otherwise null
+	 */
 	private Player checkForWinner(com.Game.model.Map p_gameMap, List<Player> p_players) {
 		// Check if any player owns all territories
 		int totalTerritories = p_gameMap.getTerritoryList().size();
