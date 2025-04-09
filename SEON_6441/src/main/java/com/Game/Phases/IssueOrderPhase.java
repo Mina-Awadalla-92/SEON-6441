@@ -51,6 +51,11 @@ public class IssueOrderPhase extends Phase {
 		for (Player l_player : p_players) {
 			
 			boolean l_playerDone = false;
+
+			if (!"human".equals(l_player.getPlayerType())) {
+				l_player.issueOrder("", p_gameMap, p_players);
+				continue; // Skip the rest of the loop for non-human players
+			}
 			
 			p_gameController.getView().displayPlayerTurn(l_player.getName(), l_player.getNbrOfReinforcementArmies());
 			p_gameController.getView().displayPlayerTerritories(l_player.getOwnedTerritories(), l_player, p_gameMap);

@@ -1,55 +1,14 @@
 === WARZONE GAME LOG ===
-Log started at: 2025-04-07T23:48:26.540428
+Log started at: 2025-04-08T17:40:10.976104
 ==============================
-[2025-04-07 23:48:26] Player added: Player1 (Type: human)
-[2025-04-07 23:48:26] Player added: Player2 (Type: human)
-[2025-04-07 23:48:26] Main game started
-[2025-04-07 23:48:26] === REINFORCEMENT PHASE ===
-[2025-04-07 23:48:26] Player Player1 received 3 reinforcement armies
-[2025-04-07 23:48:26] Player Player2 received 3 reinforcement armies
-[2025-04-07 23:48:26] Player Player1 received a BOMB card
-[2025-04-07 23:48:26] Player Player1 used a BOMB card
-[2025-04-07 23:48:26] Player added: Player1 (Type: human)
-[2025-04-07 23:48:26] Player added: Player2 (Type: human)
-[2025-04-07 23:48:26] Territory Country1 assigned to player Player1
-[2025-04-07 23:48:26] Territory Country2 assigned to player Player2
-[2025-04-07 23:48:26] Countries successfully assigned to players
-[2025-04-07 23:48:26] Countries successfully assigned to players
-[2025-04-07 23:48:26] Order execution: Deploy Order Executed: Player TestPlayer deployed 3 armies to Country1. New total: 3 armies.
-[2025-04-07 23:48:26] Order execution: Deploy Order Executed: Player TestPlayer deployed 5 armies to TestTerritory. New total: 5 armies.
-[2025-04-07 23:48:26] Order execution: Player Attacker advanced and conquered neutral territory NeutralTerritory with 3 armies. NeutralTerritory now has 3 armies.
-[2025-04-07 23:48:26] Order execution: Player Attacker has conquered at least one territory this turn.
-[2025-04-07 23:48:26] Order execution: Advance Attack succeeded: Player Attacker conquered EnemyTarget from Defender. 3 attacking armies now occupy the territory.
-[2025-04-07 23:48:26] Order execution: Player Attacker advanced 3 armies from SourceTerritory to FriendlyTarget. FriendlyTarget now has 4 armies.
-[2025-04-07 23:48:26] Player Attacker received a AIRLIFT card
-[2025-04-07 23:48:26] Player Attacker used a AIRLIFT card
-[2025-04-07 23:48:26] Order execution: Airlift Attack succeeded: Player Attacker conquered EnemyLand from Defender. 2 attacking armies survived.
-[2025-04-07 23:48:26] Player Attacker received a AIRLIFT card
-[2025-04-07 23:48:26] Player Attacker used a AIRLIFT card
-[2025-04-07 23:48:26] Order execution: Player Attacker conquered the neutral territory NeutralLand using AIRLIFT with 4 armies. NeutralLand now has 4 armies.
-[2025-04-07 23:48:26] Order execution: Player Attacker has conquered at least one territory this turn.
-[2025-04-07 23:48:26] Player Attacker received a AIRLIFT card
-[2025-04-07 23:48:26] Player Attacker used a AIRLIFT card
-[2025-04-07 23:48:26] Order execution: Airlift Attack succeeded: Player Attacker conquered ThirdLand from ThirdPlayer. 4 attacking armies survived.
-[2025-04-07 23:48:26] Player PlayerOne received a BLOCKADE card
-[2025-04-07 23:48:26] Player PlayerOne used a BLOCKADE card
-[2025-04-07 23:48:26] Order execution: Blockade Order Executed: Player PlayerOne blockaded TestLand. Territory is now neutral with 12 armies (tripled from 4).
-[2025-04-07 23:48:26] Order execution: Bomb Order Executed: Player Issuer bombed TargetLand owned by Defender. Army count reduced from 20 to 10
-[2025-04-07 23:48:26] Order execution: Bomb order from Issuer cancelled due to diplomacy with Defender
-[2025-04-07 23:48:26] Order execution: Negotiate Order Executed: Player Issuer established diplomacy with Target. They cannot attack each other for this turn.
-[2025-04-07 23:48:26] Player Attacker received a AIRLIFT card
-[2025-04-07 23:48:26] Player Attacker used a AIRLIFT card
-[2025-04-07 23:48:26] Order execution: Airlift Attack succeeded: Player Attacker conquered EnemyLand from Defender. 2 attacking armies survived.
-[2025-04-07 23:48:26] Player Attacker received a AIRLIFT card
-[2025-04-07 23:48:26] Player Attacker used a AIRLIFT card
-[2025-04-07 23:48:26] Order execution: Player Attacker conquered the neutral territory NeutralLand using AIRLIFT with 4 armies. NeutralLand now has 4 armies.
-[2025-04-07 23:48:26] Order execution: Player Attacker has conquered at least one territory this turn.
-[2025-04-07 23:48:26] Player Attacker received a AIRLIFT card
-[2025-04-07 23:48:26] Player Attacker used a AIRLIFT card
-[2025-04-07 23:48:26] Order execution: Airlift Attack succeeded: Player Attacker conquered ThirdLand from ThirdPlayer. 5 attacking armies survived.
-[2025-04-07 23:48:26] Order execution: Player Attacker advanced and conquered neutral territory NeutralTerritory with 3 armies. NeutralTerritory now has 3 armies.
-[2025-04-07 23:48:26] Order execution: Player Attacker has conquered at least one territory this turn.
-[2025-04-07 23:48:26] Order execution: Advance Attack succeeded: Player Attacker conquered EnemyTarget from Defender. 3 attacking armies now occupy the territory.
-[2025-04-07 23:48:26] Order execution: Player Attacker advanced 3 armies from SourceTerritory to FriendlyTarget. FriendlyTarget now has 4 armies.
-[2025-04-07 23:48:26] === STARTUP PHASE ===
-[2025-04-07 23:48:26] Order execution: Negotiate Order Executed: Player Issuer established diplomacy with Target. They cannot attack each other for this turn.
+[2025-04-08 17:40:11] Current map state:
+Player TestPlayer1 owns 0 territories with 0 reinforcement armies.
+Player TestPlayer2 owns 0 territories with 0 reinforcement armies.
+
+[2025-04-08 17:40:14] Player added: TestPlayer (Type: human)
+[2025-04-08 17:40:14] Error: Player already exists: TestPlayer
+[2025-04-08 17:40:14] Player removed: TestPlayer
+[2025-04-08 17:40:14] Error: Invalid action for gameplayer: -invalid
+[2025-04-08 17:40:14] === REINFORCEMENT PHASE ===
+[2025-04-08 17:40:14] Player TestPlayer1 received 3 reinforcement armies
+[2025-04-08 17:40:14] Player TestPlayer2 received 3 reinforcement armies
