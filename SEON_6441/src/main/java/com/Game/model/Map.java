@@ -262,6 +262,64 @@ public class Map {
         }
     }
 
+    public void saveToConquestFile(String p_filePath) {
+        // Debugging: Print the absolute path to confirm it's correct
+        System.out.println("Saving to Conquest file: " + new File(p_filePath).getAbsolutePath());
+
+        // Check if the directory exists, create it if not
+        File l_file = new File(p_filePath);
+        File l_parentDir = l_file.getParentFile();
+        if (l_parentDir != null && !l_parentDir.exists()) {
+            System.out.println("Directory does not exist. Creating directory: " + l_parentDir.getAbsolutePath());
+            l_parentDir.mkdirs();  // Creates the directories if they do not exist
+        }
+
+        try (BufferedWriter l_writer = new BufferedWriter(new FileWriter(l_file))) {
+            // Writing Map section
+            l_writer.write("[Map]\n");
+
+            // Writing Continents section
+            l_writer.write("[Continents]\n");
+            for (java.util.Map.Entry<String, Integer> l_entry : d_continents.entrySet()) {
+                l_writer.write(l_entry.getKey() + "=" + l_entry.getValue() + "\n");
+            }
+            l_writer.write("\n");
+
+            // Writing Territories section
+            l_writer.write("[Territories]\n");
+            for (int i = 0; i < d_territoryList.size(); i++) {
+                Territory l_t = d_territoryList.get(i);
+                // Territory format: Name,x,y,Continent,Neighbor1,Neighbor2,...
+                StringBuilder territoryLine = new StringBuilder(l_t.getName() + ",");
+
+                // Add territory coordinates (example: dummy data for now, replace with real coordinates)
+                territoryLine.append(11 + "," + 22+ ",");  // Replace with actual X,Y values if needed
+
+                // Add continent name
+                territoryLine.append(l_t.getContinent() + ",");
+
+                // Add neighbors
+                for (Territory l_neighbor : l_t.getNeighborList()) {
+                    territoryLine.append(l_neighbor.getName() + ",");
+                }
+                // Remove the trailing comma if any
+                if (territoryLine.charAt(territoryLine.length() - 1) == ',') {
+                    territoryLine.deleteCharAt(territoryLine.length() - 1);
+                }
+
+                l_writer.write(territoryLine.toString() + "\n");
+            }
+            l_writer.write("\n");
+
+            // Success message
+            System.out.println("Conquest map file saved successfully!");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Error saving the Conquest file: " + e.getMessage());
+        }
+    }
+
+
     /**
      * Saves the current state of the game to a map file.
      *
