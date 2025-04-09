@@ -15,7 +15,6 @@ import com.Game.Phases.StartupPhase;
 import com.Game.model.Map;
 import com.Game.model.Player;
 import com.Game.model.RandomPlayer;
-import com.Game.model.SingleGameMode;
 import com.Game.model.AggressivePlayer;
 import com.Game.model.BenevolentPlayer;
 import com.Game.model.CheaterPlayer;
@@ -154,115 +153,6 @@ public class GameController {
 		// Initialize with the MapEditor state
 		this.d_currentState = new MapEditorPhase();
 	}
-	
-	/**
-     * Provides a method to select players for single game mode.
-     * Allows adding human and computer players with different strategies.
-     */
-    private void setupSingleGamePlayers() {
-        while (true) {
-            d_view.displayMessage("\n=== Player Setup ===");
-            d_view.displayMessage("1. Add Human Player");
-            d_view.displayMessage("2. Add Aggressive Computer Player");
-            d_view.displayMessage("3. Add Benevolent Computer Player");
-            d_view.displayMessage("4. Add Random Computer Player");
-            d_view.displayMessage("5. Add Cheater Computer Player");
-            d_view.displayMessage("6. Finish Player Setup");
-
-            int choice = d_commandPromptView.getInteger("Enter your choice");
-
-            switch (choice) {
-                case 1:
-                    String playerName = d_commandPromptView.getString("Enter human player name");
-                    handleGamePlayer("-add", playerName, "human");
-                    break;
-                case 2:
-                    String aggressiveName = "Aggressive_" + (d_players.size() + 1);
-                    handleGamePlayer("-add", aggressiveName, "aggressive");
-                    break;
-                case 3:
-                    String benevolentName = "Benevolent_" + (d_players.size() + 1);
-                    handleGamePlayer("-add", benevolentName, "benevolent");
-                    break;
-                case 4:
-                    String randomName = "Random_" + (d_players.size() + 1);
-                    handleGamePlayer("-add", randomName, "random");
-                    break;
-                case 5:
-                    String cheaterName = "Cheater_" + (d_players.size() + 1);
-                    handleGamePlayer("-add", cheaterName, "cheater");
-                    break;
-                case 6:
-                    // Validate player setup
-                    if (d_players.size() < 2) {
-                        d_view.displayError("You must have at least 2 players to start the game.");
-                        continue;
-                    }
-                    return;
-                default:
-                    d_view.displayError("Invalid choice. Please try again.");
-            }
-        }
-    }
-    
-    /**
-     * Handles the single game mode setup and execution.
-     * 
-     * @return The result of the single game (winner or draw)
-     */
-    private String handleSingleGameMode() {
-        // Show player strategy information
-        d_view.displayPlayerStrategyInfo();
-        
-        // Configure single game settings
-        List<Object> gameSettings = d_commandPromptView.configureSingleGameSettings();
-        
-        // Extract settings
-        String mapFile = (String) gameSettings.get(0);
-        int maxTurns = (int) gameSettings.get(1);
-        @SuppressWarnings("unchecked")
-        List<String> playerStrategies = (List<String>) gameSettings.get(2);
-        
-        // Display game setup details
-        d_view.displaySingleGameSetup(mapFile, maxTurns, playerStrategies);
-        
-        // Show strategy warning
-        d_view.displayPlayerStrategyWarning(playerStrategies);
-        
-        // Check if game is fully automatic
-        boolean isAutomatic = playerStrategies.stream()
-                .noneMatch(strategy -> strategy.equalsIgnoreCase("human"));
-        
-        // Display automatic game message if applicable
-        if (isAutomatic) {
-            d_view.displayAutoGameMessage();
-        }
-        
-        // Create and run single game mode
-        SingleGameMode singleGame = new SingleGameMode(
-            mapFile, 
-            playerStrategies, 
-            maxTurns, 
-            this
-        );
-        
-        // Run the game and get the result
-        String gameResult = singleGame.runSingleGame();
-        
-        // Display game result
-        d_view.displayGameResult(
-            gameResult, 
-            mapFile, 
-            singleGame.getTurnsTaken()
-        );
-        
-        // Log the game result
-        if (d_gameLogger != null) {
-            d_gameLogger.logAction("Single Game Result: " + gameResult);
-        }
-        
-        return gameResult;
-    }
 	
 	/**
 	 * Handles the tournament command.
@@ -488,7 +378,7 @@ public class GameController {
 
 	/**
 	 * Starts the game and processes user commands.
-	 * Provides a command prompt for game interaction.
+	 * Provides a command prompt that's available throughout the game.
 	 */
 	public void startGame() {
 	    // Display game mode selection menu at startup
@@ -496,23 +386,9 @@ public class GameController {
 	    int l_gameMode = selectGameModeAtStartup();
 	    
 	    // Initialize the appropriate phase based on mode
-	    if (l_gameMode == 1) { // Single Player Mode
-	        // Directly run single game mode
-	        String gameResult = handleSingleGameMode();
-	        
-	        // Optionally, provide option to play again or exit
-	        boolean playAgain = d_commandPromptView.getConfirmation("Would you like to play another game?");
-	        
-	        if (playAgain) {
-	            // Recursively start the game again
-	            startGame();
-	        } else {
-	            d_view.displayMessage("Thank you for playing Warzone!");
-	        }
-	    }
-	    else if (l_gameMode == 2) { // Tournament Mode
+	    if (l_gameMode == 2) {
 	        setPhase(PhaseType.MAP_EDITOR);
-	        d_view.displayMessage("\nTournament Mode selected. Please load a map to continue."); 
+	        d_view.displayMessage("\nTournament Mode selected. Please load a map to continue.");
 	    }
 		else if (l_gameMode == 3) {
 			d_currentPhase = MAIN_GAME_PHASE;
