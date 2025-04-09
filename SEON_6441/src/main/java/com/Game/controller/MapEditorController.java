@@ -1,6 +1,7 @@
 package com.Game.controller;
 
 import java.io.BufferedReader;
+import java.util.Scanner;
 
 import com.Game.Phases.PhaseType;
 import com.Game.model.Map;
@@ -249,8 +250,45 @@ public class MapEditorController {
 		}
 
 		String l_filename = p_commandParts[1];
-		d_gameMap.saveToFile(l_filename);
+
+		boolean isDominationSelected = isDominationFormat();
+		if (isDominationSelected)
+		{
+			d_gameMap.saveToFile(l_filename);
+		}
+		else {
+			d_gameMap.saveToConquestFile(l_filename);
+		}
 	}
+
+	/**
+	 * Prompts the user to choose between two formats for saving the map:
+	 * Domination format or Conquest format.
+	 *
+	 * @return true if the user selects Domination format (option 1),
+	 *         false if the user selects Conquest format (option 2).
+	 */
+	private boolean isDominationFormat() {
+		Scanner scanner = new Scanner(System.in);
+
+		// Ask the user to choose the format
+		System.out.println("Please choose a format to save the map:");
+		System.out.println("1. Save map in Domination format.");
+		System.out.println("2. Save map in Conquest format.");
+
+		// Get the user's choice
+		int choice = -1;
+		while (choice != 1 && choice != 2) {
+			System.out.print("Enter 1 or 2 to choose a format: ");
+			if (scanner.hasNextInt()) {
+				choice = scanner.nextInt();
+			} else {
+				scanner.next(); // Consume the invalid input
+			}
+		}
+		return choice == 1;
+	}
+
 
 	/**
 	 * Handles the editmap command to load an existing map for editing or create a

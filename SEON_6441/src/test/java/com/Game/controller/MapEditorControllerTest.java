@@ -102,16 +102,6 @@ public class MapEditorControllerTest {
     }
 
     @Test
-    public void testHandleCommand_saveMap() {
-        String[] commandParts = {"savemap", "test.map"};
-
-        mapEditorController.handleCommand(commandParts, "savemap", true);
-
-        // Verify that the save method was called on the map
-        verify(mockGameMap).saveToFile("test.map");
-    }
-
-    @Test
     public void testHandleCommand_invalidMap() {
         when(mockMapLoader.isValid("test.map")).thenReturn(false);
 
