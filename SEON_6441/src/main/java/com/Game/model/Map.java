@@ -262,6 +262,27 @@ public class Map {
         }
     }
 
+    /**
+     * Saves the current map in the Conquest map format to a specified file.
+     *
+     * <p>The method generates a file that represents the map in the Conquest format.
+     * It includes the following sections:</p>
+     *
+     * <ul>
+     *   <li>[Map] - Contains map metadata such as author, image, wrap, and scroll properties.</li>
+     *   <li>[Continents] - Lists the continents and their associated bonuses.</li>
+     *   <li>[Territories] - Lists all territories with their respective coordinates, continent, and neighbors.</li>
+     * </ul>
+     *
+     * <p>The map is saved in the specified file path, and the required directories are created if they don't exist.</p>
+     *
+     * @param p_filePath The path where the map will be saved, including the file name.
+     *                   If the specified directory does not exist, it will be created.
+     *
+     * @throws IOException If there is an issue writing to the file (e.g., file not accessible, permission issue).
+     *
+     * @see #saveToFile(String) for saving maps in the Domination format.
+     */
     public void saveToConquestFile(String p_filePath) {
         // Debugging: Print the absolute path to confirm it's correct
         System.out.println("Saving to Conquest file: " + new File(p_filePath).getAbsolutePath());
@@ -318,7 +339,6 @@ public class Map {
             System.err.println("Error saving the Conquest file: " + e.getMessage());
         }
     }
-
 
     /**
      * Saves the current state of the game to a map file.
