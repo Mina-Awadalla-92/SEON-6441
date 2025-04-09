@@ -527,8 +527,20 @@ public class GameController {
 	        } else if (d_currentPhase == MAIN_GAME_PHASE) {
 	            // Display appropriate menu based on game mode
 	            if (l_gameMode == 2) {
-	                d_view.displayTournamentMenu();
+
+					d_view.displayTournamentMenu();
 	            } else {
+					//check if all players automated
+					boolean allNotHuman = d_players.stream()
+							.allMatch(player -> !"human".equals(player.getPlayerType()));
+
+					if(allNotHuman)
+					{
+						AutomateSingleGameMode();
+						d_view.displayMessage("Game ended successfully!");
+						System.exit(0);
+					}
+
 	                d_view.displayMainGameMenu();
 	            }
 	            
@@ -645,7 +657,8 @@ public class GameController {
 			if (p_commandParts.length >= 3) {
 				String l_action = p_commandParts[1];
 				String l_playerName = p_commandParts[2];
-				handleGamePlayer(l_action, l_playerName);
+				String l_playerType = p_commandParts[3];
+				handleGamePlayer(l_action, l_playerName, l_playerType);
 			} else {
 				d_view.displayError("Usage: gameplayer -add playerName OR gameplayer -remove playerName");
 				d_gameLogger.logAction("Error: Invalid gameplayer command format");
@@ -766,15 +779,6 @@ public class GameController {
 	    }
 	}
 
-	/**
-	 * Handles the gameplayer command with default player type (human).
-	 *
-	 * @param p_action     The action to perform (add/remove)
-	 * @param p_playerName The name of the player to add/remove
-	 */
-	public void handleGamePlayer(String p_action, String p_playerName) {
-	    handleGamePlayer(p_action, p_playerName, "human");
-	}
 	/**
 	 * Gets the game view.
 	 *
@@ -906,4 +910,100 @@ public class GameController {
 	public GameLogger getGameLogger() {
 		return d_gameLogger;
 	}
+
+
+	private String AutomateSingleGameMode()
+	{
+		Player winner = null;
+
+		while (winner == null) {
+			// Reinforcement phase
+			calculateReinforcements(d_players);
+
+			// Issue orders phase
+			issueOrders(d_players, d_gameMap);
+
+			// Execute orders phase
+			executeOrders(d_players);
+
+			// Check for a winner
+			winner = checkForWinner(d_gameMap, d_players);
+
+			// Reset players' status for next turn
+			for (Player player : d_players) {
+				player.setHasConqueredThisTurn(false);
+				player.setNegociatedPlayersPerTurn(new ArrayList<>());
+			}
+		}
+
+		if (winner != null) {
+			d_view.displayMessage("Player " + winner.getName() + " won!");
+			return winner.getName();
+		}
+		else
+		{
+			d_view.displayMessage("No one Won! Game Draw.");
+			return "Draw";
+		}
+
+	}
+
+	private void calculateReinforcements(List<Player> p_players) {
+		for (Player player : p_players) {
+			// Basic calculation: number of territories divided by 3, minimum 3
+			int reinforcements = Math.max(3, player.getOwnedTerritories().size() / 3);
+			player.setNbrOfReinforcementArmies(reinforcements);
+		}
+	}
+
+	private void issueOrders(List<Player> p_players, com.Game.model.Map p_gameMap) {
+		for (Player player : p_players) {
+			player.issueOrder("", p_gameMap, p_players);
+		}
+	}
+
+	private void executeOrders(List<Player> p_players) {
+		boolean ordersRemaining = true;
+
+		while (ordersRemaining) {
+			ordersRemaining = false;
+
+			for (Player player : p_players) {
+				com.Game.model.order.Order nextOrder = player.nextOrder();
+
+				if (nextOrder != null) {
+					nextOrder.execute();
+					ordersRemaining = true;
+				}
+			}
+		}
+	}
+
+	private Player checkForWinner(com.Game.model.Map p_gameMap, List<Player> p_players) {
+		// Check if any player owns all territories
+		int totalTerritories = p_gameMap.getTerritoryList().size();
+		for (Player player : p_players) {
+			if (player.getOwnedTerritories().size() == totalTerritories) {
+				return player;
+			}
+		}
+
+		// Check if only one player has territories
+		int playersWithTerritories = 0;
+		Player lastPlayerWithTerritories = null;
+
+		for (Player player : p_players) {
+			if (player.getOwnedTerritories().size() > 0) {
+				playersWithTerritories++;
+				lastPlayerWithTerritories = player;
+			}
+		}
+
+		if (playersWithTerritories == 1) {
+			return lastPlayerWithTerritories;
+		}
+
+		return null; // No winner yet
+	}
+
 }

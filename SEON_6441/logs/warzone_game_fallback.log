@@ -1,22 +1,14 @@
 === WARZONE GAME LOG ===
-Log started at: 2025-03-28T20:59:11.461855
+Log started at: 2025-04-08T17:40:10.976104
 ==============================
-[2025-03-28 20:59:11] Current map state:
+[2025-04-08 17:40:11] Current map state:
 Player TestPlayer1 owns 0 territories with 0 reinforcement armies.
 Player TestPlayer2 owns 0 territories with 0 reinforcement armies.
 
-[2025-03-28 20:59:11] Player added: TestPlayer
-[2025-03-28 20:59:11] Error: Player already exists: TestPlayer
-[2025-03-28 20:59:11] Player removed: TestPlayer
-[2025-03-28 20:59:11] Error: Invalid action for gameplayer: -invalid
-[2025-03-28 20:59:11] === REINFORCEMENT PHASE ===
-[2025-03-28 20:59:11] Player TestPlayer1 received 3 reinforcement armies
-[2025-03-28 20:59:11] Player TestPlayer2 received 3 reinforcement armies
-[2025-03-28 20:59:11] Territory TestCountry1 assigned to player TestPlayer1
-[2025-03-28 20:59:11] Territory TestCountry2 assigned to player TestPlayer2
-[2025-03-28 20:59:11] Countries successfully assigned to players
-[2025-03-28 20:59:11] Countries successfully assigned to players
-[2025-03-28 20:59:11] Main game started
-[2025-03-28 20:59:11] === REINFORCEMENT PHASE ===
-[2025-03-28 20:59:11] Player TestPlayer1 received 3 reinforcement armies
-[2025-03-28 20:59:11] Player TestPlayer2 received 3 reinforcement armies
+[2025-04-08 17:40:14] Player added: TestPlayer (Type: human)
+[2025-04-08 17:40:14] Error: Player already exists: TestPlayer
+[2025-04-08 17:40:14] Player removed: TestPlayer
+[2025-04-08 17:40:14] Error: Invalid action for gameplayer: -invalid
+[2025-04-08 17:40:14] === REINFORCEMENT PHASE ===
+[2025-04-08 17:40:14] Player TestPlayer1 received 3 reinforcement armies
+[2025-04-08 17:40:14] Player TestPlayer2 received 3 reinforcement armies

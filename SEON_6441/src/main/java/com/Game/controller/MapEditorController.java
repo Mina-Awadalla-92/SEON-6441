@@ -121,7 +121,8 @@ public class MapEditorController {
 			if (p_commandParts.length >= 3) {
 				String l_action = p_commandParts[1];
 				String l_playerName = p_commandParts[2];
-				d_gameController.handleGamePlayer(l_action, l_playerName);
+				String l_playerType = p_commandParts[3];
+				d_gameController.handleGamePlayer(l_action, l_playerName, l_playerType);
 			} else {
 				d_gameController.getView()
 						.displayError("Usage: gameplayer -add playerName OR gameplayer -remove playerName");

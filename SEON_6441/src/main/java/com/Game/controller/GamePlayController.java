@@ -694,7 +694,7 @@ public class GamePlayController {
 		d_gameController.getView().displayMessage("Countries assigned to players:");
 		for (Player l_player : d_players) {
 			d_gameController.getView().displayMessage(
-					l_player.getName() + " owns " + l_player.getOwnedTerritories().size() + " territories.");
+					l_player.getName() + " (" + l_player.getPlayerType() + ") owns " + l_player.getOwnedTerritories().size() + " territories.");
 		}
 
 		d_gameController.getView().displayMessage("Ready to start the game. Use 'startgame' command to begin.");

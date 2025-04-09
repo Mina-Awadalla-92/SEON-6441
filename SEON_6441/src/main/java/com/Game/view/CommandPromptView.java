@@ -110,11 +110,12 @@ public class CommandPromptView {
      * Gets the next deploy order from a player or checks if they want to finish.
      * 
      * @param p_playerName The name of the player issuing orders
+     * @param p_playerType The type of the player issuing orders
      * @param p_remainingArmies The number of remaining armies the player can deploy
      * @return The player's order as a string
      */
-    public String getPlayerOrder(String p_playerName, int p_remainingArmies) {
-        System.out.print("Hi " + p_playerName + ", please enter your next deploy order, or type FINISH: ");
+    public String getPlayerOrder(String p_playerName, String p_playerType, int p_remainingArmies) {
+        System.out.print("Hi " + p_playerName + " (" + p_playerType + "), please enter your next deploy order, or type FINISH: ");
         return d_scanner.nextLine().trim();
     }
     
