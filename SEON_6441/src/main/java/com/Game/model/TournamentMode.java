@@ -124,6 +124,7 @@ public class TournamentMode {
                 d_results.get(mapFile).put(gameNumber, winner);
                 
                 System.out.println("  Game " + gameNumber + " result: " + winner);
+
             }
         }
         

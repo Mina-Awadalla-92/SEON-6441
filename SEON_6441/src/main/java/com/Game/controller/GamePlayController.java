@@ -532,6 +532,14 @@ public class GamePlayController {
 
 		d_gameController.getView().displayExecuteOrdersComplete();
 		d_gameLogger.logAction("All orders have been executed");
+
+
+		Player l_winner = checkForWinner();
+		if (l_winner != null) {
+			d_gameController.getView().displayMessage("Player " + l_winner.getName() + " won!");
+			System.exit(0);
+		}
+
 	}
 
 	/**
